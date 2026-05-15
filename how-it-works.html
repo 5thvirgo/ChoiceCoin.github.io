@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How It Works — Prime Clean</title>
+<meta name="description" content="How Prime Clean works: we connect clients with vetted cleaners, secure the contracts, and manage every job remotely.">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: { colors: {
+    brand: { 50:'#f0fdfa',100:'#ccfbf1',200:'#99f6e4',400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e',800:'#115e59',900:'#134e4a' },
+    ink: '#0f172a' } } } }
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  .hero-grad { background: linear-gradient(135deg,#0f766e 0%,#0d9488 45%,#14b8a6 100%); }
+</style>
+</head>
+<body class="bg-white text-ink antialiased">
+
+<!-- ============ NAV ============ -->
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-100">
+  <nav class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+    <a href="index.html" class="flex items-center gap-2 font-extrabold text-xl text-brand-700">
+      <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-brand-600 text-white">P</span>
+      Prime Clean
+    </a>
+    <div class="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
+      <a href="index.html" class="hover:text-brand-700">Home</a>
+      <a href="how-it-works.html" class="text-brand-700">How It Works</a>
+      <a href="cleaners.html" class="hover:text-brand-700">Become a Cleaner</a>
+      <a href="contact.html" class="hover:text-brand-700">Contact</a>
+      <a href="book.html" class="px-4 py-2 rounded-lg bg-brand-600 text-white hover:bg-brand-700">Book a Cleaning</a>
+    </div>
+    <button id="navBtn" class="md:hidden p-2 text-slate-700" aria-label="Menu">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+  </nav>
+  <div id="navMenu" class="hidden md:hidden border-t border-slate-100 px-5 py-4 space-y-3 text-sm font-medium">
+    <a href="index.html" class="block text-slate-600">Home</a>
+    <a href="how-it-works.html" class="block text-brand-700">How It Works</a>
+    <a href="cleaners.html" class="block text-slate-600">Become a Cleaner</a>
+    <a href="contact.html" class="block text-slate-600">Contact</a>
+    <a href="book.html" class="block px-4 py-2 rounded-lg bg-brand-600 text-white text-center">Book a Cleaning</a>
+  </div>
+</header>
+
+<!-- ============ PAGE HEADER ============ -->
+<section class="hero-grad text-white">
+  <div class="max-w-6xl mx-auto px-5 py-16 text-center">
+    <h1 class="text-4xl md:text-5xl font-extrabold">How Prime Clean Works</h1>
+    <p class="mt-4 text-brand-50 max-w-2xl mx-auto">Prime Clean is the middle layer between people who need cleaning and the professionals who do it. We find the work, vet the people, and manage every job — remotely.</p>
+  </div>
+</section>
+
+<!-- ============ FOR CLIENTS ============ -->
+<section class="max-w-6xl mx-auto px-5 py-20">
+  <h2 class="text-3xl font-extrabold">For clients</h2>
+  <p class="text-slate-500 mt-2">Getting your space cleaned takes three simple steps.</p>
+  <div class="grid md:grid-cols-3 gap-6 mt-10">
+    <div class="border border-slate-100 rounded-xl p-6 shadow-sm">
+      <span class="inline-flex w-10 h-10 rounded-full bg-brand-600 text-white items-center justify-center font-bold">1</span>
+      <h3 class="font-bold mt-4">Request a cleaning</h3>
+      <p class="text-sm text-slate-500 mt-2">Tell us the space, the date and what you need. It takes about a minute.</p>
+    </div>
+    <div class="border border-slate-100 rounded-xl p-6 shadow-sm">
+      <span class="inline-flex w-10 h-10 rounded-full bg-brand-600 text-white items-center justify-center font-bold">2</span>
+      <h3 class="font-bold mt-4">We match & confirm</h3>
+      <p class="text-sm text-slate-500 mt-2">We assign a vetted cleaner, agree the price with you, and lock in the time.</p>
+    </div>
+    <div class="border border-slate-100 rounded-xl p-6 shadow-sm">
+      <span class="inline-flex w-10 h-10 rounded-full bg-brand-600 text-white items-center justify-center font-bold">3</span>
+      <h3 class="font-bold mt-4">Sit back</h3>
+      <p class="text-sm text-slate-500 mt-2">The cleaner does the work. We follow up to make sure you're happy.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOR CLEANERS ============ -->
+<section class="bg-slate-50 border-y border-slate-100">
+  <div class="max-w-6xl mx-auto px-5 py-20">
+    <h2 class="text-3xl font-extrabold">For cleaners</h2>
+    <p class="text-slate-500 mt-2">We bring you steady work — you focus on cleaning.</p>
+    <div class="grid md:grid-cols-3 gap-6 mt-10">
+      <div class="bg-white border border-slate-100 rounded-xl p-6">
+        <span class="inline-flex w-10 h-10 rounded-full bg-brand-600 text-white items-center justify-center font-bold">1</span>
+        <h3 class="font-bold mt-4">Join the network</h3>
+        <p class="text-sm text-slate-500 mt-2">Apply once, get verified, and tell us your area and availability.</p>
+      </div>
+      <div class="bg-white border border-slate-100 rounded-xl p-6">
+        <span class="inline-flex w-10 h-10 rounded-full bg-brand-600 text-white items-center justify-center font-bold">2</span>
+        <h3 class="font-bold mt-4">Get matched to jobs</h3>
+        <p class="text-sm text-slate-500 mt-2">We secure the contracts and send the right jobs your way.</p>
+      </div>
+      <div class="bg-white border border-slate-100 rounded-xl p-6">
+        <span class="inline-flex w-10 h-10 rounded-full bg-brand-600 text-white items-center justify-center font-bold">3</span>
+        <h3 class="font-bold mt-4">Clean & earn</h3>
+        <p class="text-sm text-slate-500 mt-2">Do great work and receive your share for every completed job.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ THE MODEL ============ -->
+<section class="max-w-6xl mx-auto px-5 py-20">
+  <h2 class="text-3xl font-extrabold text-center">The Prime Clean model</h2>
+  <p class="text-center text-slate-500 mt-3 max-w-2xl mx-auto">A simple, transparent split. Prime Clean secures and manages the contract; the cleaner does the work. Both sides earn a fair share of every job.</p>
+  <div class="grid md:grid-cols-3 gap-6 mt-12 items-stretch">
+    <div class="border border-slate-100 rounded-xl p-6 text-center">
+      <div class="text-3xl">🤝</div>
+      <h3 class="font-bold mt-3">Client pays Prime Clean</h3>
+      <p class="text-sm text-slate-500 mt-2">One agreed price for a fully managed, hassle-free service.</p>
+    </div>
+    <div class="border-2 border-brand-600 rounded-xl p-6 text-center bg-brand-50">
+      <div class="text-3xl">⚙️</div>
+      <h3 class="font-bold mt-3">Prime Clean manages it</h3>
+      <p class="text-sm text-slate-600 mt-2">We source the contract, match the cleaner, handle scheduling and quality, and keep our service share.</p>
+    </div>
+    <div class="border border-slate-100 rounded-xl p-6 text-center">
+      <div class="text-3xl">🧹</div>
+      <h3 class="font-bold mt-3">Cleaner gets paid</h3>
+      <p class="text-sm text-slate-500 mt-2">The cleaner receives their share for completing the job to standard.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="hero-grad text-white">
+  <div class="max-w-6xl mx-auto px-5 py-16 text-center">
+    <h2 class="text-3xl font-extrabold">Have a question first?</h2>
+    <p class="mt-3 text-brand-50">We're happy to walk you through it.</p>
+    <a href="contact.html" class="inline-block mt-6 px-7 py-3 rounded-lg bg-white text-brand-700 font-semibold hover:bg-brand-50">Talk to Us</a>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-ink text-slate-400">
+  <div class="max-w-6xl mx-auto px-5 py-12 grid sm:grid-cols-3 gap-8 text-sm">
+    <div>
+      <div class="flex items-center gap-2 font-extrabold text-lg text-white">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-brand-600">P</span> Prime Clean
+      </div>
+      <p class="mt-3">Remote-managed cleaning. We connect clients and cleaners and manage every job.</p>
+    </div>
+    <div>
+      <h4 class="text-white font-semibold mb-3">Pages</h4>
+      <ul class="space-y-2">
+        <li><a href="how-it-works.html" class="hover:text-white">How It Works</a></li>
+        <li><a href="book.html" class="hover:text-white">Book a Cleaning</a></li>
+        <li><a href="cleaners.html" class="hover:text-white">Become a Cleaner</a></li>
+        <li><a href="contact.html" class="hover:text-white">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="text-white font-semibold mb-3">Contact</h4>
+      <!-- TODO: replace placeholders with your real email + WhatsApp number (digits only, with country code) -->
+      <ul class="space-y-2">
+        <li><a href="mailto:hello@primeclean.example" class="hover:text-white">hello@primeclean.example</a></li>
+        <li><a href="https://wa.me/15550000000" class="hover:text-white">WhatsApp us</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="border-t border-white/10 py-5 text-center text-xs">© 2026 Prime Clean. All rights reserved.</div>
+</footer>
+
+<script>
+  const b=document.getElementById('navBtn'),m=document.getElementById('navMenu');
+  b&&b.addEventListener('click',()=>m.classList.toggle('hidden'));
+</script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — Prime Clean</title>
+<meta name="description" content="Get in touch with Prime Clean. Reach us by email or WhatsApp for bookings and questions.">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: { colors: {
+    brand: { 50:'#f0fdfa',100:'#ccfbf1',200:'#99f6e4',400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e',800:'#115e59',900:'#134e4a' },
+    ink: '#0f172a' } } } }
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  .hero-grad { background: linear-gradient(135deg,#0f766e 0%,#0d9488 45%,#14b8a6 100%); }
+</style>
+</head>
+<body class="bg-white text-ink antialiased">
+
+<!-- ============ NAV ============ -->
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-100">
+  <nav class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+    <a href="index.html" class="flex items-center gap-2 font-extrabold text-xl text-brand-700">
+      <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-brand-600 text-white">P</span>
+      Prime Clean
+    </a>
+    <div class="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
+      <a href="index.html" class="hover:text-brand-700">Home</a>
+      <a href="how-it-works.html" class="hover:text-brand-700">How It Works</a>
+      <a href="cleaners.html" class="hover:text-brand-700">Become a Cleaner</a>
+      <a href="contact.html" class="text-brand-700">Contact</a>
+      <a href="book.html" class="px-4 py-2 rounded-lg bg-brand-600 text-white hover:bg-brand-700">Book a Cleaning</a>
+    </div>
+    <button id="navBtn" class="md:hidden p-2 text-slate-700" aria-label="Menu">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+  </nav>
+  <div id="navMenu" class="hidden md:hidden border-t border-slate-100 px-5 py-4 space-y-3 text-sm font-medium">
+    <a href="index.html" class="block text-slate-600">Home</a>
+    <a href="how-it-works.html" class="block text-slate-600">How It Works</a>
+    <a href="cleaners.html" class="block text-slate-600">Become a Cleaner</a>
+    <a href="contact.html" class="block text-brand-700">Contact</a>
+    <a href="book.html" class="block px-4 py-2 rounded-lg bg-brand-600 text-white text-center">Book a Cleaning</a>
+  </div>
+</header>
+
+<!-- ============ PAGE HEADER ============ -->
+<section class="hero-grad text-white">
+  <div class="max-w-6xl mx-auto px-5 py-16 text-center">
+    <h1 class="text-4xl md:text-5xl font-extrabold">Get in Touch</h1>
+    <p class="mt-4 text-brand-50 max-w-xl mx-auto">Questions about a booking, a quote, or joining as a cleaner? We're one message away.</p>
+  </div>
+</section>
+
+<!-- ============ CONTACT CARDS ============ -->
+<section class="max-w-4xl mx-auto px-5 py-20">
+  <div class="grid sm:grid-cols-2 gap-6">
+    <!-- TODO: replace placeholders with your real WhatsApp number (digits only, country code) -->
+    <a href="https://wa.me/15550000000" class="block border border-slate-100 rounded-xl p-8 shadow-sm hover:border-brand-300 text-center">
+      <div class="text-4xl">💬</div>
+      <h3 class="font-bold mt-4 text-lg">WhatsApp</h3>
+      <p class="text-sm text-slate-500 mt-2">Fastest way to reach us. Tap to start a chat.</p>
+      <span class="inline-block mt-4 text-brand-700 font-semibold">Message us →</span>
+    </a>
+    <!-- TODO: replace placeholder with your real email address -->
+    <a href="mailto:hello@primeclean.example" class="block border border-slate-100 rounded-xl p-8 shadow-sm hover:border-brand-300 text-center">
+      <div class="text-4xl">✉️</div>
+      <h3 class="font-bold mt-4 text-lg">Email</h3>
+      <p class="text-sm text-slate-500 mt-2">Prefer email? Send us the details and we'll reply.</p>
+      <span class="inline-block mt-4 text-brand-700 font-semibold">hello@primeclean.example</span>
+    </a>
+  </div>
+
+  <div class="mt-12 grid sm:grid-cols-2 gap-6">
+    <div class="bg-slate-50 border border-slate-100 rounded-xl p-8">
+      <h3 class="font-bold text-lg">Want a cleaning?</h3>
+      <p class="text-sm text-slate-500 mt-2">Use our booking page — it puts all the details into a message for you.</p>
+      <a href="book.html" class="inline-block mt-4 px-5 py-2.5 rounded-lg bg-brand-600 text-white font-semibold text-sm hover:bg-brand-700">Book a Cleaning</a>
+    </div>
+    <div class="bg-slate-50 border border-slate-100 rounded-xl p-8">
+      <h3 class="font-bold text-lg">Want to clean for us?</h3>
+      <p class="text-sm text-slate-500 mt-2">Apply to join the Prime Clean cleaner network.</p>
+      <a href="cleaners.html" class="inline-block mt-4 px-5 py-2.5 rounded-lg border border-brand-600 text-brand-700 font-semibold text-sm hover:bg-brand-50">Become a Cleaner</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section class="bg-slate-50 border-t border-slate-100">
+  <div class="max-w-3xl mx-auto px-5 py-16 text-center">
+    <h2 class="text-3xl font-extrabold">About Prime Clean</h2>
+    <p class="mt-4 text-slate-500">Prime Clean is a remote-managed cleaning service. We connect people who need cleaning with vetted, professional cleaners — and we manage everything in between. Clients get a single, reliable point of contact; cleaners get steady work without the stress of finding clients. We handle the contracts, the matching, the scheduling and the quality, so every job goes smoothly for both sides.</p>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-ink text-slate-400">
+  <div class="max-w-6xl mx-auto px-5 py-12 grid sm:grid-cols-3 gap-8 text-sm">
+    <div>
+      <div class="flex items-center gap-2 font-extrabold text-lg text-white">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-brand-600">P</span> Prime Clean
+      </div>
+      <p class="mt-3">Remote-managed cleaning. We connect clients and cleaners and manage every job.</p>
+    </div>
+    <div>
+      <h4 class="text-white font-semibold mb-3">Pages</h4>
+      <ul class="space-y-2">
+        <li><a href="how-it-works.html" class="hover:text-white">How It Works</a></li>
+        <li><a href="book.html" class="hover:text-white">Book a Cleaning</a></li>
+        <li><a href="cleaners.html" class="hover:text-white">Become a Cleaner</a></li>
+        <li><a href="contact.html" class="hover:text-white">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="text-white font-semibold mb-3">Contact</h4>
+      <!-- TODO: replace placeholders with your real email + WhatsApp number (digits only, with country code) -->
+      <ul class="space-y-2">
+        <li><a href="mailto:hello@primeclean.example" class="hover:text-white">hello@primeclean.example</a></li>
+        <li><a href="https://wa.me/15550000000" class="hover:text-white">WhatsApp us</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="border-t border-white/10 py-5 text-center text-xs">© 2026 Prime Clean. All rights reserved.</div>
+</footer>
+
+<script>
+  const b=document.getElementById('navBtn'),m=document.getElementById('navMenu');
+  b&&b.addEventListener('click',()=>m.classList.toggle('hidden'));
+</script>
+</body>
+</html>

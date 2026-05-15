@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book a Cleaning — Prime Clean</title>
+<meta name="description" content="Book a cleaning with Prime Clean. Tell us what you need and we'll match you with a vetted cleaner.">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: { colors: {
+    brand: { 50:'#f0fdfa',100:'#ccfbf1',200:'#99f6e4',400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e',800:'#115e59',900:'#134e4a' },
+    ink: '#0f172a' } } } }
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  .hero-grad { background: linear-gradient(135deg,#0f766e 0%,#0d9488 45%,#14b8a6 100%); }
+</style>
+</head>
+<body class="bg-white text-ink antialiased">
+
+<!-- ============ NAV ============ -->
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-100">
+  <nav class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+    <a href="index.html" class="flex items-center gap-2 font-extrabold text-xl text-brand-700">
+      <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-brand-600 text-white">P</span>
+      Prime Clean
+    </a>
+    <div class="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
+      <a href="index.html" class="hover:text-brand-700">Home</a>
+      <a href="how-it-works.html" class="hover:text-brand-700">How It Works</a>
+      <a href="cleaners.html" class="hover:text-brand-700">Become a Cleaner</a>
+      <a href="contact.html" class="hover:text-brand-700">Contact</a>
+      <a href="book.html" class="px-4 py-2 rounded-lg bg-brand-600 text-white hover:bg-brand-700">Book a Cleaning</a>
+    </div>
+    <button id="navBtn" class="md:hidden p-2 text-slate-700" aria-label="Menu">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+  </nav>
+  <div id="navMenu" class="hidden md:hidden border-t border-slate-100 px-5 py-4 space-y-3 text-sm font-medium">
+    <a href="index.html" class="block text-slate-600">Home</a>
+    <a href="how-it-works.html" class="block text-slate-600">How It Works</a>
+    <a href="cleaners.html" class="block text-slate-600">Become a Cleaner</a>
+    <a href="contact.html" class="block text-slate-600">Contact</a>
+    <a href="book.html" class="block px-4 py-2 rounded-lg bg-brand-600 text-white text-center">Book a Cleaning</a>
+  </div>
+</header>
+
+<!-- ============ PAGE HEADER ============ -->
+<section class="hero-grad text-white">
+  <div class="max-w-6xl mx-auto px-5 py-16 text-center">
+    <h1 class="text-4xl md:text-5xl font-extrabold">Book a Cleaning</h1>
+    <p class="mt-4 text-brand-50 max-w-xl mx-auto">Fill in a few details below. When you're done, send it straight to us on WhatsApp or by email — we'll reply with a quote and a confirmed time.</p>
+  </div>
+</section>
+
+<!-- ============ BOOKING FORM ============ -->
+<section class="max-w-2xl mx-auto px-5 py-16">
+  <form id="bookForm" class="space-y-5" onsubmit="return false">
+    <div>
+      <label class="block text-sm font-semibold mb-1">Your name</label>
+      <input id="f_name" type="text" required class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Jane Doe">
+    </div>
+    <div class="grid sm:grid-cols-2 gap-5">
+      <div>
+        <label class="block text-sm font-semibold mb-1">Space type</label>
+        <select id="f_type" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500">
+          <option>Home / Apartment</option>
+          <option>Office</option>
+          <option>Short-stay rental (Airbnb)</option>
+          <option>Move-in / Move-out</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold mb-1">How often</label>
+        <select id="f_freq" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500">
+          <option>One-time</option>
+          <option>Weekly</option>
+          <option>Every 2 weeks</option>
+          <option>Monthly</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-5">
+      <div>
+        <label class="block text-sm font-semibold mb-1">Preferred date</label>
+        <input id="f_date" type="date" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold mb-1">Area / suburb</label>
+        <input id="f_area" type="text" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Where is the space?">
+      </div>
+    </div>
+    <div>
+      <label class="block text-sm font-semibold mb-1">Anything else?</label>
+      <textarea id="f_notes" rows="3" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Number of rooms, special requests, access details…"></textarea>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-3 pt-2">
+      <button id="sendWa" class="flex-1 px-6 py-3 rounded-lg bg-brand-600 text-white font-semibold hover:bg-brand-700">Send via WhatsApp</button>
+      <button id="sendEmail" class="flex-1 px-6 py-3 rounded-lg border border-brand-600 text-brand-700 font-semibold hover:bg-brand-50">Send via Email</button>
+    </div>
+    <p class="text-xs text-slate-400 text-center">Your details are placed into a WhatsApp or email message for you to review and send. Nothing is submitted automatically.</p>
+  </form>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-ink text-slate-400">
+  <div class="max-w-6xl mx-auto px-5 py-12 grid sm:grid-cols-3 gap-8 text-sm">
+    <div>
+      <div class="flex items-center gap-2 font-extrabold text-lg text-white">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-brand-600">P</span> Prime Clean
+      </div>
+      <p class="mt-3">Remote-managed cleaning. We connect clients and cleaners and manage every job.</p>
+    </div>
+    <div>
+      <h4 class="text-white font-semibold mb-3">Pages</h4>
+      <ul class="space-y-2">
+        <li><a href="how-it-works.html" class="hover:text-white">How It Works</a></li>
+        <li><a href="book.html" class="hover:text-white">Book a Cleaning</a></li>
+        <li><a href="cleaners.html" class="hover:text-white">Become a Cleaner</a></li>
+        <li><a href="contact.html" class="hover:text-white">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="text-white font-semibold mb-3">Contact</h4>
+      <!-- TODO: replace placeholders with your real email + WhatsApp number (digits only, with country code) -->
+      <ul class="space-y-2">
+        <li><a href="mailto:hello@primeclean.example" class="hover:text-white">hello@primeclean.example</a></li>
+        <li><a href="https://wa.me/15550000000" class="hover:text-white">WhatsApp us</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="border-t border-white/10 py-5 text-center text-xs">© 2026 Prime Clean. All rights reserved.</div>
+</footer>
+
+<script>
+  const b=document.getElementById('navBtn'),m=document.getElementById('navMenu');
+  b&&b.addEventListener('click',()=>m.classList.toggle('hidden'));
+
+  // TODO: replace with your real WhatsApp number (digits only, country code, no +) and email
+  const WHATSAPP = "15550000000";
+  const EMAIL = "hello@primeclean.example";
+
+  function val(id){ return (document.getElementById(id).value || "").trim(); }
+  function buildMessage(){
+    return [
+      "New cleaning request — Prime Clean",
+      "",
+      "Name: " + (val('f_name') || "—"),
+      "Space type: " + val('f_type'),
+      "Frequency: " + val('f_freq'),
+      "Preferred date: " + (val('f_date') || "—"),
+      "Area: " + (val('f_area') || "—"),
+      "Notes: " + (val('f_notes') || "—")
+    ].join("\n");
+  }
+  function checkName(){
+    if(!val('f_name')){ document.getElementById('f_name').focus(); return false; }
+    return true;
+  }
+  document.getElementById('sendWa').addEventListener('click', () => {
+    if(!checkName()) return;
+    window.open("https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(buildMessage()), "_blank");
+  });
+  document.getElementById('sendEmail').addEventListener('click', () => {
+    if(!checkName()) return;
+    window.location.href = "mailto:" + EMAIL +
+      "?subject=" + encodeURIComponent("Cleaning request — " + val('f_name')) +
+      "&body=" + encodeURIComponent(buildMessage());
+  });
+</script>
+</body>
+</html>
