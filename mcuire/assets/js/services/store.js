@@ -34,11 +34,14 @@ export function apiFetch(path, { json, headers = {}, ...options } = {}) {
   const h = { 'X-Mcuire': '1', ...headers };
   const token = sessionToken();
   if (token) h.Authorization = `Bearer ${token}`;
+  // Inside WordPress: proves the signed-in WordPress user (owners become academy admins).
+  if (config.wpNonce) h['X-WP-Nonce'] = config.wpNonce;
   if (json !== undefined) {
     h['Content-Type'] = 'application/json';
     options.body = JSON.stringify(json);
   }
-  return fetch(apiUrl(path), { credentials: config.apiBase ? 'omit' : 'same-origin', ...options, headers: h });
+  const sameSite = !config.apiBase || new URL(apiUrl(path), location.href).origin === location.origin;
+  return fetch(apiUrl(path), { credentials: sameSite ? 'same-origin' : 'omit', ...options, headers: h });
 }
 
 function emptyKitchen() {

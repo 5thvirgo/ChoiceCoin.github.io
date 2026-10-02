@@ -56,6 +56,7 @@ function shell() {
           <a href="#/courses" data-nav="/courses">Courses</a>
           <a href="#/try" class="hide-sm" data-nav="/try">Free lesson</a>
           <a href="#/kitchen" data-nav="/kitchen">My Kitchen</a>
+          ${config.restaurantUrl ? `<a href="${esc(config.restaurantUrl)}" class="hide-sm">Restaurant</a>` : ''}
         </nav>
       </div>
       <div class="band thin"></div>
