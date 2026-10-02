@@ -2,8 +2,8 @@
 FROM node:22-slim
 WORKDIR /app
 COPY . .
-ENV NODE_ENV=production PORT=8787 DATABASE_PATH=/data/mcuire.db
-# Mount a persistent volume at /data (database) and /app/server/uploads (photos/videos).
-VOLUME ["/data", "/app/server/uploads"]
+# Database and uploaded photos/videos both live on one persistent disk at /data.
+ENV NODE_ENV=production PORT=8787 DATABASE_PATH=/data/mcuire.db UPLOAD_DIR=/data/uploads
+VOLUME ["/data"]
 EXPOSE 8787
 CMD ["node", "server/server.mjs"]

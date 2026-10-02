@@ -5,10 +5,11 @@
 //
 // Environment:
 //   PORT                   default 8787
-//   BASE_URL               public URL, e.g. https://kitchen.mcuire.com (default http://localhost:PORT)
+//   BASE_URL               public URL, e.g. https://kitchen.mcuire.ca (default http://localhost:PORT)
 //   DATABASE_PATH          default server/data/mcuire.db
 //   STRIPE_SECRET_KEY      sk_live_… / sk_test_…  (omit in development → simulated payments)
 //   STRIPE_WEBHOOK_SECRET  whsec_…
+//   UPLOAD_DIR             where uploaded photos/videos are stored (default server/uploads)
 //   ADMIN_EMAILS           comma-separated emails that become admins on sign-in
 //   STAFF_EMAILS           comma-separated emails that become staff (content only)
 //   NODE_ENV=production    disables simulated payments and dev email logging of tokens
@@ -34,7 +35,7 @@ const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 const emails = (v) => new Set((v || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean));
 const ADMIN_EMAILS = emails(process.env.ADMIN_EMAILS);
 const STAFF_EMAILS = emails(process.env.STAFF_EMAILS);
-const UPLOAD_DIR = path.join(here, 'uploads');
+const UPLOAD_DIR = path.resolve(process.env.UPLOAD_DIR || path.join(here, 'uploads'));
 const SESSION_DAYS = 30;
 
 if (PROD && !STRIPE_KEY) {
@@ -260,11 +261,13 @@ async function serveStatic(req, res, pathname) {
     res.writeHead(200, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-cache' });
     return res.end(html);
   }
-  const base = pathname.startsWith('/uploads/') ? here : ROOT;
-  const file = path.normalize(path.join(base, decodeURIComponent(pathname)));
-  const allowed = pathname.startsWith('/uploads/') ? file.startsWith(UPLOAD_DIR + path.sep) : file.startsWith(path.join(ROOT, 'assets') + path.sep);
+  const isUpload = pathname.startsWith('/uploads/');
+  const file = isUpload
+    ? path.normalize(path.join(UPLOAD_DIR, decodeURIComponent(pathname.slice('/uploads'.length))))
+    : path.normalize(path.join(ROOT, decodeURIComponent(pathname)));
+  const allowed = isUpload ? file.startsWith(UPLOAD_DIR + path.sep) : file.startsWith(path.join(ROOT, 'assets') + path.sep);
   if (!allowed || !existsSync(file) || !(await stat(file)).isFile()) return send(res, 404, { error: 'Not found' });
-  res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': pathname.startsWith('/uploads/') ? 'public, max-age=31536000, immutable' : 'no-cache' });
+  res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': isUpload ? 'public, max-age=31536000, immutable' : 'no-cache' });
   res.end(await readFile(file));
 }
 

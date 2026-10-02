@@ -1,0 +1,29 @@
+# One-click deploy on Render (render.com → New → Blueprint → pick this repository).
+# You'll be asked for the values marked sync: false.
+services:
+  - type: web
+    name: mcuire-kitchen
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/catalog
+    disk:
+      name: mcuire-data
+      mountPath: /data
+      sizeGB: 2
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BASE_URL
+        value: https://kitchen.mcuire.ca
+      - key: DATABASE_PATH
+        value: /data/mcuire.db
+      - key: UPLOAD_DIR
+        value: /data/uploads
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: STAFF_EMAILS
+        sync: false
