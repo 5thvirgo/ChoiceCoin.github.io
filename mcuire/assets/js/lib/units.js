@@ -52,10 +52,21 @@ export function scaleIngredient(ing, baseServings, servings) {
     qty = round(qty * factor, ing.unit, mode);
     if (altQty != null) altQty = round(altQty * factor, ing.altUnit, mode === 'whole' ? 'linear' : mode);
   }
-  const text = qty == null ? (ing.amountText || 'to taste') : formatQty(qty, ing.unit);
-  const alt = altQty != null ? `about ${formatQty(altQty, ing.altUnit)}` : '';
+  // Big batches read better in kg / litres ("2 kg", not "2000 g").
+  let unit = ing.unit;
+  if (qty != null && (unit === 'g' || unit === 'ml') && qty >= 1000) {
+    qty = Math.round(qty / 100) / 10;
+    unit = unit === 'g' ? 'kg' : 'l';
+  }
+  const text = qty == null ? (ing.amountText || 'to taste') : formatQty(qty, unit);
+  let altUnit = ing.altUnit;
+  if (altQty != null && (altUnit === 'g' || altUnit === 'ml') && altQty >= 1000) {
+    altQty = Math.round(altQty / 100) / 10;
+    altUnit = altUnit === 'g' ? 'kg' : 'l';
+  }
+  const alt = altQty != null ? `about ${formatQty(altQty, altUnit)}` : '';
   const note = mode === 'taste' && factor !== 1 ? 'adjust to taste' : '';
-  return { qty, unit: ing.unit, text, alt, note };
+  return { qty, unit, text, alt, note };
 }
 
 export function batchWarning(recipe, servings) {
