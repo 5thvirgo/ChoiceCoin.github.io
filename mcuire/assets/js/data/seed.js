@@ -5,6 +5,9 @@
 
 // MediaRef helper. src stays null until Mcuire uploads its own photography.
 // `brief` doubles as the photographer's shot list.
+import { egusi, eba, pepperedChicken } from './recipes-soups-grills.js';
+import { dodo, puffPuff } from './recipes-street.js';
+
 const photo = (brief, tone = 'jollof', alt = brief) => ({ kind: 'photo', src: null, alt, brief, tone });
 const video = (brief, tone = 'jollof', alt = brief) => ({ kind: 'video', src: null, poster: null, alt, brief, tone });
 
@@ -403,7 +406,9 @@ const outlines = [
   outline('party-platter', 'meals', 'Party Platter', 'Complete meal', 'Small chops, jollof and grills for 20, with a shopping and timing plan.', 120, 240, 'Confident cook', 'suya'),
 ];
 
-const recipes = [jollof, ...outlines];
+// Finished Cook With Me lessons replace their outline in place, keeping catalogue order.
+const finished = Object.fromEntries([egusi, eba, pepperedChicken, dodo, puffPuff].map((r) => [r.id, r]));
+const recipes = [jollof, ...outlines.map((o) => finished[o.id] || o)];
 const ids = (cat) => recipes.filter((r) => r.categoryId === cat).map((r) => r.id);
 
 const courses = [
@@ -480,7 +485,7 @@ const discounts = [
 ];
 
 export const SEED = {
-  version: 4,
+  version: 5,
   categories,
   courses,
   recipes,
