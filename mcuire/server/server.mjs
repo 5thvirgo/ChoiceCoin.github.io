@@ -495,6 +495,27 @@ async function api(req, res, url, user) {
     });
     return send(res, 200, { ok: true });
   }
+  if (m('PUT', /^\/admin\/categories$/)) {
+    requireRole(user, 'staff', 'admin');
+    const list = await readJson(req);
+    if (!Array.isArray(list) || list.some((c) => !/^[a-z0-9-]+$/.test(c.id || '') || !c.name)) throw new HttpError(400, 'Each category needs a name');
+    tx(() => {
+      const keep = list.map((c) => c.id);
+      const inUse = q('SELECT DISTINCT category_id AS id FROM recipes').all().map((x) => x.id);
+      const removing = q('SELECT id FROM categories').all().map((x) => x.id).filter((id) => !keep.includes(id));
+      if (removing.some((id) => inUse.includes(id))) throw new HttpError(409, 'Move recipes out of a category before deleting it');
+      removing.forEach((id) => q('DELETE FROM categories WHERE id = ?').run(id));
+      list.forEach((c) => q('INSERT INTO categories (id, sort, doc) VALUES (?,?,?) ON CONFLICT(id) DO UPDATE SET sort = excluded.sort, doc = excluded.doc').run(c.id, c.sort | 0, json(c)));
+    });
+    return send(res, 200, { ok: true });
+  }
+  if (m('PUT', /^\/admin\/challenges$/)) {
+    requireRole(user, 'staff', 'admin');
+    const list = await readJson(req);
+    if (!Array.isArray(list)) throw new HttpError(400, 'Malformed challenges');
+    q('INSERT INTO content_meta (key, doc) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET doc = excluded.doc').run('challenges', json(list));
+    return send(res, 200, { ok: true });
+  }
   if (m('POST', /^\/admin\/media$/)) {
     requireRole(user, 'staff', 'admin');
     const mime = (req.headers['content-type'] || '').split(';')[0];

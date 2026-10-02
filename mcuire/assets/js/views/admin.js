@@ -50,7 +50,7 @@ function gate() {
 
 // ------------------------------------------------------------------ layout
 const SECTIONS = [
-  ['', 'Overview'], ['recipes', 'Recipes'], ['courses', 'Courses & prices'], ['discounts', 'Discounts'],
+  ['', 'Overview'], ['recipes', 'Recipes'], ['categories', 'Categories'], ['courses', 'Courses & prices'], ['challenges', 'Challenges'], ['discounts', 'Discounts'],
   ['customers', 'Customers'], ['orders', 'Purchases'], ['certificates', 'Certificates'], ['media', 'Media to shoot'], ['tools', 'Demo tools'],
 ];
 
@@ -186,6 +186,43 @@ function coursesEditor() {
     </form>`).join('')}`;
 }
 
+function categoriesEditor() {
+  const cats = store.categories;
+  return `<h1 style="font-size:2.2rem">Categories</h1>
+    <p class="muted">The sections of the catalogue (Rice &amp; Classics, Soups &amp; Swallows…). Add new ones, e.g. Ghanaian Cooking or African Baking.</p>
+    <form data-categories>${cats.map((c, i) => `<div class="repeat"><div class="repeat-head"><b>${esc(c.name)}</b>
+      <button type="button" class="icon-btn" data-del-category="${i}" aria-label="Delete">${icon('trash', 16)}</button></div>
+      <input type="hidden" name="id-${i}" value="${esc(c.id)}">
+      <div class="grid-3"><div class="field"><label>Name</label><input name="name-${i}" value="${esc(c.name)}"></div>
+        <div class="field"><label>Order</label><input type="number" name="sort-${i}" value="${c.sort}"></div>
+        <div class="field"><label>Placeholder colour</label><select name="tone-${i}">${TONES.map((t) => `<option ${c.tone === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div></div>
+      <div class="field"><label>Tagline</label><input name="tagline-${i}" value="${esc(c.tagline)}"></div>
+      <p class="small muted" style="margin:0">${store.recipesIn(c.id).length} recipes</p></div>`).join('')}
+    <div class="row"><button type="button" class="btn btn-ghost" data-add-category>${icon('plus', 16)} Add category</button><button class="btn btn-primary">Save categories</button></div></form>`;
+}
+
+function challengesEditor() {
+  const recipeOpts = (v) => store.recipes.map((r) => `<option value="${esc(r.id)}" ${v === r.id ? 'selected' : ''}>${esc(r.title)}</option>`).join('');
+  const catOpts = (v) => store.categories.map((c) => `<option value="${esc(c.id)}" ${v === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
+  return `<h1 style="font-size:2.2rem">Challenges</h1>
+    <p class="muted">Shown in My Kitchen. Progress is counted automatically from the dishes each customer finishes.</p>
+    <form data-challenges>${store.content.challenges.map((c, i) => `<div class="repeat">
+      <div class="repeat-head"><b>${esc(c.title)}</b><button type="button" class="icon-btn" data-del-challenge="${i}" aria-label="Delete">${icon('trash', 16)}</button></div>
+      <input type="hidden" name="id-${i}" value="${esc(c.id)}">
+      <div class="field"><label>Title</label><input name="title-${i}" value="${esc(c.title)}"></div>
+      <div class="field"><label>Description</label><textarea name="desc-${i}" rows="2">${esc(c.description)}</textarea></div>
+      <b class="small">Goals</b>
+      ${c.goals.map((g, j) => {
+        const type = g.categoryId ? 'distinct' : g.minServings ? 'servings' : 'times';
+        return `<div class="grid-3" style="align-items:end">
+          <div class="field"><label>Goal</label><select name="gtype-${i}-${j}">${[['times', 'Cook a recipe N times'], ['servings', 'Cook a recipe for N+ people'], ['distinct', 'Cook N different dishes from a category']].map(([v, l]) => `<option value="${v}" ${type === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+          <div class="field"><label>Recipe or category</label><select name="gtarget-${i}-${j}"><optgroup label="Recipes">${recipeOpts(g.recipeId)}</optgroup><optgroup label="Categories">${catOpts(g.categoryId)}</optgroup></select></div>
+          <div class="field"><label>N</label><input type="number" min="1" name="gn-${i}-${j}" value="${g.times || g.minServings || g.distinct || 1}"></div></div>`;
+      }).join('')}
+      <button type="button" class="btn btn-ghost btn-sm" data-add-goal="${i}">${icon('plus', 14)} Add goal</button></div>`).join('')}
+    <div class="row"><button type="button" class="btn btn-ghost" data-add-challenge>${icon('plus', 16)} Add challenge</button><button class="btn btn-primary">Save challenges</button></div></form>`;
+}
+
 function discountsEditor() {
   const ds = store.content.discounts;
   return `<h1 style="font-size:2.2rem">Discount codes</h1>
@@ -305,6 +342,8 @@ function editorTab(d, tab, openSteps) {
           ${f.select(`ingredients.${i}.shopCategory`, 'Shopping aisle', ing.shopCategory || 'Other', SHOP_CATEGORIES)}
           <div class="field"><label>Optional?</label><select data-bind="ingredients.${i}.optional" data-type="bool"><option value="">Required</option><option value="1" ${ing.optional ? 'selected' : ''}>Optional</option></select></div></div>
         ${f.text(`ingredients.${i}.note`, 'Note for beginners', ing.note)}
+        ${ing.photo ? `${mediaField(`ingredients.${i}.photo`, ing.photo, 'Ingredient photo (shown under “Can’t find this?”)')}<button type="button" class="btn btn-ghost btn-sm" data-ingphoto="${i}" data-remove="1">Remove ingredient photo</button>`
+          : `<button type="button" class="btn btn-ghost btn-sm" data-ingphoto="${i}">${icon('camera', 14)} Add ingredient photo</button>`}
         <div class="field"><label>Where to buy</label><div class="row">${Object.entries(AVAILABILITY).map(([k, l]) => `<label class="chip" style="cursor:pointer"><input type="checkbox" data-toggle="ingredients.${i}.availability" value="${k}" ${(ing.availability || []).includes(k) ? 'checked' : ''}> ${l}</label>`).join('')}</div></div>
         <b class="small">“Can’t find this?” substitutes</b>
         ${(ing.substitutes || []).map((s, j) => `<div class="grid-2" style="align-items:end">${f.text(`ingredients.${i}.substitutes.${j}.name`, 'Use instead', s.name)}<div class="row" style="flex-wrap:nowrap;align-items:end"><div style="flex:1">${f.text(`ingredients.${i}.substitutes.${j}.note`, 'How', s.note)}</div><button type="button" class="icon-btn" style="margin-bottom:16px" data-del="ingredients.${i}.substitutes" data-i="${j}" aria-label="Remove">${icon('trash', 16)}</button></div></div>`).join('')}
@@ -424,7 +463,13 @@ function recipeEditor(id, query) {
           dirty();
           if (/\.kind$|\.tone$|^status$/.test(el.dataset.bind)) rerender();
         }),
-        on(main, 'change', '[data-bind$=".src"]', () => rerender()),
+        // Refresh just the preview, never the whole form: a full re-render here
+        // would swallow a click on "Save" made straight after pasting a URL.
+        on(main, 'change', '[data-bind$=".src"]', (_, el) => {
+          const box = el.closest('.media-field');
+          const ref = getPath(draft, el.dataset.bind.replace(/\.src$/, ''));
+          if (box && ref) box.firstElementChild.outerHTML = media(ref, { ratio: null, compact: true });
+        }),
         on(main, 'click', '[data-tab]', (_, b) => { state.tab = b.dataset.tab; rerender(); }),
         on(main, 'click', 'details[data-step] > summary', (_, s) => {
           const i = Number(s.parentElement.dataset.step);
@@ -461,6 +506,11 @@ function recipeEditor(id, query) {
           const j = i + Number(b.dataset.dir);
           if (j < 0 || j >= list.length) return;
           [list[i], list[j]] = [list[j], list[i]];
+        })),
+        on(main, 'click', '[data-ingphoto]', (_, b) => structural(() => {
+          const ing = draft.ingredients[Number(b.dataset.ingphoto)];
+          if (b.dataset.remove) delete ing.photo;
+          else ing.photo = { kind: 'photo', src: null, alt: ing.name, brief: `${ing.name}: whole and prepared, on the Mcuire counter.`, tone: 'onion' };
         })),
         on(main, 'click', '[data-checkpoint]', (_, b) => structural(() => {
           const s = draft.steps[Number(b.dataset.checkpoint)];
@@ -526,6 +576,8 @@ export default async function admin({ section = '', id }, query) {
       recipes: recipesList,
       courses: coursesEditor,
       discounts: discountsEditor,
+      categories: categoriesEditor,
+      challenges: challengesEditor,
       customers: customersList,
       orders: ordersList,
       certificates: certificatesList,
@@ -561,6 +613,77 @@ export default async function admin({ section = '', id }, query) {
         });
         await store.saveCourse(c);
         toast(`${c.title} saved: ${money(c.priceCents, c.currency)}`);
+      }));
+
+      const readCategories = (form) => {
+        const data = new FormData(form);
+        return store.categories.map((c, i) => ({
+          ...c,
+          name: String(data.get(`name-${i}`) || c.name).trim(),
+          sort: Number(data.get(`sort-${i}`)) || 0,
+          tone: data.get(`tone-${i}`) || c.tone,
+          tagline: data.get(`tagline-${i}`) || '',
+        }));
+      };
+      const saveCats = async (list) => {
+        try { await store.saveCategories(list); main.innerHTML = categoriesEditor(); return true; } catch (e) { toast(e.message); return false; }
+      };
+      offs.push(on(main, 'submit', '[data-categories]', async (e, form) => {
+        e.preventDefault();
+        if (await saveCats(readCategories(form))) toast('Categories saved');
+      }));
+      offs.push(on(main, 'click', '[data-add-category]', async (_, b) => {
+        const name = prompt('Name of the new category (e.g. Ghanaian Cooking)');
+        if (!name) return;
+        const id = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        if (store.category(id)) { toast('That category already exists'); return; }
+        const list = readCategories(b.form);
+        await saveCats([...list, { id, slug: id, name: name.trim(), tagline: '', tone: 'jollof', sort: list.length + 1 }]);
+      }));
+      offs.push(on(main, 'click', '[data-del-category]', async (_, b) => {
+        const list = readCategories(b.form);
+        const cat = list[Number(b.dataset.delCategory)];
+        if (store.recipesIn(cat.id).length) { toast('Move its recipes to another category first'); return; }
+        if (!confirm(`Delete “${cat.name}”?`)) return;
+        list.splice(Number(b.dataset.delCategory), 1);
+        await saveCats(list);
+      }));
+
+      const readChallenges = (form) => {
+        const data = new FormData(form);
+        return store.content.challenges.map((c, i) => ({
+          id: c.id,
+          title: String(data.get(`title-${i}`) || '').trim() || c.title,
+          description: data.get(`desc-${i}`) || '',
+          goals: c.goals.map((_, j) => {
+            const type = data.get(`gtype-${i}-${j}`);
+            const target = data.get(`gtarget-${i}-${j}`);
+            const n = Math.max(1, Number(data.get(`gn-${i}-${j}`)) || 1);
+            const isCat = !!store.content.categories.find((x) => x.id === target);
+            if (type === 'distinct' || isCat) return { categoryId: isCat ? target : store.recipe(target)?.categoryId, distinct: n };
+            return type === 'servings' ? { recipeId: target, minServings: n } : { recipeId: target, times: n };
+          }),
+        }));
+      };
+      const saveChals = async (list, msg) => {
+        await store.saveChallenges(list);
+        main.innerHTML = challengesEditor();
+        if (msg) toast(msg);
+      };
+      offs.push(on(main, 'submit', '[data-challenges]', async (e, form) => { e.preventDefault(); await saveChals(readChallenges(form), 'Challenges saved'); }));
+      offs.push(on(main, 'click', '[data-add-challenge]', async (_, b) => {
+        await saveChals([...readChallenges(b.form), { id: `ch-${Date.now().toString(36)}`, title: 'New challenge', description: '', goals: [{ recipeId: store.freeRecipe.id, times: 1 }] }]);
+      }));
+      offs.push(on(main, 'click', '[data-add-goal]', async (_, b) => {
+        const list = readChallenges(b.form);
+        list[Number(b.dataset.addGoal)].goals.push({ recipeId: store.freeRecipe.id, times: 1 });
+        await saveChals(list);
+      }));
+      offs.push(on(main, 'click', '[data-del-challenge]', async (_, b) => {
+        if (!confirm('Delete this challenge?')) return;
+        const list = readChallenges(b.form);
+        list.splice(Number(b.dataset.delChallenge), 1);
+        await saveChals(list);
       }));
 
       const readDiscounts = (form) => {

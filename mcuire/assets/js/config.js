@@ -8,7 +8,7 @@ const defaults = {
     tagline: 'Cook West African food with confidence.',
     signatory: { name: 'Head Chef', title: 'Head Chef, Mcuire African Restaurant' },
   },
-  // 'local' = everything in this browser (static demo / GitHub Pages)
+  // 'local' = everything in this browser (standalone demo)
   // 'api'   = server/server.mjs (entitlements enforced server-side)
   dataSource: 'local',
   // 'demo' = simulated checkout, clearly labelled test mode

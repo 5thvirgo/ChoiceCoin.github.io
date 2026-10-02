@@ -1,6 +1,6 @@
 // Store: the single data interface used by every view.
 // Two adapters implement persistence:
-//   LocalAdapter: localStorage, for the static demo / GitHub Pages / offline review
+//   LocalAdapter: localStorage, for the standalone demo / offline review
 //   ApiAdapter:   server/server.mjs (content gated + commerce enforced server-side)
 //
 // Views never touch localStorage or fetch directly. Swapping the adapter
@@ -102,6 +102,8 @@ class ApiAdapter {
   async saveContent(content, changed) {
     if (changed?.recipe) await this.request(`admin/recipes/${changed.recipe.id}`, { method: 'PUT', body: changed.recipe });
     if (changed?.course) await this.request(`admin/courses/${changed.course.id}`, { method: 'PUT', body: changed.course });
+    if (changed?.categories) await this.request('admin/categories', { method: 'PUT', body: changed.categories });
+    if (changed?.challenges) await this.request('admin/challenges', { method: 'PUT', body: changed.challenges });
     if (changed?.discounts) await this.request('admin/discounts', { method: 'PUT', body: changed.discounts });
     if (changed?.deleteRecipe) await this.request(`admin/recipes/${changed.deleteRecipe}`, { method: 'DELETE' });
   }
@@ -363,6 +365,16 @@ class Store {
     const i = this.content.courses.findIndex((c) => c.id === course.id);
     this.content.courses[i] = course;
     await this.adapter.saveContent(this.content, { course });
+    this.emit();
+  }
+  async saveCategories(categories) {
+    this.content.categories = categories;
+    await this.adapter.saveContent(this.content, { categories });
+    this.emit();
+  }
+  async saveChallenges(challenges) {
+    this.content.challenges = challenges;
+    await this.adapter.saveContent(this.content, { challenges });
     this.emit();
   }
   async saveDiscounts(discounts) {

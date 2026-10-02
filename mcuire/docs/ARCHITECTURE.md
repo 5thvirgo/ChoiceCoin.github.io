@@ -8,41 +8,28 @@ Flagship course: **West African Kitchen — Beginner to Confident Cook**.
 
 ---
 
-## 0. What exists today (inspection result)
+## 0. What this is
 
-This repository is the **Choice Coin** public website (static HTML + Tailwind CDN,
-GitHub Pages, `CNAME → choice-coin.com`). It contains **no Mcuire restaurant
-website**. To preserve the working Choice Coin site, the academy lives in a
-self-contained folder:
-
-```
-mcuire/                  ← the cooking academy (static front end, runs anywhere)
-  index.html              ← single entry point, hash router
-  assets/css/mcuire.css  ← design system
-  assets/js/config.js     ← brand name, data source, payment mode (ONE place)
-  assets/js/data/seed.js  ← categories, courses, prices, recipes (seed content)
-  assets/js/lib/*         ← DOM helpers, unit scaling
-  assets/js/services/*    ← store (local/API adapters), timers, payments,
-                            achievements, wake lock, certificates
-  assets/js/views/*       ← one module per page
-  server/                 ← production reference back end (Node 22, zero deps)
-    server.mjs            ← static hosting + REST API + Stripe Checkout + webhook
-    schema.sql            ← relational schema (SQLite now, Postgres-compatible)
-  docs/ARCHITECTURE.md    ← this file
-```
-
-**Adding it to the restaurant site (mcuire.ca)** takes one navigation link once it is
-deployed at `kitchen.mcuire.ca` (see `README.md` → *Connecting to mcuire.ca*):
+A self-contained cooking academy that sits alongside the existing Mcuire restaurant
+website. Nothing on the restaurant site is rebuilt; it gains one menu item:
 
 ```html
 <a href="https://kitchen.mcuire.ca/">Cooking Courses</a>
 ```
 
-> ⚠️ While it lives in this repo, GitHub Pages will publish it at
-> `choice-coin.com/mcuire/`. Move it to a Mcuire-owned repository and domain
-> before launch. It needs no changes for that: all paths are relative.
-
----
+```
+mcuire/
+  index.html              ← single entry point
+  assets/css/mcuire.css   ← design system
+  assets/js/config.js     ← brand name, data source, payment mode
+  assets/js/data/seed.js  ← categories, courses, prices, recipes (starting content)
+  assets/js/lib/*         ← helpers, ingredient scaling
+  assets/js/services/*    ← data store, timers, wake lock, achievements, certificates
+  assets/js/views/*       ← one file per page
+  server/server.mjs       ← accounts, Stripe payments (CAD), admin API, uploads
+  server/schema.sql       ← database
+  docs/ARCHITECTURE.md    ← this plan
+```
 
 ## 1. Proposed architecture
 
@@ -78,7 +65,7 @@ Decisions:
   a versioned JSON document. Users, courses, prices, orders, enrollments and
   certificates are relational because they need integrity and reporting.
 * **One adapter interface** (`store.js`) means the same UI runs as a static demo
-  (GitHub Pages, no back end) and as the real product (API + Stripe).
+  (no back end) and as the real product (API + Stripe).
 * **Prices never live in UI code.** They come from the `courses` table (admin
   editable). The checkout endpoint reads the price server-side, so a client
   cannot change what it pays.
@@ -106,7 +93,7 @@ Decisions:
 | `#/kitchen/shopping` | Shopping list builder + in-store checklist |
 | `#/kitchen/certificate` | Certificate (preview until earned, then download/share) |
 | `#/verify/:number` | Public certificate verification |
-| `#/admin` … | Admin: recipes, recipe editor, courses & prices, discounts, customers, orders, certificates, media |
+| `#/admin` … | Admin: recipes + recipe editor, categories, courses & modules & prices, challenges, discounts, customers, purchases, certificates, media to shoot |
 
 ## 3. Database schema
 

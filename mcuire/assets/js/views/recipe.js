@@ -30,12 +30,13 @@ export function ingredientList(recipe, servings, { substitutions = true } = {}) 
       ${g.name ? `<h4>${esc(g.name)}</h4>` : ''}
       ${g.items.map((ing) => {
         const s = scaleIngredient(ing, recipe.baseServings, servings);
-        const hasHelp = substitutions && (ing.substitutes?.length || ing.availability?.length);
+        const hasHelp = substitutions && (ing.substitutes?.length || ing.availability?.length || ing.photo?.src);
         return `<div class="ing">
           <div class="name">${esc(ing.name)}${ing.prep ? `<small>, ${esc(ing.prep)}</small>` : ''}${ing.optional ? '<span class="opt">optional</span>' : ''}</div>
           <div class="qty">${esc(s.text)}${s.alt ? `<small>${esc(s.alt)}</small>` : ''}${s.note ? `<small>${esc(s.note)}</small>` : ''}</div>
           ${ing.note ? `<div class="note">${esc(ing.note)}</div>` : ''}
           ${hasHelp ? `<details class="cantfind"><summary>${icon('info', 16)} Can’t find this?</summary><div class="box">
+            ${ing.photo?.src ? `<b>What it looks like</b><div style="max-width:220px;margin:6px 0 10px">${media(ing.photo, { ratio: 'wide' })}</div>` : ''}
             ${ing.availability?.length ? `<b>Where to look</b><div class="where">${ing.availability.map((a) => `<span class="chip">${esc(AVAILABILITY[a] || a)}</span>`).join('')}</div>` : ''}
             ${ing.substitutes?.length ? `<b style="display:block;margin-top:10px">Use instead</b><ul>${ing.substitutes.map((x) => `<li><b>${esc(x.name)}</b>${x.note ? `: ${esc(x.note)}` : ''}</li>`).join('')}</ul>` : ''}
           </div></details>` : ''}
