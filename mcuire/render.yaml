@@ -1,5 +1,7 @@
-# One-click deploy on Render (render.com → New → Blueprint → pick this repository).
-# You'll be asked for the values marked sync: false.
+# Background server for mcuire.ca/cooking-courses (accounts, payments, uploads).
+# Render: New → Blueprint → pick this repository. You'll be asked for values marked sync: false.
+# Extra Stripe accounts: after deploy, add STRIPE_SECRET_KEY_<NAME> and STRIPE_WEBHOOK_SECRET_<NAME>
+# in Render → Environment (e.g. STRIPE_SECRET_KEY_SOUPS). See README, step 4.
 services:
   - type: web
     name: mcuire-kitchen
@@ -14,7 +16,9 @@ services:
       - key: NODE_ENV
         value: production
       - key: BASE_URL
-        value: https://kitchen.mcuire.ca
+        value: https://mcuire-kitchen.onrender.com
+      - key: APP_URL
+        value: https://mcuire.ca/cooking-courses
       - key: DATABASE_PATH
         value: /data/mcuire.db
       - key: UPLOAD_DIR

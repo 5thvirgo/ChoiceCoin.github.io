@@ -11,6 +11,10 @@ const defaults = {
   // 'local' = everything in this browser (standalone demo)
   // 'api'   = server/server.mjs (entitlements enforced server-side)
   dataSource: 'local',
+  // Where the server lives when the pages are hosted elsewhere, e.g. pages at
+  // mcuire.ca/cooking-courses and server at https://mcuire-kitchen.onrender.com.
+  // Empty = same site as the pages.
+  apiBase: '',
   // 'demo' = simulated checkout, clearly labelled test mode
   // 'stripe' = Stripe Checkout via /api/checkout/session
   payments: 'demo',

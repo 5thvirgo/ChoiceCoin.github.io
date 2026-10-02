@@ -16,6 +16,31 @@ const GUEST_KEY = 'mcuire.guest.v1';
 
 const clone = (v) => JSON.parse(JSON.stringify(v));
 
+// ---- Server access -------------------------------------------------------
+// The sign-in token is kept on the device and sent as a header, so it works
+// even when the pages (mcuire.ca) and the server are on different addresses.
+const SESSION_KEY = 'mcuire.session';
+export function sessionToken() {
+  try { return localStorage.getItem(SESSION_KEY); } catch { return null; }
+}
+export function setSessionToken(token) {
+  try { if (token) localStorage.setItem(SESSION_KEY, token); else localStorage.removeItem(SESSION_KEY); } catch { /* ignore */ }
+}
+export function apiUrl(path) {
+  const base = (config.apiBase || '').replace(/\/$/, '');
+  return base ? `${base}/api/${path}` : `api/${path}`;
+}
+export function apiFetch(path, { json, headers = {}, ...options } = {}) {
+  const h = { 'X-Mcuire': '1', ...headers };
+  const token = sessionToken();
+  if (token) h.Authorization = `Bearer ${token}`;
+  if (json !== undefined) {
+    h['Content-Type'] = 'application/json';
+    options.body = JSON.stringify(json);
+  }
+  return fetch(apiUrl(path), { credentials: config.apiBase ? 'omit' : 'same-origin', ...options, headers: h });
+}
+
 function emptyKitchen() {
   return {
     account: null, // { email, name, createdAt }
@@ -81,12 +106,7 @@ class LocalAdapter {
 // ---------------------------------------------------------------------------
 class ApiAdapter {
   async request(path, options = {}) {
-    const res = await fetch(`api/${path}`, {
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json', 'X-Mcuire': '1' },
-      ...options,
-      body: options.body ? JSON.stringify(options.body) : undefined,
-    });
+    const res = await apiFetch(path, { method: options.method, json: options.body });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || `Request failed (${res.status})`);
@@ -157,6 +177,7 @@ class ApiAdapter {
   }
   async signOut() {
     await this.request('auth/logout', { method: 'POST' }).catch(() => {});
+    setSessionToken(null);
   }
 }
 

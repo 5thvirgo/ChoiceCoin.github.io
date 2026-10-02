@@ -28,54 +28,65 @@ Sign-in links are printed to the server console.
 Admin: `#/admin`. In demo mode the passcode is in `assets/js/config.js`. On the server,
 sign in with an email listed in `ADMIN_EMAILS` (prices and customers) or `STAFF_EMAILS` (recipes and media).
 
-## Going live at kitchen.mcuire.ca (WHC.ca + WordPress)
+## Going live at mcuire.ca/cooking-courses (WHC.ca + WordPress)
 
-mcuire.ca stays your WordPress site on WHC.ca, untouched. The academy runs at
-**kitchen.mcuire.ca** on Render (an app host), and WordPress links to it.
+Customers only ever see **mcuire.ca/cooking-courses**. It has two parts:
 
-**1. Put the code on GitHub (5 min).** Create a private repository called
-`mcuire-kitchen` and upload the contents of this folder, so `render.yaml` is at the top level.
+| Part | Where | What it does |
+|---|---|---|
+| The pages | A `cooking-courses` folder in your WHC.ca hosting, next to WordPress | Everything customers see and click |
+| The background server | Render (app host, about US$7–8/month) | Accounts, Stripe payments, admin, photo uploads |
 
-**2. Create the app on Render (10 min).**
-render.com → sign up → **New → Blueprint** → choose `mcuire-kitchen`. Render reads
-`render.yaml` and asks for:
-- `ADMIN_EMAILS`: the owner's email (gets full admin: prices, customers)
-- `STAFF_EMAILS`: kitchen staff emails (can edit recipes and photos)
+WordPress itself is not changed. Its own rules leave real folders alone, so
+`mcuire.ca/cooking-courses/` serves the academy.
+
+**1. Put the code on GitHub (5 min).** Create a private repository `mcuire-kitchen` and
+upload the contents of this folder, so `render.yaml` is at the top level.
+
+**2. Start the background server on Render (10 min).**
+render.com → **New → Blueprint** → choose `mcuire-kitchen`. Enter:
+- `ADMIN_EMAILS`: the owner’s email (full admin: prices, Stripe accounts, customers)
+- `STAFF_EMAILS`: kitchen staff (recipes and photos)
 - `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET`: from step 4 (you can add them later)
 
-Plan: Starter + 2 GB disk (roughly US$7–8/month). When it finishes you’ll have an address like
-`mcuire-kitchen.onrender.com`. Open it to check that the academy loads.
+When it’s live you’ll have an address like `https://mcuire-kitchen.onrender.com`.
+If Render gives a different name, update `BASE_URL` in Render to match.
 
-**3. Point kitchen.mcuire.ca at it (10 min).**
-- Render → your service → **Settings → Custom Domains → Add** `kitchen.mcuire.ca`.
-  Render shows the target hostname.
-- WHC.ca client area → **cPanel → Zone Editor** → mcuire.ca → **+ CNAME Record**:
-  Name `kitchen` → Record `mcuire-kitchen.onrender.com` (the target Render showed). Save.
-- Wait 5–60 minutes. Render issues the HTTPS certificate automatically.
+**3. Upload the pages to WHC.ca (5 min).**
+- On a computer with this folder: `API_BASE=https://mcuire-kitchen.onrender.com tools/build-page.sh`.
+  That creates `dist/cooking-courses/index.html`. (A ready-built copy is in the package under
+  `upload-to-WHC/`; it already points to `https://mcuire-kitchen.onrender.com`.)
+- WHC.ca client area → **cPanel → File Manager** → `public_html` → **+ Folder** `cooking-courses`
+  → open it → **Upload** `index.html`.
+- Visit `https://mcuire.ca/cooking-courses/` to check that it loads.
 
-**4. Turn on real payments in CAD (15 min).**
-- Create a **Stripe account registered in Canada** (stripe.com) and complete verification.
-- Developers → API keys → copy the **Secret key** into Render as `STRIPE_SECRET_KEY`.
-- Developers → Webhooks → **Add endpoint** `https://kitchen.mcuire.ca/api/stripe/webhook`,
-  events `checkout.session.completed` and `charge.refunded` → copy the signing secret into
-  Render as `STRIPE_WEBHOOK_SECRET`.
-- Settings → Payment methods → turn on **Apple Pay** and **Google Pay**, and add the domain
-  `kitchen.mcuire.ca` under Apple Pay.
-- Test first with Stripe’s test keys (card 4242 4242 4242 4242), then switch to live keys.
+**4. Stripe: one account or several (15 min per account).**
+Each course can pay into its own Stripe account (Canadian accounts, CAD).
+- **Main account:** in Stripe, go to Developers → API keys and copy the **Secret key** into Render as
+  `STRIPE_SECRET_KEY`. Then Developers → Webhooks → **Add endpoint**
+  `https://mcuire-kitchen.onrender.com/api/stripe/webhook`, with events
+  `checkout.session.completed` and `charge.refunded`. Copy the signing secret into Render as
+  `STRIPE_WEBHOOK_SECRET`.
+- **Each extra account:** pick a short name, e.g. `SOUPS`. In Render → Environment add
+  `STRIPE_SECRET_KEY_SOUPS` and `STRIPE_WEBHOOK_SECRET_SOUPS`. In that Stripe account, the webhook
+  endpoint is `https://mcuire-kitchen.onrender.com/api/stripe/webhook/soups`.
+- Then in the academy: **Admin → Courses & prices → “Pay into Stripe account”** and choose which
+  account each course pays into. **Admin → Purchases** shows which account each sale went to.
+- Card, Apple Pay and Google Pay appear automatically on Stripe’s secure payment page.
+  Turn them on under Settings → Payment methods.
+- Test first with Stripe’s **test** keys (card 4242 4242 4242 4242), then switch to live keys.
+- **Never email or message secret keys.** Paste them only into Render.
 
 **5. Add “Cooking Courses” to the WordPress menu (2 min).**
-WordPress admin → **Appearance → Menus** (or **Appearance → Editor → Navigation** on block
-themes) → **Custom Links** → URL `https://kitchen.mcuire.ca`, text `Cooking Courses` → Add → Save.
+WordPress admin → **Appearance → Menus** (block themes: **Appearance → Editor → Navigation**)
+→ **Custom Links** → URL `https://mcuire.ca/cooking-courses/`, text `Cooking Courses` → Add → Save.
 
 **6. Email delivery.** Receipts and sign-in links are sent by `sendEmail()` in
-`server/server.mjs`. Connect an email service (Postmark or Resend; both have free tiers)
-before launch. Until then, sign-in links appear only in Render’s logs.
+`server/server.mjs`. Connect Postmark or Resend before launch. Until then, sign-in links appear
+only in Render’s logs.
 
-**Before the first sale:** have the chef review each recipe in **Admin → Recipes**, and upload
-your own photos and videos from **Admin → Media to shoot**.
-
-Alternative: if your WHC plan offers **“Setup Node.js App” with Node 22 or newer** in cPanel,
-the academy can run on WHC directly. Ask WHC support. Otherwise use Render as above.
+**Before the first sale:** have the chef review each recipe (**Admin → Recipes**) and upload your
+own photos and videos (**Admin → Media to shoot**).
 
 ## Replacing placeholder photography
 

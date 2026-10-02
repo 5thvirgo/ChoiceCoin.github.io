@@ -3,7 +3,7 @@
 // Basics → Ingredients → Equipment → Steps → Photos & video → Publishing.
 
 import { config } from '../config.js';
-import { store } from '../services/store.js';
+import { store, apiFetch } from '../services/store.js';
 import { SHOP_CATEGORIES, AVAILABILITY, TIP_KINDS } from '../data/seed.js';
 import { media, signInForm, bindSignIn } from '../components.js';
 import { esc, icon, money, formatDate, on, toast, uid } from '../lib/dom.js';
@@ -16,7 +16,7 @@ const GATE_KEY = 'mcuire.admin';
 async function hasAccess() {
   if (config.dataSource === 'api') {
     try {
-      const me = await (await fetch('api/me', { credentials: 'same-origin' })).json();
+      const me = await (await apiFetch('me')).json();
       return ['staff', 'admin'].includes(me?.account?.role);
     } catch { return false; }
   }
@@ -78,7 +78,7 @@ function mediaSlots(recipe) {
 
 async function loadServerList(path) {
   if (config.dataSource !== 'api') return null;
-  try { return await (await fetch(`api/admin/${path}`, { credentials: 'same-origin' })).json(); } catch { return []; }
+  try { return await (await apiFetch(`admin/${path}`)).json(); } catch { return []; }
 }
 
 // ------------------------------------------------------------------ sections
@@ -129,8 +129,8 @@ async function ordersList() {
   const rows = (await loadServerList('orders')) || store.kitchen.orders;
   const total = rows.filter((o) => o.status === 'paid').reduce((s, o) => s + o.amountCents, 0);
   return `<h1 style="font-size:2.2rem">Purchases</h1><p class="muted">${rows.length} orders · ${money(total)} paid</p>
-    <div class="table-wrap panel"><table class="table"><thead><tr><th>Date</th><th>Customer</th><th>Course</th><th>Code</th><th>Amount</th><th>Status</th></tr></thead>
-    <tbody>${rows.slice().reverse().map((o) => `<tr><td>${formatDate(o.createdAt)}</td><td>${esc(o.email)}</td><td>${esc(store.course(o.courseId)?.title || o.courseId)}</td><td>${esc(o.discountCode || '—')}</td><td>${money(o.amountCents, o.currency)}</td><td>${esc(o.status)}</td></tr>`).join('') || '<tr><td colspan="6" class="muted">No purchases yet.</td></tr>'}</tbody></table></div>`;
+    <div class="table-wrap panel"><table class="table"><thead><tr><th>Date</th><th>Customer</th><th>Course</th><th>Code</th><th>Amount</th><th>Paid into</th><th>Status</th></tr></thead>
+    <tbody>${rows.slice().reverse().map((o) => `<tr><td>${formatDate(o.createdAt)}</td><td>${esc(o.email)}</td><td>${esc(store.course(o.courseId)?.title || o.courseId)}</td><td>${esc(o.discountCode || '—')}</td><td>${money(o.amountCents, o.currency)}</td><td>${esc(o.stripeAccount || '—')}</td><td>${esc(o.status)}</td></tr>`).join('') || '<tr><td colspan="7" class="muted">No purchases yet.</td></tr>'}</tbody></table></div>`;
 }
 
 async function certificatesList() {
@@ -162,7 +162,12 @@ function tools() {
 }
 
 // ------------------------------------------------------------------ courses
-function coursesEditor() {
+function coursesEditor(accounts = null) {
+  const accountField = (c) => {
+    if (!accounts) return `<div class="field"><label>Pay into Stripe account</label><input name="stripeAccount" value="${esc(c.stripeAccount || 'default')}"><small>On the live site this is a dropdown of the Stripe accounts set up on your host.</small></div>`;
+    if (!accounts.length) return '<div class="field"><label>Pay into Stripe account</label><p class="small muted" style="margin:0">No Stripe account is connected yet. Payments are in test mode.</p></div>';
+    return `<div class="field"><label>Pay into Stripe account</label><select name="stripeAccount">${accounts.map((a) => `<option value="${esc(a.name)}" ${(c.stripeAccount || 'default') === a.name ? 'selected' : ''}>${esc(a.name)}${a.live ? '' : ' (test mode)'}${a.webhookReady ? '' : ' (webhook not set up)'}</option>`).join('')}</select><small>Money from this course goes to this account.</small></div>`;
+  };
   return `<h1 style="font-size:2.2rem">Courses & prices</h1>
     <p class="muted">Prices are read from here everywhere on the site and at checkout. Nothing is hard-coded.</p>
     ${store.courses.map((c) => `<form class="panel" data-course="${esc(c.id)}">
@@ -177,6 +182,7 @@ function coursesEditor() {
         <div class="field"><label>Status</label><select name="status">${['published', 'coming_soon', 'hidden'].map((s) => `<option ${c.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
         ${c.kind === 'flagship' ? `<div class="field"><label>Name printed on certificate</label><input name="certificateTitle" value="${esc(c.certificateTitle || '')}"></div>` : '<div></div>'}
       </div>
+      ${accountField(c)}
       <div class="field"><label>Description</label><textarea name="blurb">${esc(c.blurb)}</textarea></div>
       <details><summary class="link" style="cursor:pointer">Modules & recipes (${c.modules.length})</summary>
         ${c.modules.map((m, mi) => `<div class="repeat" style="margin-top:10px"><div class="field"><label>Module ${mi + 1} title</label><input name="module-${mi}" value="${esc(m.title)}"></div>
@@ -526,7 +532,7 @@ function recipeEditor(id, query) {
           const path = input.dataset.upload;
           let url;
           if (config.dataSource === 'api') {
-            const res = await fetch('api/admin/media', { method: 'POST', body: file, credentials: 'same-origin', headers: { 'Content-Type': file.type, 'X-Mcuire': '1' } });
+            const res = await apiFetch('admin/media', { method: 'POST', body: file, headers: { 'Content-Type': file.type } });
             if (!res.ok) { toast('Upload failed'); return; }
             url = (await res.json()).url;
           } else {
@@ -579,7 +585,7 @@ export default async function admin({ section = '', id }, query) {
     body = {
       '': overview,
       recipes: recipesList,
-      courses: coursesEditor,
+      courses: async () => coursesEditor(config.dataSource === 'api' ? await loadServerList('stripe-accounts') : null),
       discounts: discountsEditor,
       categories: categoriesEditor,
       challenges: challengesEditor,
@@ -610,14 +616,17 @@ export default async function admin({ section = '', id }, query) {
         c.compareAtCents = data.get('compare') ? Math.round(Number(data.get('compare')) * 100) : undefined;
         c.status = data.get('status');
         c.currency = data.get('currency') || 'CAD';
+        if (data.has('stripeAccount')) c.stripeAccount = String(data.get('stripeAccount')).trim().toLowerCase() || 'default';
         c.blurb = data.get('blurb');
         if (data.has('certificateTitle')) c.certificateTitle = data.get('certificateTitle');
         c.modules.forEach((m, mi) => {
           m.title = data.get(`module-${mi}`) || m.title;
           m.recipeIds = data.getAll(`mod-${mi}`);
         });
-        await store.saveCourse(c);
-        toast(`${c.title} saved: ${money(c.priceCents, c.currency)}`);
+        try {
+          await store.saveCourse(c);
+          toast(`${c.title} saved: ${money(c.priceCents, c.currency)}`);
+        } catch (err) { toast(err.message); }
       }));
 
       const readCategories = (form) => {

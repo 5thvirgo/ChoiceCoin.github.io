@@ -1,6 +1,6 @@
 // Mcuire Kitchen: app shell + hash router.
 import { config } from './config.js';
-import { store } from './services/store.js';
+import { store, setSessionToken } from './services/store.js';
 import * as timers from './services/timers.js';
 import { brandMark } from './components.js';
 import { esc, icon, clock } from './lib/dom.js';
@@ -161,7 +161,18 @@ export function navigate(hash) {
   if (location.hash === hash) render(); else location.hash = hash;
 }
 
+// Emailed sign-in links arrive as #/kitchen?session=…: keep the token, tidy the address bar.
+function captureSession() {
+  const [path, qs = ''] = location.hash.split('?');
+  const params = new URLSearchParams(qs);
+  if (!params.has('session')) return;
+  setSessionToken(params.get('session'));
+  params.delete('session');
+  history.replaceState(null, '', `${location.pathname}${location.search}${path}${params.toString() ? `?${params}` : ''}`);
+}
+
 (async function boot() {
+  captureSession();
   await store.init();
   shell();
   window.addEventListener('hashchange', render);

@@ -5,10 +5,14 @@
 //
 // Environment:
 //   PORT                   default 8787
-//   BASE_URL               public URL, e.g. https://kitchen.mcuire.ca (default http://localhost:PORT)
+//   BASE_URL               this server's public URL, e.g. https://mcuire-kitchen.onrender.com (default http://localhost:PORT)
+//   APP_URL                where customers see the pages, e.g. https://mcuire.ca/cooking-courses (default BASE_URL)
 //   DATABASE_PATH          default server/data/mcuire.db
 //   STRIPE_SECRET_KEY      sk_live_… / sk_test_…  (omit in development → simulated payments)
 //   STRIPE_WEBHOOK_SECRET  whsec_…
+//   STRIPE_SECRET_KEY_<NAME>, STRIPE_WEBHOOK_SECRET_<NAME>
+//                          extra Stripe accounts (e.g. _SOUPS). Each course chooses its
+//                          account in Admin → Courses & prices; the default is used otherwise.
 //   UPLOAD_DIR             where uploaded photos/videos are stored (default server/uploads)
 //   ADMIN_EMAILS           comma-separated emails that become admins on sign-in
 //   STAFF_EMAILS           comma-separated emails that become staff (content only)
@@ -29,9 +33,27 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(here, '..');
 const PORT = Number(process.env.PORT || 8787);
 const BASE_URL = (process.env.BASE_URL || `http://localhost:${PORT}`).replace(/\/$/, '');
+const APP_URL = (process.env.APP_URL || BASE_URL).replace(/\/$/, '');
+// Pages hosted on another site (e.g. mcuire.ca) may call this server.
+const APP_ORIGIN = new URL(APP_URL).origin;
+const CROSS_SITE = APP_ORIGIN !== new URL(BASE_URL).origin;
 const PROD = process.env.NODE_ENV === 'production';
-const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || '';
-const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
+// Stripe accounts by name: 'default' plus any STRIPE_SECRET_KEY_<NAME>.
+// Keys only ever live in the host's environment settings, never in the database.
+const STRIPE_ACCOUNTS = new Map();
+for (const [k, v] of Object.entries(process.env)) {
+  const m = /^STRIPE_SECRET_KEY(?:_([A-Z0-9_]+))?$/.exec(k);
+  if (!m || !v) continue;
+  const suffix = m[1] || '';
+  STRIPE_ACCOUNTS.set(suffix ? suffix.toLowerCase() : 'default', {
+    key: v, webhookSecret: process.env[`STRIPE_WEBHOOK_SECRET${suffix ? `_${suffix}` : ''}`] || '',
+  });
+}
+const STRIPE_KEY = STRIPE_ACCOUNTS.size > 0; // payments enabled
+const STRIPE_API_BASE = PROD ? 'https://api.stripe.com' : (process.env.STRIPE_API_BASE || 'https://api.stripe.com'); // overridable only for local testing
+function stripeAccount(name) {
+  return STRIPE_ACCOUNTS.get(name || 'default') || STRIPE_ACCOUNTS.get('default') || [...STRIPE_ACCOUNTS.values()][0];
+}
 const emails = (v) => new Set((v || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean));
 const ADMIN_EMAILS = emails(process.env.ADMIN_EMAILS);
 const STAFF_EMAILS = emails(process.env.STAFF_EMAILS);
@@ -48,6 +70,8 @@ const dbPath = process.env.DATABASE_PATH || path.join(here, 'data', 'mcuire.db')
 await mkdir(path.dirname(dbPath), { recursive: true });
 const db = new DatabaseSync(dbPath);
 db.exec(readFileSync(path.join(here, 'schema.sql'), 'utf8'));
+// Migrations for databases created by earlier versions.
+if (!db.prepare("SELECT 1 FROM pragma_table_info('orders') WHERE name = 'stripe_account'").get()) db.exec('ALTER TABLE orders ADD COLUMN stripe_account TEXT');
 
 const q = (sql) => db.prepare(sql);
 const now = () => new Date().toISOString();
@@ -147,10 +171,17 @@ function createSession(res, userId) {
   const expires = new Date(Date.now() + SESSION_DAYS * 864e5);
   q('INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?,?,?)').run(hash(t), userId, expires.toISOString());
   res.setHeader('Set-Cookie', `mk_session=${t}; Path=/; HttpOnly; SameSite=Lax; Expires=${expires.toUTCString()}${BASE_URL.startsWith('https') ? '; Secure' : ''}`);
+  return t;
+}
+
+// Session token from the Authorization header (pages on another site) or the cookie (same site).
+function sessionTokenFrom(req) {
+  const bearer = /^Bearer\s+(\S+)$/i.exec(req.headers.authorization || '')?.[1];
+  return bearer || /(?:^|;\s*)mk_session=([^;]+)/.exec(req.headers.cookie || '')?.[1] || null;
 }
 
 function currentUser(req) {
-  const t = /(?:^|;\s*)mk_session=([^;]+)/.exec(req.headers.cookie || '')?.[1];
+  const t = sessionTokenFrom(req);
   if (!t) return null;
   return q(`SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?`).get(hash(t), now()) || null;
 }
@@ -202,10 +233,10 @@ function fulfill({ sessionId, email, paymentIntent }) {
   });
 }
 
-async function stripe(method, pathname, form) {
-  const res = await fetch(`https://api.stripe.com/v1/${pathname}`, {
+async function stripe(account, method, pathname, form) {
+  const res = await fetch(`${STRIPE_API_BASE}/v1/${pathname}`, {
     method,
-    headers: { Authorization: `Bearer ${STRIPE_KEY}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { Authorization: `Bearer ${account.key}`, 'Content-Type': 'application/x-www-form-urlencoded' },
     body: form ? new URLSearchParams(form) : undefined,
   });
   const body = await res.json();
@@ -213,12 +244,12 @@ async function stripe(method, pathname, form) {
   return body;
 }
 
-function verifyStripeSignature(raw, header) {
-  if (!WEBHOOK_SECRET || !header) return false;
+function verifyStripeSignature(raw, header, secret) {
+  if (!secret || !header) return false;
   const parts = Object.fromEntries(header.split(',').map((kv) => kv.split('=')));
   const t = Number(parts.t);
   if (!t || Math.abs(Date.now() / 1000 - t) > 300) return false;
-  const expected = createHmac('sha256', WEBHOOK_SECRET).update(`${t}.${raw}`).digest('hex');
+  const expected = createHmac('sha256', secret).update(`${t}.${raw}`).digest('hex');
   const sigs = header.split(',').filter((kv) => kv.startsWith('v1=')).map((kv) => kv.slice(3));
   return sigs.some((s) => s.length === expected.length && timingSafeEqual(Buffer.from(s), Buffer.from(expected)));
 }
@@ -291,7 +322,7 @@ async function api(req, res, url, user) {
 
   // Mutating requests (except the Stripe webhook) must carry X-Mcuire: a cheap,
   // effective CSRF guard on top of SameSite=Lax cookies.
-  if (req.method !== 'GET' && p !== '/stripe/webhook' && req.headers['x-mcuire'] !== '1') throw new HttpError(403, 'Missing request header');
+  if (req.method !== 'GET' && !p.startsWith('/stripe/webhook') && req.headers['x-mcuire'] !== '1') throw new HttpError(403, 'Missing request header');
 
   // ---- public content
   if (m('GET', /^\/catalog$/)) {
@@ -329,18 +360,18 @@ async function api(req, res, url, user) {
   if (m('GET', /^\/auth\/verify$/)) {
     const link = q('SELECT * FROM magic_links WHERE token_hash = ?').get(hash(url.searchParams.get('token') || ''));
     if (!link || link.used_at || link.expires_at < now()) {
-      res.writeHead(302, { Location: '/#/kitchen?signin=expired' });
+      res.writeHead(302, { Location: `${APP_URL}/#/kitchen?signin=expired` });
       return res.end();
     }
     q('UPDATE magic_links SET used_at = ? WHERE token_hash = ?').run(now(), link.token_hash);
     const u = q('SELECT * FROM users WHERE id = ?').get(link.user_id);
     upsertUser(u.email); // refresh role from ADMIN_EMAILS/STAFF_EMAILS
-    createSession(res, link.user_id);
-    res.writeHead(302, { Location: '/#/kitchen' });
+    const session = createSession(res, link.user_id);
+    res.writeHead(302, { Location: CROSS_SITE ? `${APP_URL}/#/kitchen?session=${session}` : `${APP_URL}/#/kitchen` });
     return res.end();
   }
   if (m('POST', /^\/auth\/logout$/)) {
-    const t = /(?:^|;\s*)mk_session=([^;]+)/.exec(req.headers.cookie || '')?.[1];
+    const t = sessionTokenFrom(req);
     if (t) q('DELETE FROM sessions WHERE token_hash = ?').run(hash(t));
     return send(res, 204, undefined, { 'Set-Cookie': 'mk_session=; Path=/; Max-Age=0' });
   }
@@ -354,7 +385,7 @@ async function api(req, res, url, user) {
     const { total, code } = priceFor(course, discountCode); // price always from the database
     const orderId = `ord_${randomBytes(8).toString('hex')}`;
     const resumeParam = /^[a-z0-9-]{1,80}$/.test(resume || '') ? `&resume=${resume}` : '';
-    const successUrl = `${BASE_URL}/#/welcome/${course.slug}?session_id={CHECKOUT_SESSION_ID}${resumeParam}`;
+    const successUrl = `${APP_URL}/#/welcome/${course.slug}?session_id={CHECKOUT_SESSION_ID}${resumeParam}`;
 
     if (!STRIPE_KEY) {
       // Development only: simulate an instantly-paid Checkout Session.
@@ -363,7 +394,8 @@ async function api(req, res, url, user) {
         .run(orderId, (email || 'dev@mcuire.test').toLowerCase(), course.id, total, course.currency, code, sessionId, 'pending');
       return send(res, 200, { url: successUrl.replace('{CHECKOUT_SESSION_ID}', sessionId), simulated: true });
     }
-    const session = await stripe('POST', 'checkout/sessions', {
+    const accountName = STRIPE_ACCOUNTS.has(course.stripeAccount) ? course.stripeAccount : 'default';
+    const session = await stripe(stripeAccount(accountName), 'POST', 'checkout/sessions', {
       mode: 'payment',
       'line_items[0][quantity]': '1',
       'line_items[0][price_data][currency]': course.currency.toLowerCase(),
@@ -373,13 +405,13 @@ async function api(req, res, url, user) {
       ...(email ? { customer_email: email } : {}),
       customer_creation: 'if_required',
       success_url: successUrl,
-      cancel_url: `${BASE_URL}/#/courses/${course.slug}`,
+      cancel_url: `${APP_URL}/#/courses/${course.slug}`,
       'metadata[course_id]': course.id,
       'metadata[order_id]': orderId,
       ...(code ? { 'metadata[discount_code]': code } : {}),
     });
-    q('INSERT INTO orders (id, email, course_id, amount_cents, currency, discount_code, stripe_session_id, status) VALUES (?,?,?,?,?,?,?,?)')
-      .run(orderId, (email || '').toLowerCase(), course.id, total, course.currency, code, session.id, 'pending');
+    q('INSERT INTO orders (id, email, course_id, amount_cents, currency, discount_code, stripe_session_id, status, stripe_account) VALUES (?,?,?,?,?,?,?,?,?)')
+      .run(orderId, (email || '').toLowerCase(), course.id, total, course.currency, code, session.id, 'pending', accountName);
     return send(res, 200, { url: session.url });
   }
 
@@ -392,20 +424,22 @@ async function api(req, res, url, user) {
     let email = order.email;
     let paymentIntent = null;
     if (STRIPE_KEY) {
-      const s = await stripe('GET', `checkout/sessions/${encodeURIComponent(sessionId)}`);
+      const s = await stripe(stripeAccount(order.stripe_account), 'GET', `checkout/sessions/${encodeURIComponent(sessionId)}`);
       if (s.payment_status !== 'paid') return send(res, 202, { status: 'pending' });
       email = s.customer_details?.email || email;
       paymentIntent = s.payment_intent;
     } else if (PROD) throw new HttpError(400, 'Payments not configured');
     const { user: buyer, firstTime } = fulfill({ sessionId, email, paymentIntent });
     if (firstTime) await sendMagicLink(buyer);
-    createSession(res, buyer.id);
-    return send(res, 200, { status: 'paid' });
+    const session = createSession(res, buyer.id);
+    return send(res, 200, { status: 'paid', session });
   }
 
-  if (m('POST', /^\/stripe\/webhook$/)) {
+  // One webhook URL per Stripe account: /api/stripe/webhook (default) or /api/stripe/webhook/<name>.
+  if ((r = m('POST', /^\/stripe\/webhook(?:\/([a-z0-9_]+))?$/))) {
     const raw = (await readBody(req)).toString();
-    if (!verifyStripeSignature(raw, req.headers['stripe-signature'])) throw new HttpError(400, 'Bad signature');
+    const account = STRIPE_ACCOUNTS.get(r[1] || 'default');
+    if (!account || !verifyStripeSignature(raw, req.headers['stripe-signature'], account.webhookSecret)) throw new HttpError(400, 'Bad signature');
     const event = JSON.parse(raw);
     const obj = event.data?.object || {};
     if (event.type === 'checkout.session.completed' && obj.payment_status === 'paid') {
@@ -481,6 +515,7 @@ async function api(req, res, url, user) {
     if (c.id !== r[1] || !getCourse(c.id)) throw new HttpError(404, 'Course not found');
     if (!Number.isInteger(c.priceCents) || c.priceCents < 0) throw new HttpError(400, 'Invalid price');
     if (!['CAD', 'USD'].includes(c.currency)) throw new HttpError(400, 'Unsupported currency');
+    if (c.stripeAccount && !STRIPE_ACCOUNTS.has(c.stripeAccount) && STRIPE_ACCOUNTS.size) throw new HttpError(400, 'Unknown Stripe account');
     tx(() => saveCourseRow(c));
     return send(res, 200, { ok: true });
   }
@@ -528,7 +563,7 @@ async function api(req, res, url, user) {
     const id = randomBytes(12).toString('hex');
     await mkdir(UPLOAD_DIR, { recursive: true });
     await writeFile(path.join(UPLOAD_DIR, id + ext), data);
-    const mediaUrl = `/uploads/${id}${ext}`;
+    const mediaUrl = `${BASE_URL}/uploads/${id}${ext}`;
     q('INSERT INTO media (id, kind, url, mime, size_bytes, uploaded_by) VALUES (?,?,?,?,?,?)').run(id, mime.startsWith('video') ? 'video' : 'photo', mediaUrl, mime, data.length, user.id);
     return send(res, 201, { id, url: mediaUrl });
   }
@@ -541,9 +576,14 @@ async function api(req, res, url, user) {
       return { ...u, courses, cooked: new Set((st.cookLog || []).map((l) => l.recipeId)).size };
     }));
   }
+  // Names only (never keys), for the "Pay into Stripe account" dropdown.
+  if (m('GET', /^\/admin\/stripe-accounts$/)) {
+    requireRole(user, 'admin');
+    return send(res, 200, [...STRIPE_ACCOUNTS.entries()].map(([name, a]) => ({ name, webhook: `${BASE_URL}/api/stripe/webhook${name === 'default' ? '' : `/${name}`}`, webhookReady: !!a.webhookSecret, live: a.key.startsWith('sk_live') })));
+  }
   if (m('GET', /^\/admin\/orders$/)) {
     requireRole(user, 'admin');
-    return send(res, 200, q('SELECT id, email, course_id AS courseId, amount_cents AS amountCents, currency, discount_code AS discountCode, status, created_at AS createdAt FROM orders ORDER BY created_at').all());
+    return send(res, 200, q('SELECT id, email, course_id AS courseId, amount_cents AS amountCents, currency, discount_code AS discountCode, status, stripe_account AS stripeAccount, created_at AS createdAt FROM orders ORDER BY created_at').all());
   }
   if (m('GET', /^\/admin\/certificates$/)) {
     requireRole(user, 'staff', 'admin');
@@ -555,6 +595,14 @@ async function api(req, res, url, user) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, BASE_URL);
+  if (CROSS_SITE && url.pathname.startsWith('/api/') && req.headers.origin === APP_ORIGIN) {
+    res.setHeader('Access-Control-Allow-Origin', APP_ORIGIN);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Mcuire');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
+  }
   try {
     if (url.pathname.startsWith('/api/')) return await api(req, res, url, currentUser(req));
     if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'Method not allowed');
@@ -567,5 +615,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Mcuire Kitchen on ${BASE_URL}  (${STRIPE_KEY ? 'Stripe payments' : 'SIMULATED payments, development only'})`);
+  console.log(`Mcuire Kitchen server on ${BASE_URL}, pages at ${APP_URL}  (${STRIPE_KEY ? `Stripe accounts: ${[...STRIPE_ACCOUNTS.keys()].join(', ')}` : 'SIMULATED payments, development only'})`);
 });

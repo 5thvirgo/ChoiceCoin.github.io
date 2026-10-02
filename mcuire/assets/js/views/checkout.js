@@ -3,7 +3,7 @@
 // payments = 'demo':   simulated payment, clearly labelled, same unlock path.
 
 import { config } from '../config.js';
-import { store } from '../services/store.js';
+import { store, apiFetch, setSessionToken } from '../services/store.js';
 import { media } from '../components.js';
 import { esc, icon, money, on, toast } from '../lib/dom.js';
 
@@ -13,7 +13,9 @@ async function welcome(course, query) {
   // Returning from Stripe: confirm the session server-side, which also signs the buyer in.
   if (query.session_id && config.dataSource === 'api') {
     try {
-      await fetch(`api/checkout/confirm?session_id=${encodeURIComponent(query.session_id)}`, { credentials: 'same-origin' });
+      const res = await apiFetch(`checkout/confirm?session_id=${encodeURIComponent(query.session_id)}`);
+      const data = await res.json().catch(() => ({}));
+      if (data.session) setSessionToken(data.session);
       await store.init();
     } catch { /* webhook will still unlock; the page below offers My Kitchen */ }
   }

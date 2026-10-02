@@ -3,7 +3,7 @@
 // Wording deliberately says "certificate of completion", not an accredited qualification.
 
 import { config } from '../config.js';
-import { store, isValidCertificateNumber } from '../services/store.js';
+import { store, isValidCertificateNumber, apiFetch } from '../services/store.js';
 import { seal, brandMark } from '../components.js';
 import { esc, icon, formatDate, money, on, toast } from '../lib/dom.js';
 
@@ -111,7 +111,7 @@ async function verify(number) {
   const valid = isValidCertificateNumber(number);
   if (valid) {
     if (config.dataSource === 'api') {
-      try { const r = await fetch(`api/certificates/${encodeURIComponent(number)}`); if (r.ok) record = await r.json(); } catch { /* offline */ }
+      try { const r = await apiFetch(`certificates/${encodeURIComponent(number)}`); if (r.ok) record = await r.json(); } catch { /* offline */ }
     } else {
       record = store.kitchen.certificates.find((c) => c.number === number.toUpperCase()) || null;
     }
