@@ -1,19 +1,26 @@
 import { store } from '../services/store.js';
 import { SHOP_CATEGORIES } from '../data/seed.js';
 import { esc, icon, on, toast } from '../lib/dom.js';
-import { scaleIngredient, formatQty } from '../lib/units.js';
+import { scaleIngredient, formatQty, bigUnits } from '../lib/units.js';
 
 // Combine ingredients across selected recipes, merging identical items.
 export function buildList(selections, extras = []) {
   const items = new Map();
-  for (const sel of selections) {
+  // A meal expands into its dishes, all for the meal's number of people.
+  const expanded = selections.flatMap((sel) => {
+    const r = store.recipe(sel.recipeId);
+    return r?.components ? r.components.map((id) => ({ recipeId: id, servings: sel.servings, meal: r.title })) : [sel];
+  });
+  for (const sel of expanded) {
     const recipe = store.recipe(sel.recipeId);
     if (!recipe) continue;
     for (const ing of recipe.ingredients) {
       const key = `${ing.name.toLowerCase()}|${ing.unit || ''}`;
       const s = scaleIngredient(ing, recipe.baseServings, sel.servings);
       const item = items.get(key) || { key, name: ing.name, unit: ing.unit, qty: 0, texts: [], category: ing.shopCategory || 'Other', recipes: new Set(), optional: true };
-      if (typeof s.qty === 'number') item.qty += s.qty; else item.texts.push(s.text);
+      // Sum in the authored unit (scaleIngredient may have shown 2 kg for 2000 g).
+      const base = typeof s.qty === 'number' ? (s.unit !== ing.unit ? s.qty * 1000 : s.qty) : null;
+      if (base != null) item.qty += base; else item.texts.push(s.text);
       item.optional = item.optional && !!ing.optional;
       item.recipes.add(recipe.title);
       items.set(key, item);
@@ -26,7 +33,7 @@ export function buildList(selections, extras = []) {
     cat,
     items: [...items.values()].filter((i) => i.category === cat).map((i) => ({
       ...i,
-      amount: i.qty ? formatQty(Math.round(i.qty * 100) / 100, i.unit) : i.texts[0] || '',
+      amount: i.qty ? formatQty(...bigUnits(Math.round(i.qty * 100) / 100, i.unit)) : i.texts[0] || '',
       recipes: [...i.recipes],
     })),
   })).filter((g) => g.items.length);

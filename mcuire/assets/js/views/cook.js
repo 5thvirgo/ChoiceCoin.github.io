@@ -112,6 +112,8 @@ export default async function cook({ slug }, query, route) {
           ${timerCard(step)}
           ${cues.length ? `<div class="cues">${cues.map(([k, v]) => `<div class="cue"><span class="ico">${icon(CUE_ICONS[k][0], 20)}</span><div><b>${CUE_ICONS[k][1]}</b>${esc(v)}</div></div>`).join('')}</div>` : ''}
           ${(step.tips || []).map((t) => `<div class="tip ${esc(t.kind)}"><b>${icon(TIP_ICON[t.kind] || 'info', 16)} ${esc(TIP_KINDS[t.kind] || 'Tip')}</b><p>${esc(t.text)}</p></div>`).join('')}
+          ${(step.links || []).length ? `<div class="stack" style="margin:18px 0">${step.links.map((id) => store.recipe(id)).filter(Boolean).map((r) =>
+            `<a class="btn btn-dark btn-block" href="#/cook/${esc(r.slug)}?from=${esc(recipe.slug)}">${icon('play', 18)} Open the ${esc(r.title)} lesson</a>`).join('')}</div>` : ''}
           ${checkpoint(step)}
           ${(step.troubleshooting || []).length ? `<details class="trouble"><summary>${icon('alert', 18)} Something not right?</summary><dl>${step.troubleshooting.map((t) => `<dt>${esc(t.problem)}</dt><dd>${esc(t.fix)}</dd>`).join('')}</dl></details>` : ''}
         </article>
@@ -137,8 +139,10 @@ export default async function cook({ slug }, query, route) {
         <h3>How many people are you cooking for?</h3>
         ${servingsPicker(recipe, state.servings)}
         ${!store.ownsRecipe(recipe.id) && recipe.previewSteps ? `<div class="notice">${icon('info', 18)}<span>The first ${recipe.previewSteps} steps are free. These are the real lesson, not a demo. You can unlock the rest at any point.</span></div>` : ''}
+        ${recipe.components ? `<h3 style="margin-top:20px">Tonight’s dishes</h3><ul class="ticks">${recipe.components.map((id) => store.recipe(id)).filter(Boolean).map((r) => `<li>${icon('check')} ${esc(r.title)}</li>`).join('')}</ul>
+          <p class="small muted">Your number of people carries into every dish. Shop for all of them at once from the meal page.</p>` : `
         <details class="trouble"><summary>${icon('list', 18)} Check your ingredients (${recipe.ingredients.length})</summary>${ingredientList(recipe, state.servings)}</details>
-        <details class="trouble"><summary>${icon('info', 18)} Equipment (${recipe.equipment.length})</summary><ul class="equip">${recipe.equipment.map((e) => `<li><b>${esc(e.name)}</b>${e.note ? `<small>${esc(e.note)}</small>` : ''}</li>`).join('')}</ul></details>
+        <details class="trouble"><summary>${icon('info', 18)} Equipment (${recipe.equipment.length})</summary><ul class="equip">${recipe.equipment.map((e) => `<li><b>${esc(e.name)}</b>${e.note ? `<small>${esc(e.note)}</small>` : ''}</li>`).join('')}</ul></details>`}
         ${wakeLockSupported ? `<p class="small muted">${icon('sun', 14)} Your screen will stay on while you cook.</p>` : ''}
       </div></div>
       <div class="cook-bottom" style="grid-template-columns:1fr">
@@ -193,7 +197,8 @@ export default async function cook({ slug }, query, route) {
         ${recipe.serveWith?.length ? `<p style="margin-top:24px"><b>Serve it with:</b> ${recipe.serveWith.map(esc).join(' · ')}</p>` : ''}
         ${owned && store.owns(store.flagship.id) ? `<div class="panel" style="text-align:left;margin-top:24px"><b>Certificate progress</b><div class="progress" style="margin:10px 0"><i style="width:${cert.ratio * 100}%"></i></div><span class="small muted">${cert.completed.length} of ${cert.required.length} dishes cooked</span></div>` : ''}
         <div class="stack" style="margin-top:24px">
-          <a class="btn btn-primary btn-lg btn-block" href="#/kitchen">Go to My Kitchen</a>
+          ${query.from && store.recipe(query.from) ? `<a class="btn btn-primary btn-lg btn-block" href="#/cook/${esc(store.recipe(query.from).slug)}">${icon('back', 18)} Back to the ${esc(store.recipe(query.from).title)} plan</a>` : ''}
+          <a class="btn ${query.from ? 'btn-ghost' : 'btn-primary btn-lg'} btn-block" href="#/kitchen">Go to My Kitchen</a>
           <a class="btn btn-ghost btn-block" href="#/courses">Choose your next dish</a>
         </div>
       </div></div>`;
@@ -204,7 +209,7 @@ export default async function cook({ slug }, query, route) {
     const label = state.stage === 'intro' ? 'Before you start' : state.stage === 'complete' ? 'Finished' : `Step ${state.index + 1} of ${total}`;
     return `<header class="cook-top">
       <div class="row">
-        <button class="icon-btn" data-action="exit" aria-label="Leave Cook With Me (progress is saved)">${icon('close', 22)}</button>
+        <button class="icon-btn" data-action="exit" aria-label="${query.from ? 'Back to the meal plan' : 'Leave Cook With Me (progress is saved)'}">${icon(query.from ? 'back' : 'close', 22)}</button>
         <div class="title"><b>${esc(recipe.title)}</b><span>${label}${state.stage === 'step' ? ` · ${state.servings} people` : ''}</span></div>
         ${state.stage === 'step' ? `
           <button class="icon-btn" data-action="drawer" aria-label="Ingredients and all steps">${icon('list', 22)}</button>
@@ -228,10 +233,10 @@ export default async function cook({ slug }, query, route) {
 
   function drawer() {
     return `<div class="drawer" data-action="drawer-close"><div class="drawer-panel" data-stop>
-      <div class="spread"><h3 style="margin:0">Ingredients</h3><button class="icon-btn" data-action="drawer-close" aria-label="Close">${icon('close', 20)}</button></div>
+      <div class="spread"><h3 style="margin:0">${recipe.components ? 'Meal plan' : 'Ingredients'}</h3><button class="icon-btn" data-action="drawer-close" aria-label="Close">${icon('close', 20)}</button></div>
       <p class="small muted">Cooking for</p>
       ${servingsPicker(recipe, state.servings)}
-      ${ingredientList(recipe, state.servings)}
+      ${recipe.components ? '' : ingredientList(recipe, state.servings)}
       <h3 style="margin-top:28px">All steps</h3>
       <ol class="mini-list" style="padding:0">
         ${recipe.steps.map((s, i) => {
@@ -306,13 +311,19 @@ export default async function cook({ slug }, query, route) {
       });
 
       const actions = {
-        begin: () => { saveStep(); go(state.index); },
+        begin: () => {
+          // A meal's servings carry into each of its dishes.
+          (recipe.components || []).forEach((id) => store.setProgress(id, { servings: state.servings }));
+          saveStep();
+          go(state.index);
+        },
         next: () => (state.index === total - 1 ? finish() : go(state.index + 1)),
         prev: () => go(state.stage === 'gate' ? state.index - 1 : state.index - 1),
         exit: () => {
           if (state.stage === 'step') saveStep();
           if (state.paused) timers.resumeRecipe(recipe.id);
-          location.hash = isTry ? `#/recipes/${recipe.slug}` : `#/recipes/${recipe.slug}`;
+          const from = query.from && store.recipe(query.from);
+          location.hash = from ? `#/cook/${from.slug}` : `#/recipes/${recipe.slug}`;
         },
         pause: () => { state.paused = true; timers.pauseRecipe(recipe.id); saveStep(); render(); },
         resume: () => { state.paused = false; timers.resumeRecipe(recipe.id); render(); },

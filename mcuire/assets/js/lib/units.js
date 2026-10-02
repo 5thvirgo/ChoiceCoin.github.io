@@ -35,6 +35,12 @@ function unitLabel(unit, qty) {
   return unit;
 }
 
+// 2000 g -> 2 kg, 1500 ml -> 1.5 l (for display only).
+export function bigUnits(qty, unit) {
+  if ((unit === 'g' || unit === 'ml') && qty >= 1000) return [Math.round(qty / 100) / 10, unit === 'g' ? 'kg' : 'l'];
+  return [qty, unit];
+}
+
 export function formatQty(qty, unit) {
   if (qty == null) return '';
   const text = VOLUME_UNITS.has(unit) || !unit || PLURAL[unit] ? fraction(qty) : String(qty);

@@ -368,6 +368,7 @@ function editorTab(d, tab, openSteps) {
           ${f.area(`steps.${i}.cues.see`, 'What they should see', s.cues?.see, { rows: 2 })}${f.area(`steps.${i}.cues.smell`, 'What they should smell', s.cues?.smell, { rows: 2 })}
           ${f.area(`steps.${i}.cues.hear`, 'What they should hear', s.cues?.hear, { rows: 2 })}${f.area(`steps.${i}.cues.texture`, 'Texture / feel', s.cues?.texture, { rows: 2 })}
         </div>
+        ${d.kind === 'meal' ? `<div class="field"><label>“Open the lesson” buttons on this step</label><div class="row">${(d.components || []).map((id) => store.recipe(id)).filter(Boolean).map((r) => `<label class="chip" style="cursor:pointer"><input type="checkbox" data-toggle="steps.${i}.links" value="${esc(r.id)}" ${(s.links || []).includes(r.id) ? 'checked' : ''}> ${esc(r.title)}</label>`).join('') || '<span class="small muted">Choose the meal’s dishes under Publishing first.</span>'}</div></div>` : ''}
         <div class="field"><label>Ingredients used in this step (shown scaled)</label><div class="row">${d.ingredients.map((ing) => `<label class="chip" style="cursor:pointer"><input type="checkbox" data-toggle="steps.${i}.ingredientIds" value="${esc(ing.id)}" ${(s.ingredientIds || []).includes(ing.id) ? 'checked' : ''}> ${esc(ing.name)}</label>`).join('') || '<span class="small muted">Add ingredients first.</span>'}</div></div>
 
         <b>Tips</b>
@@ -405,6 +406,8 @@ function editorTab(d, tab, openSteps) {
       const inCourses = store.courses.filter((c) => store.courseRecipeIds(c).includes(d.id));
       return `<div class="panel">
         ${f.select('status', 'Status', d.status, [['outline', 'Outline: listed as “filming soon”'], ['complete', 'Live: Cook With Me available']])}
+        ${f.select('kind', 'Type', d.kind || '', [['', 'Single dish'], ['meal', 'Complete meal (a timeline that combines several dishes)']])}
+        ${d.kind === 'meal' ? `<div class="field"><label>Dishes in this meal</label><div class="row">${store.recipes.filter((r) => r.id !== d.id && !r.components).map((r) => `<label class="chip" style="cursor:pointer"><input type="checkbox" data-toggle="components" value="${esc(r.id)}" ${(d.components || []).includes(r.id) ? 'checked' : ''}> ${esc(r.title)}</label>`).join('')}</div><small>The shopping list and serving calculator include every dish you tick.</small></div>` : ''}
         ${f.num('previewSteps', 'Free preview steps', d.previewSteps, { step: 1, help: 'How many steps visitors can cook before buying. 0 = no free preview.' })}
         ${f.list('servingOptions', 'Serving buttons', (d.servingOptions || []).map(String), 'One number per line, e.g. 2, 4, 6, 10.')}
         <p><b>In courses:</b> ${inCourses.map((c) => esc(c.title)).join(', ') || 'none yet. Add it under Courses & prices.'}</p>
@@ -461,7 +464,7 @@ function recipeEditor(id, query) {
         on(main, 'change', 'select[data-bind]', (_, el) => {
           setPath(draft, el.dataset.bind, coerce(el));
           dirty();
-          if (/\.kind$|\.tone$|^status$/.test(el.dataset.bind)) rerender();
+          if (/\.kind$|\.tone$|^status$|^kind$/.test(el.dataset.bind)) rerender();
         }),
         // Refresh just the preview, never the whole form: a full re-render here
         // would swallow a click on "Save" made straight after pasting a URL.
@@ -536,6 +539,8 @@ function recipeEditor(id, query) {
         }),
         on(main, 'click', '[data-save]', async () => {
           if (!draft.title.trim()) { toast('Give the recipe a name first'); state.tab = 'basics'; rerender(); return; }
+          if (draft.kind === 'meal') draft.components = draft.components || [];
+          else { delete draft.kind; delete draft.components; }
           draft.slug = (draft.slug || draft.title).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
           if (store.recipes.some((r) => r.slug === draft.slug && r.id !== draft.id)) { toast('Another recipe already uses that web address'); return; }
           try {

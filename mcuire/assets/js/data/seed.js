@@ -8,6 +8,8 @@
 import { egusi, eba, pepperedChicken } from './recipes-soups-grills.js';
 import { dodo, puffPuff } from './recipes-street.js';
 import { suya, poundedYam, friedRice, moiMoi } from './recipes-more.js';
+import { efoRiro, ogbono, akara, chinChin, riceAndStew } from './recipes-extra.js';
+import { MEALS } from './meals.js';
 
 const photo = (brief, tone = 'jollof', alt = brief) => ({ kind: 'photo', src: null, alt, brief, tone });
 const video = (brief, tone = 'jollof', alt = brief) => ({ kind: 'video', src: null, poster: null, alt, brief, tone });
@@ -408,7 +410,7 @@ const outlines = [
 ];
 
 // Finished Cook With Me lessons replace their outline in place, keeping catalogue order.
-const finished = Object.fromEntries([egusi, eba, pepperedChicken, dodo, puffPuff, suya, poundedYam, friedRice, moiMoi].map((r) => [r.id, r]));
+const finished = Object.fromEntries([egusi, eba, pepperedChicken, dodo, puffPuff, suya, poundedYam, friedRice, moiMoi, efoRiro, ogbono, akara, chinChin, riceAndStew, ...MEALS].map((r) => [r.id, r]));
 const recipes = [jollof, ...outlines.map((o) => finished[o.id] || o)];
 const ids = (cat) => recipes.filter((r) => r.categoryId === cat).map((r) => r.id);
 
@@ -486,7 +488,7 @@ const discounts = [
 ];
 
 export const SEED = {
-  version: 6,
+  version: 7,
   categories,
   courses,
   recipes,

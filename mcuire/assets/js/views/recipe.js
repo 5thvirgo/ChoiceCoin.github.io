@@ -4,6 +4,19 @@ import { media } from '../components.js';
 import { esc, icon, minutes, on, toast } from '../lib/dom.js';
 import { scaleIngredient, batchWarning } from '../lib/units.js';
 
+// Meals list their dishes; allergens are gathered from every dish.
+export function allergensFor(recipe) {
+  if (!recipe.components) return recipe.allergens;
+  return [...new Set(recipe.components.flatMap((id) => store.recipe(id)?.allergens || []))];
+}
+
+function mealDishes(recipe) {
+  return `<ul class="mini-list" style="margin-top:12px">${recipe.components.map((id) => store.recipe(id)).filter(Boolean).map((r) => `
+    <li>${media(r.hero, { compact: true, ratio: null })}<div style="flex:1;min-width:0"><a href="#/recipes/${esc(r.slug)}">${esc(r.title)}</a>
+    <div class="small muted">${minutes((r.prepMinutes || 0) + (r.cookMinutes || 0))} on its own · ${r.steps.length} steps</div></div></li>`).join('')}</ul>
+    <p class="small muted" style="margin-top:12px">The meal plan tells you when to start each dish, and each step opens that dish’s full lesson.</p>`;
+}
+
 export function servingsFor(recipe) {
   return store.progress(recipe.id)?.servings || recipe.baseServings;
 }
@@ -82,6 +95,7 @@ export default async function recipeView({ slug }) {
     cta = `<a class="btn btn-primary btn-lg btn-block" href="#/courses/${esc(cheapest?.slug || '')}">${icon('lock', 18)} Unlock in ${esc(cheapest?.title || 'a course')}</a>`;
   }
 
+  const meal = !!recipe.components;
   const render = (servings) => {
     const warning = batchWarning(recipe, servings);
     return `
@@ -118,8 +132,8 @@ export default async function recipeView({ slug }) {
       <div class="wrap two-col">
         <div>
           ${recipe.story ? `<p class="lede" style="margin-bottom:32px">${esc(recipe.story)}</p>` : ''}
-          <div class="spread"><h2 style="margin:0">Ingredients</h2><button class="btn btn-ghost btn-sm" data-action="shop">${icon('cart', 16)} Add to shopping list</button></div>
-          ${ingredientList(recipe, servings)}
+          <div class="spread"><h2 style="margin:0">${meal ? 'What you’ll cook' : 'Ingredients'}</h2><button class="btn btn-ghost btn-sm" data-action="shop">${icon('cart', 16)} Add ${meal ? 'everything' : ''} to shopping list</button></div>
+          ${meal ? mealDishes(recipe) : ingredientList(recipe, servings)}
         </div>
         <div class="stack">
           <div class="servings">
@@ -128,14 +142,14 @@ export default async function recipeView({ slug }) {
             <p class="small muted" style="margin:10px 0 0">Every quantity on this page and in Cook With Me updates automatically.</p>
             ${warning ? `<div class="notice">${icon('alert', 18)}<span>${esc(warning)}</span></div>` : ''}
           </div>
-          <div class="panel">
+          ${recipe.equipment.length ? `<div class="panel">
             <h3>Equipment</h3>
             <ul class="equip">${recipe.equipment.map((e) => `<li><b>${esc(e.name)}</b>${e.note ? `<small>${esc(e.note)}</small>` : ''}</li>`).join('')}</ul>
-          </div>
+          </div>` : ''}
           <div class="panel">
             <h3>Allergens &amp; diet</h3>
             <ul class="ticks small" style="margin:0">
-              ${recipe.allergens.map((a) => `<li>${icon('alert', 16)} ${esc(a)}</li>`).join('')}
+              ${allergensFor(recipe).map((a) => `<li>${icon('alert', 16)} ${esc(a)}</li>`).join('')}
               ${recipe.dietary.map((d) => `<li>${icon('leaf', 16)} ${esc(d)}</li>`).join('')}
             </ul>
           </div>
