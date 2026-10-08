@@ -121,7 +121,7 @@ export default function landing() {
           <div><span class="eyebrow">Live with our chef</span><h2>Cook with us, live</h2></div>
           <a class="link" href="#/live">All live classes</a>
         </div>
-        <p class="lede">Small live classes online and in our kitchen. Ask questions as you cook and get it right the first time.</p>
+        <p class="lede">Hands-on classes in our restaurant kitchen, in small groups with our chef. Some classes also run online on Zoom or Google Meet.</p>
         <div class="tiles" style="margin-top:20px">${store.liveClasses.slice(0, 3).map((c) => {
           const r = store.recipe(c.recipeId);
           const d = new Date(c.startsAt);

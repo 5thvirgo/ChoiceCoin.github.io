@@ -229,7 +229,7 @@ const blankLiveClass = () => {
   return {
     id: `live-${Date.now().toString(36)}`, title: 'New live class', recipeId: '', status: 'draft', description: '',
     startsAt: start.toISOString(), durationMinutes: 120, priceCents: 3500, currency: 'CAD', capacity: 12,
-    format: 'online', platform: 'Zoom', joinUrl: '', location: '', host: 'Mcuire Head Chef', whatYouNeed: '',
+    format: 'in-person', platform: '', joinUrl: '', location: config.brand.name, host: 'Mcuire Head Chef', whatYouNeed: 'Just yourself. Aprons, ingredients and equipment are provided.',
   };
 };
 
@@ -246,7 +246,7 @@ function liveEditor({ classes, attendees }) {
   const sorted = classes.map((c, i) => [c, i]).sort(([a], [b]) => Date.parse(b.startsAt) - Date.parse(a.startsAt));
   const recipeOpts = (v) => `<option value="">None</option>${store.recipes.filter((r) => r.status === 'complete').map((r) => `<option value="${esc(r.id)}" ${v === r.id ? 'selected' : ''}>${esc(r.title)}</option>`).join('')}`;
   return `<div class="spread"><h1 style="font-size:2.2rem;margin:0">Live classes</h1><button type="button" class="btn btn-primary" data-add-live>${icon('plus', 18)} New live class</button></div>
-    <p class="muted">Classes you cook with customers in real time, online or at the restaurant. The join link and address are only shown to people who paid, in My Kitchen and in their booking email.</p>
+    <p class="muted">Hands-on classes at the restaurant, or online on Zoom / Google Meet. Online join links are only shown to people who paid, in My Kitchen and in their booking email.</p>
     <form data-live>${sorted.map(([c, i]) => {
       const people = attendees.filter((a) => a.classId === c.id);
       const past = Date.parse(c.startsAt) + (c.durationMinutes || 60) * 60000 < Date.now();
@@ -261,10 +261,10 @@ function liveEditor({ classes, attendees }) {
         <div class="field"><label>Dish (links to its lesson)</label><select name="recipe-${i}">${recipeOpts(c.recipeId)}</select></div></div>
       <div class="grid-3"><div class="field"><label>Price per seat (CAD)</label><input type="number" min="0" step="0.01" name="price-${i}" value="${(c.priceCents / 100).toFixed(2)}"></div>
         <div class="field"><label>Seats</label><input type="number" min="1" name="cap-${i}" value="${c.capacity}"></div>
-        <div class="field"><label>Where</label><select name="format-${i}">${[['online', 'Online (video call)'], ['in-person', 'In person at Mcuire']].map(([v, l]) => `<option value="${v}" ${c.format === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
-      <div class="grid-2"><div class="field"><label>Video platform</label><input name="platform-${i}" value="${esc(c.platform || '')}" placeholder="Zoom, Google Meet…"></div>
-        <div class="field"><label>Join link (paid guests only)</label><input name="join-${i}" value="${esc(c.joinUrl || '')}" placeholder="https://zoom.us/j/…"></div></div>
-      <div class="grid-2"><div class="field"><label>Address (in-person classes)</label><input name="loc-${i}" value="${esc(c.location || '')}"></div>
+        <div class="field"><label>Where</label><select name="format-${i}">${[['in-person', 'In person at the restaurant'], ['online', 'Online (Zoom or Google Meet)']].map(([v, l]) => `<option value="${v}" ${c.format === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
+      <div class="grid-2"><div class="field"><label>Video platform (online classes)</label><input name="platform-${i}" value="${esc(c.platform || '')}" placeholder="Zoom, Google Meet…"></div>
+        <div class="field"><label>Zoom / Meet link (online classes, paid guests only)</label><input name="join-${i}" value="${esc(c.joinUrl || '')}" placeholder="https://zoom.us/j/…"></div></div>
+      <div class="grid-2"><div class="field"><label>Where (in-person classes)</label><input name="loc-${i}" value="${esc(c.location || '')}"></div>
         <div class="field"><label>Host</label><input name="host-${i}" value="${esc(c.host || '')}"></div></div>
       <div class="field"><label>Description</label><textarea name="desc-${i}" rows="2">${esc(c.description || '')}</textarea></div>
       <div class="field"><label>What guests need</label><textarea name="need-${i}" rows="2">${esc(c.whatYouNeed || '')}</textarea></div>

@@ -10,7 +10,7 @@ Architecture, data model and phases: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.
   beginner dishes, $30 for the rest. Prices are set in **Admin → Courses & prices → Single dishes**
   (there is also a "set every dish to" bulk price).
 - **Bundles** and the full **West African Kitchen** programme (which unlocks everything).
-- **Live cooking classes** (`#/live`), online (Zoom/Meet) or in person at the restaurant, with a seat
+- **Live cooking classes** (`#/live`): hands-on classes in the restaurant, or online on Zoom/Google Meet, with a seat
   limit. Manage them in **Admin → Live classes**. The join link or address is only shown to people who
   paid (in My Kitchen, from 30 minutes before the class, and in their ticket email). The three example
   classes are installed as drafts on WordPress. Set real dates and links, then publish.

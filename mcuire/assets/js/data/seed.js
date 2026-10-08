@@ -491,24 +491,24 @@ for (const r of recipes.filter((x) => x.status === 'complete' && !x.components))
 // Example classes start as drafts on the live site; publish them in admin.
 const liveClasses = [
   {
-    id: 'live-jollof', title: 'Party Jollof, Live', recipeId: 'party-jollof', status: 'published',
-    description: 'Cook party jollof together with the Mcuire kitchen in real time. Ask questions as you go and show us your pot on camera.',
-    startsAt: '2026-11-07T18:00:00-05:00', durationMinutes: 120, priceCents: 3500, currency: 'CAD', capacity: 20,
-    format: 'online', platform: 'Zoom', joinUrl: '', location: '', host: 'Mcuire Head Chef',
-    whatYouNeed: 'A large pot with a lid, a blender, and the ingredients on the shopping list (we send it after booking).',
+    id: 'live-jollof', title: 'Party Jollof Night at Mcuire', recipeId: 'party-jollof', status: 'published',
+    description: 'Come into the restaurant and cook party jollof from scratch with our chef: the pepper base, the slow-cooked stew and the smoky bottom-of-the-pot finish. Then sit down and eat it together.',
+    startsAt: '2026-11-07T18:00:00-05:00', durationMinutes: 150, priceCents: 6500, currency: 'CAD', capacity: 12,
+    format: 'in-person', platform: '', joinUrl: '', location: 'Mcuire African Restaurant', host: 'Mcuire Head Chef',
+    whatYouNeed: 'Just yourself. Aprons, ingredients and equipment are provided, and you eat what you cook.',
   },
   {
-    id: 'live-egusi', title: 'Egusi & Pounded Yam Night', recipeId: 'egusi', status: 'published',
-    description: 'A hands-on evening: egusi soup from scratch and smooth pounded yam to go with it.',
+    id: 'live-egusi', title: 'Egusi & Pounded Yam (Online)', recipeId: 'egusi', status: 'published',
+    description: 'Can’t come in? Cook along from your own kitchen on Zoom: egusi soup from scratch and smooth pounded yam to go with it. Our chef watches your pot and answers questions as you go.',
     startsAt: '2026-11-14T18:00:00-05:00', durationMinutes: 150, priceCents: 4000, currency: 'CAD', capacity: 16,
-    format: 'online', platform: 'Zoom', joinUrl: '', location: '', host: 'Mcuire Head Chef',
+    format: 'online', platform: 'Zoom or Google Meet', joinUrl: '', location: '', host: 'Mcuire Head Chef',
     whatYouNeed: 'A large pot, a blender or food processor, and the shopping list ingredients.',
   },
   {
-    id: 'live-smallchops', title: 'Small Chops Workshop (In Person)', recipeId: 'puff-puff', status: 'published',
+    id: 'live-smallchops', title: 'Small Chops Workshop', recipeId: 'puff-puff', status: 'published',
     description: 'Puff-puff, chin chin and meat pie in the Mcuire kitchen. All ingredients provided, and you take home what you make.',
     startsAt: '2026-11-21T14:00:00-05:00', durationMinutes: 180, priceCents: 7500, currency: 'CAD', capacity: 10,
-    format: 'in-person', platform: '', joinUrl: '', location: 'Mcuire African Restaurant (address on your ticket)', host: 'Mcuire Head Chef',
+    format: 'in-person', platform: '', joinUrl: '', location: 'Mcuire African Restaurant', host: 'Mcuire Head Chef',
     whatYouNeed: 'Just yourself and an apron. Everything else is provided.',
   },
 ];
@@ -534,7 +534,7 @@ const discounts = [
 ];
 
 export const SEED = {
-  version: 9,
+  version: 10,
   categories,
   courses,
   recipes,

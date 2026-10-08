@@ -26,7 +26,7 @@ export function joinWindow(cls) {
 export function downloadIcs(cls, ticket) {
   const stamp = (ms) => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
   const start = Date.parse(cls.startsAt);
-  const where = cls.format === 'in-person' ? (ticket?.location || cls.location) : (ticket?.joinUrl || `${cls.platform || 'Online'} (link in My Kitchen)`);
+  const where = cls.format === 'in-person' ? (ticket?.location || cls.location || config.brand.name) : (ticket?.joinUrl || `${cls.platform || 'Online'} (link in My Kitchen)`);
   const lines = [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Mcuire//Cooking Classes//EN', 'BEGIN:VEVENT',
     `UID:${cls.id}@mcuire-kitchen`, `DTSTAMP:${stamp(Date.now())}`, `DTSTART:${stamp(start)}`, `DTEND:${stamp(start + (cls.durationMinutes || 60) * 60000)}`,
@@ -51,7 +51,7 @@ function classCard(cls) {
   return `<article class="course-row">
     ${media(recipe?.hero, { ratio: 'wide', compact: true })}
     <div>
-      <span class="eyebrow">${esc(cls.format === 'in-person' ? 'In person' : `Live online${cls.platform ? ` · ${cls.platform}` : ''}`)}</span>
+      <span class="eyebrow">${esc(cls.format === 'in-person' ? `In person · ${config.brand.name}` : `Live online${cls.platform ? ` · ${cls.platform}` : ''}`)}</span>
       <h3 style="font-size:1.7rem">${esc(cls.title)}</h3>
       <p class="muted">${esc(cls.description)}</p>
       <ul class="ticks small" style="margin:0 0 14px">
@@ -78,7 +78,7 @@ function list() {
       <div class="wrap">
         <span class="eyebrow">Live with the ${esc(config.brand.short)} kitchen</span>
         <h1>Live cooking classes</h1>
-        <p class="lede">Cook alongside our chef in real time. Ask questions, show us your pot, and get it right the first time. Online classes are small, so everyone gets attention.</p>
+        <p class="lede">Come into Mcuire African Restaurant and cook alongside our chef. Small hands-on groups, all ingredients and equipment provided, and you eat what you make. Some classes also run online on Zoom or Google Meet.</p>
       </div>
     </section>
     <section class="section-tight" style="padding-top:0">
@@ -199,7 +199,7 @@ async function booked(cls, query) {
         <p class="lede" style="margin:0 auto 24px"><b>${esc(cls.title)}</b><br>${esc(when.text)}</p>
         <div class="panel" style="text-align:left;max-width:520px;margin:0 auto 24px">
           ${cls.format === 'in-person'
-            ? `<p style="margin:0"><b>Where:</b> ${esc(ticket.location || cls.location || 'Address sent by email')}</p>`
+            ? `<p style="margin:0"><b>Where:</b> ${esc(ticket.location || cls.location || config.brand.name)}</p>`
             : `<p style="margin:0"><b>How to join:</b> your ${esc(cls.platform || 'class')} link appears in My Kitchen 30 minutes before class.</p>`}
           ${cls.whatYouNeed ? `<p class="small" style="margin:12px 0 0"><b>What you’ll need:</b> ${esc(cls.whatYouNeed)}</p>` : ''}
         </div>

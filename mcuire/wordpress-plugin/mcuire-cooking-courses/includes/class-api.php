@@ -222,7 +222,7 @@ class Mcuire_CC_API {
 	}
 
 	private static function public_class($c) {
-		unset($c['joinUrl'], $c['location']);
+		unset($c['joinUrl']); // the online link is for paying guests only
 		$c['seatsLeft'] = max(0, (int) $c['capacity'] - Mcuire_CC_DB::seats_taken($c['id']));
 		return $c;
 	}
