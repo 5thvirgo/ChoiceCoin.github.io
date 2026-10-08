@@ -2,6 +2,7 @@
 import { config } from './config.js';
 import { store } from './services/store.js';
 import { esc, icon, minutes, money, on } from './lib/dom.js';
+import { illustration, caption } from './lib/illustrate.js';
 
 // Renders a MediaRef: real photo/video when Mcuire has supplied one,
 // otherwise a clearly-labelled placeholder carrying the photographer's brief.
@@ -15,11 +16,13 @@ export function media(ref, { ratio = 'hero', compact = false, cls = '', eager = 
     }
     return `<div class="media ${ratioCls} ${cls}"><img src="${esc(r.src)}" alt="${esc(r.alt || '')}" ${eager ? '' : 'loading="lazy"'} decoding="async"></div>`;
   }
-  const kindLabel = r.kind === 'video' ? 'Mcuire video' : 'Mcuire photo';
-  const brief = config.showMediaBriefs ? `<span>${esc(r.brief || '')}</span>` : '';
-  return `<div class="media ${ratioCls} ${tone} ${compact ? 'ph-compact' : ''} ${cls}" role="img" aria-label="${esc(r.alt || r.brief || 'Photo coming soon')}">
-    <div class="ph">${compact ? '' : `<div class="ph-label">${icon(r.kind === 'video' ? 'video' : 'camera', 18)}<div><strong>${kindLabel}</strong>${brief}</div></div>`}</div>
-    ${r.kind === 'video' ? `<span class="chip dark video-badge">${icon('video', 14)} Short demo</span>` : ''}
+  // No photo yet: a drawn illustration of this exact shot, with a plain caption.
+  const cap = compact ? '' : caption(r);
+  const brief = config.showMediaBriefs && location.hash.startsWith('#/admin') && !compact && r.brief && r.brief !== r.alt ? `<span class="illus-brief">${icon(r.kind === 'video' ? 'video' : 'camera', 14)} To shoot: ${esc(r.brief)}</span>` : '';
+  return `<div class="media ${ratioCls} ${tone} illus-wrap ${compact ? 'ph-compact' : ''} ${cls}" role="img" aria-label="${esc(`Illustration: ${r.alt || r.brief || ''}`)}">
+    ${illustration(r)}
+    ${compact ? '' : '<span class="illus-tag">Illustration</span>'}
+    ${cap ? `<div class="illus-cap">${esc(cap)}${brief}</div>` : ''}
   </div>`;
 }
 

@@ -5,6 +5,7 @@
 
 // MediaRef helper. src stays null until Mcuire uploads its own photography.
 // `brief` doubles as the photographer's shot list.
+import { MORE_CUES } from './cues-more.js';
 import { egusi, eba, pepperedChicken } from './recipes-soups-grills.js';
 import { dodo, puffPuff } from './recipes-street.js';
 import { suya, poundedYam, friedRice, moiMoi } from './recipes-more.js';
@@ -489,6 +490,14 @@ for (const r of recipes.filter((x) => x.status === 'complete' && !x.components))
 
 // Live cooking classes. Join links are only shown to people who booked.
 // Example classes start as drafts on the live site; publish them in admin.
+// Fill in "what it should look/smell/sound like" for every step.
+for (const r of recipes) {
+  for (const st of r.steps) {
+    const extra = MORE_CUES[r.id]?.[st.id];
+    if (extra && !(st.cues && Object.keys(st.cues).length)) st.cues = extra;
+  }
+}
+
 const liveClasses = [
   {
     id: 'live-jollof', title: 'Party Jollof Night at Mcuire', recipeId: 'party-jollof', status: 'published',
@@ -534,7 +543,7 @@ const discounts = [
 ];
 
 export const SEED = {
-  version: 10,
+  version: 11,
   categories,
   courses,
   recipes,
