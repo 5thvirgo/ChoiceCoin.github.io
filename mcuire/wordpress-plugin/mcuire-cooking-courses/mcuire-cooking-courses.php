@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name:       Mcuire Cooking Courses
- * Description:       Mcuire African Restaurant’s online West African cooking academy: Cook With Me lessons, courses, Stripe payments (CAD), My Kitchen and certificates, at /cooking-courses/.
- * Version:           1.0.0
+ * Description:       Mcuire African Restaurant’s online West African cooking academy: Cook With Me lessons, single dishes, courses, live cooking classes, Stripe payments (CAD), My Kitchen and certificates, at /cooking-courses/.
+ * Version:           1.1.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Mcuire African Restaurant
@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-define('MCUIRE_CC_VERSION', '1.0.0');
+define('MCUIRE_CC_VERSION', '1.1.0');
 define('MCUIRE_CC_DIR', plugin_dir_path(__FILE__));
 define('MCUIRE_CC_SLUG', 'cooking-courses');
 

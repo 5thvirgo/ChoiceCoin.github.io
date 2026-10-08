@@ -2,6 +2,7 @@ import { store } from '../services/store.js';
 import { achievements, challenges } from '../services/achievements.js';
 import { media, ring, badge, signInForm, bindSignIn } from '../components.js';
 import { esc, icon, formatDate, on, toast } from '../lib/dom.js';
+import { classWhen, joinWindow, downloadIcs } from './live.js';
 
 function miniRow(recipe, right = '') {
   return `<li>${media(recipe.hero, { compact: true, ratio: null })}<div style="flex:1;min-width:0"><a href="#/recipes/${esc(recipe.slug)}">${esc(recipe.title)}</a><div class="small muted">${esc(recipe.region || '')}</div></div>${right}</li>`;
@@ -92,6 +93,25 @@ export default function kitchen() {
               completedIds.includes(r.id) ? `<span class="chip leaf">${icon('check', 12)} Cooked</span>` : r.status === 'complete' ? '<span class="chip gold">Ready</span>' : '<span class="chip">Soon</span>')).join('')}</ul>
           </div>` : ''}
 
+          ${(k.tickets || []).length ? `<div class="k-block">
+            <h2>Your live classes</h2>
+            <ul class="mini-list">${k.tickets.map((t) => {
+              const cls = store.liveClass(t.classId);
+              if (!cls) return '';
+              const jw = joinWindow(cls);
+              const r = store.recipe(cls.recipeId);
+              const join = cls.format === 'in-person'
+                ? `<span class="small">${icon('home', 14)} ${esc(t.location || cls.location || 'Address in your email')}</span>`
+                : jw.ended ? '<span class="small muted">This class has ended</span>'
+                  : jw.open && t.joinUrl ? `<a class="btn btn-primary btn-sm" href="${esc(t.joinUrl)}" target="_blank" rel="noopener">${icon('video', 14)} Join now</a>`
+                    : `<span class="small muted">Join link appears here 30 min before class</span>`;
+              return `<li style="align-items:flex-start">${media(r?.hero, { compact: true, ratio: null })}<div style="flex:1;min-width:0">
+                <b>${esc(cls.title)}</b><div class="small muted">${esc(classWhen(cls).text)}</div>
+                <div class="row" style="margin-top:8px">${join}<button class="btn btn-ghost btn-sm" data-ics="${esc(cls.id)}">Add to calendar</button>${r ? `<a class="link small" href="#/recipes/${esc(r.slug)}">Ingredients</a>` : ''}</div>
+              </div></li>`;
+            }).join('')}</ul>
+          </div>` : ''}
+
           <div class="k-block">
             <div class="spread"><h2 style="margin:0">Shopping list</h2><a class="btn btn-ghost btn-sm" href="#/kitchen/shopping">${icon('cart', 16)} Open list</a></div>
             <p class="muted" style="margin-top:8px">${shopCount ? `${shopCount} recipe${shopCount > 1 ? 's' : ''} on your list, sorted by aisle.` : 'Pick recipes and we’ll build your list, sorted by aisle, with quantities for your number of guests.'}</p>
@@ -159,6 +179,7 @@ export default function kitchen() {
           if (confirm(msg)) { await store.signOut(); location.hash = '#/'; }
         }),
         bindSignIn(root),
+        on(root, 'click', '[data-ics]', (_, b) => downloadIcs(store.liveClass(b.dataset.ics), store.ticket(b.dataset.ics))),
       ];
       return () => offs.forEach((o) => o());
     },

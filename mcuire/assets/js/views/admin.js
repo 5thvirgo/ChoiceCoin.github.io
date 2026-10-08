@@ -50,7 +50,7 @@ function gate() {
 
 // ------------------------------------------------------------------ layout
 const SECTIONS = [
-  ['', 'Overview'], ['recipes', 'Recipes'], ['categories', 'Categories'], ['courses', 'Courses & prices'], ['challenges', 'Challenges'], ['discounts', 'Discounts'],
+  ['', 'Overview'], ['recipes', 'Recipes'], ['categories', 'Categories'], ['courses', 'Courses & prices'], ['live', 'Live classes'], ['challenges', 'Challenges'], ['discounts', 'Discounts'],
   ['customers', 'Customers'], ['orders', 'Purchases'], ['certificates', 'Certificates'], ['media', 'Media to shoot'], ['tools', 'Demo tools'],
 ];
 
@@ -98,7 +98,7 @@ function overview() {
         <a class="btn btn-ghost btn-block" href="#/admin/courses">Change prices</a>
         <a class="btn btn-ghost btn-block" href="#/admin/media">See which photos are still needed</a>
       </div></div>
-      <div class="panel"><h3>Latest purchases</h3>${orders.length ? `<ul class="mini-list">${orders.slice(-5).reverse().map((o) => `<li><div style="flex:1"><b>${esc(store.course(o.courseId)?.title || o.courseId)}</b><div class="small muted">${esc(o.email)} · ${formatDate(o.createdAt)}</div></div><b>${money(o.amountCents, o.currency)}</b></li>`).join('')}</ul>` : '<p class="muted">No purchases yet.</p>'}</div>
+      <div class="panel"><h3>Latest purchases</h3>${orders.length ? `<ul class="mini-list">${orders.slice(-5).reverse().map((o) => `<li><div style="flex:1"><b>${esc(orderItem(o))}</b><div class="small muted">${esc(o.email)} · ${formatDate(o.createdAt)}</div></div><b>${money(o.amountCents, o.currency)}</b></li>`).join('')}</ul>` : '<p class="muted">No purchases yet.</p>'}</div>
     </div>`;
 }
 
@@ -125,12 +125,18 @@ async function customersList() {
     <tbody>${rows.map((c) => `<tr><td>${esc(c.email)}</td><td>${esc(c.name || '—')}</td><td>${esc((c.courses || []).join(', ') || '—')}</td><td>${c.cooked ?? '—'}</td><td>${c.createdAt ? formatDate(c.createdAt) : ''}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">No customers yet.</td></tr>'}</tbody></table></div>`;
 }
 
+// What an order bought: a course, or a seat in a live class.
+function orderItem(o) {
+  if (o.liveClassId) return `Live class: ${store.liveClass(o.liveClassId)?.title || o.liveClassId}`;
+  return store.course(o.courseId)?.title || o.courseId;
+}
+
 async function ordersList() {
   const rows = (await loadServerList('orders')) || store.kitchen.orders;
   const total = rows.filter((o) => o.status === 'paid').reduce((s, o) => s + o.amountCents, 0);
   return `<h1 style="font-size:2.2rem">Purchases</h1><p class="muted">${rows.length} orders · ${money(total)} paid</p>
     <div class="table-wrap panel"><table class="table"><thead><tr><th>Date</th><th>Customer</th><th>Course</th><th>Code</th><th>Amount</th><th>Paid into</th><th>Status</th></tr></thead>
-    <tbody>${rows.slice().reverse().map((o) => `<tr><td>${formatDate(o.createdAt)}</td><td>${esc(o.email)}</td><td>${esc(store.course(o.courseId)?.title || o.courseId)}</td><td>${esc(o.discountCode || '—')}</td><td>${money(o.amountCents, o.currency)}</td><td>${esc(o.stripeAccount || '—')}</td><td>${esc(o.status)}</td></tr>`).join('') || '<tr><td colspan="7" class="muted">No purchases yet.</td></tr>'}</tbody></table></div>`;
+    <tbody>${rows.slice().reverse().map((o) => `<tr><td>${formatDate(o.createdAt)}</td><td>${esc(o.email)}</td><td>${esc(orderItem(o))}</td><td>${esc(o.discountCode || '—')}</td><td>${money(o.amountCents, o.currency)}</td><td>${esc(o.stripeAccount || '—')}</td><td>${esc(o.status)}</td></tr>`).join('') || '<tr><td colspan="7" class="muted">No purchases yet.</td></tr>'}</tbody></table></div>`;
 }
 
 async function certificatesList() {
@@ -168,9 +174,28 @@ function coursesEditor(accounts = null) {
     if (!accounts.length) return '<div class="field"><label>Pay into Stripe account</label><p class="small muted" style="margin:0">No Stripe account is connected yet. Payments are in test mode.</p></div>';
     return `<div class="field"><label>Pay into Stripe account</label><select name="stripeAccount">${accounts.map((a) => `<option value="${esc(a.name)}" ${(c.stripeAccount || 'default') === a.name ? 'selected' : ''}>${esc(a.name)}${a.live ? '' : ' (test mode)'}${a.webhookReady ? '' : ' (webhook not set up)'}</option>`).join('')}</select><small>Money from this course goes to this account.</small></div>`;
   };
+  const singles = store.courses.filter((c) => c.kind === 'single');
+  const accountSelect = (c) => (accounts?.length
+    ? `<select class="input" name="acct-${esc(c.id)}" style="min-height:42px">${accounts.map((a) => `<option value="${esc(a.name)}" ${(c.stripeAccount || 'default') === a.name ? 'selected' : ''}>${esc(a.name)}</option>`).join('')}</select>`
+    : `<input class="input" name="acct-${esc(c.id)}" value="${esc(c.stripeAccount || 'default')}" style="min-height:42px;width:120px">`);
   return `<h1 style="font-size:2.2rem">Courses & prices</h1>
     <p class="muted">Prices are read from here everywhere on the site and at checkout. Nothing is hard-coded.</p>
-    ${store.courses.map((c) => `<form class="panel" data-course="${esc(c.id)}">
+    ${singles.length ? `<form class="panel" data-singles>
+      <div class="spread"><h3 style="margin:0">Single dishes (${singles.length})</h3><span class="chip">Buy one dish</span></div>
+      <p class="small muted">Each finished dish can be bought on its own. Change any price, hide a dish from sale, or send its money to a different Stripe account.</p>
+      <div class="row" style="align-items:end;margin-bottom:10px">
+        <div class="field" style="margin:0"><label>Set every single dish to</label><input class="input" name="bulk" type="number" step="0.01" min="0" placeholder="e.g. 25.00" style="min-height:42px;width:140px"></div>
+        <button type="button" class="btn btn-ghost btn-sm" data-bulk-price>Apply to all</button>
+      </div>
+      <div class="table-wrap"><table class="table"><thead><tr><th>Dish</th><th>Price (CAD)</th><th>On sale</th>${accounts && !accounts.length ? '' : '<th>Pay into</th>'}</tr></thead><tbody>
+      ${singles.map((c) => `<tr><td><b>${esc(c.title)}</b></td>
+        <td><input class="input" name="price-${esc(c.id)}" type="number" step="0.01" min="0" value="${(c.priceCents / 100).toFixed(2)}" style="min-height:42px;width:110px"></td>
+        <td><input type="checkbox" name="on-${esc(c.id)}" ${c.status === 'published' ? 'checked' : ''} style="width:22px;height:22px"></td>
+        ${accounts && !accounts.length ? '' : `<td>${accountSelect(c)}</td>`}</tr>`).join('')}
+      </tbody></table></div>
+      <div class="row" style="margin-top:14px"><button class="btn btn-primary btn-sm">Save single-dish prices</button></div>
+    </form>` : ''}
+    ${store.courses.filter((c) => c.kind !== 'single').map((c) => `<form class="panel" data-course="${esc(c.id)}">
       <div class="spread"><h3 style="margin:0">${esc(c.title)}</h3><span class="chip">${esc(c.kind)}</span></div>
       <div class="grid-3" style="margin-top:14px">
         <div class="field"><label>Title</label><input name="title" value="${esc(c.title)}"></div>
@@ -190,6 +215,65 @@ function coursesEditor(accounts = null) {
       </details>
       <div class="row" style="margin-top:14px"><button class="btn btn-primary btn-sm">Save ${esc(c.title)}</button></div>
     </form>`).join('')}`;
+}
+
+// ------------------------------------------------------------------ live classes
+const toLocalInput = (iso) => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+};
+const blankLiveClass = () => {
+  const start = new Date(Date.now() + 14 * 864e5);
+  start.setHours(18, 0, 0, 0);
+  return {
+    id: `live-${Date.now().toString(36)}`, title: 'New live class', recipeId: '', status: 'draft', description: '',
+    startsAt: start.toISOString(), durationMinutes: 120, priceCents: 3500, currency: 'CAD', capacity: 12,
+    format: 'online', platform: 'Zoom', joinUrl: '', location: '', host: 'Mcuire Head Chef', whatYouNeed: '',
+  };
+};
+
+async function loadLiveAdmin() {
+  if (config.dataSource !== 'api') {
+    const attendees = (store.kitchen.tickets || []).map((t) => ({ classId: t.classId, email: t.email, name: store.kitchen.account?.name || '', bookedAt: t.bookedAt }));
+    return { classes: clone(store.content.liveClasses || []), attendees };
+  }
+  const [classes, attendees] = await Promise.all([loadServerList('live-classes'), loadServerList('live-attendees')]);
+  return { classes: Array.isArray(classes) ? classes : [], attendees: Array.isArray(attendees) ? attendees : [] };
+}
+
+function liveEditor({ classes, attendees }) {
+  const sorted = classes.map((c, i) => [c, i]).sort(([a], [b]) => Date.parse(b.startsAt) - Date.parse(a.startsAt));
+  const recipeOpts = (v) => `<option value="">None</option>${store.recipes.filter((r) => r.status === 'complete').map((r) => `<option value="${esc(r.id)}" ${v === r.id ? 'selected' : ''}>${esc(r.title)}</option>`).join('')}`;
+  return `<div class="spread"><h1 style="font-size:2.2rem;margin:0">Live classes</h1><button type="button" class="btn btn-primary" data-add-live>${icon('plus', 18)} New live class</button></div>
+    <p class="muted">Classes you cook with customers in real time, online or at the restaurant. The join link and address are only shown to people who paid, in My Kitchen and in their booking email.</p>
+    <form data-live>${sorted.map(([c, i]) => {
+      const people = attendees.filter((a) => a.classId === c.id);
+      const past = Date.parse(c.startsAt) + (c.durationMinutes || 60) * 60000 < Date.now();
+      return `<div class="repeat" data-live-row="${i}">
+      <div class="repeat-head"><b>${esc(c.title)} <span class="chip">${past ? 'finished' : esc(c.status)}</span> <span class="chip">${people.length}/${c.capacity} booked</span></b>
+        <button type="button" class="icon-btn" data-del-live="${i}" aria-label="Delete">${icon('trash', 16)}</button></div>
+      <input type="hidden" name="id-${i}" value="${esc(c.id)}">
+      <div class="grid-2"><div class="field"><label>Title</label><input name="title-${i}" value="${esc(c.title)}"></div>
+        <div class="field"><label>Status</label><select name="status-${i}">${[['draft', 'Draft (hidden)'], ['published', 'Published (on sale)'], ['cancelled', 'Cancelled']].map(([v, l]) => `<option value="${v}" ${c.status === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
+      <div class="grid-3"><div class="field"><label>Date &amp; start time</label><input type="datetime-local" name="start-${i}" value="${toLocalInput(c.startsAt)}"></div>
+        <div class="field"><label>Length (minutes)</label><input type="number" min="15" step="15" name="dur-${i}" value="${c.durationMinutes}"></div>
+        <div class="field"><label>Dish (links to its lesson)</label><select name="recipe-${i}">${recipeOpts(c.recipeId)}</select></div></div>
+      <div class="grid-3"><div class="field"><label>Price per seat (CAD)</label><input type="number" min="0" step="0.01" name="price-${i}" value="${(c.priceCents / 100).toFixed(2)}"></div>
+        <div class="field"><label>Seats</label><input type="number" min="1" name="cap-${i}" value="${c.capacity}"></div>
+        <div class="field"><label>Where</label><select name="format-${i}">${[['online', 'Online (video call)'], ['in-person', 'In person at Mcuire']].map(([v, l]) => `<option value="${v}" ${c.format === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
+      <div class="grid-2"><div class="field"><label>Video platform</label><input name="platform-${i}" value="${esc(c.platform || '')}" placeholder="Zoom, Google Meet…"></div>
+        <div class="field"><label>Join link (paid guests only)</label><input name="join-${i}" value="${esc(c.joinUrl || '')}" placeholder="https://zoom.us/j/…"></div></div>
+      <div class="grid-2"><div class="field"><label>Address (in-person classes)</label><input name="loc-${i}" value="${esc(c.location || '')}"></div>
+        <div class="field"><label>Host</label><input name="host-${i}" value="${esc(c.host || '')}"></div></div>
+      <div class="field"><label>Description</label><textarea name="desc-${i}" rows="2">${esc(c.description || '')}</textarea></div>
+      <div class="field"><label>What guests need</label><textarea name="need-${i}" rows="2">${esc(c.whatYouNeed || '')}</textarea></div>
+      <details><summary class="link" style="cursor:pointer">Guest list (${people.length})</summary>
+        ${people.length ? `<ul class="mini-list">${people.map((a) => `<li><div style="flex:1"><b>${esc(a.name || a.email)}</b><div class="small muted">${esc(a.email)} · booked ${formatDate(a.bookedAt)}</div></div></li>`).join('')}</ul>
+          <button type="button" class="btn btn-ghost btn-sm" data-copy-emails="${esc(c.id)}">Copy guest emails</button>` : '<p class="small muted">No bookings yet.</p>'}
+      </details></div>`;
+    }).join('') || '<p class="muted">No live classes yet.</p>'}
+    ${classes.length ? '<div class="row"><button class="btn btn-primary">Save live classes</button></div>' : ''}</form>`;
 }
 
 function categoriesEditor() {
@@ -577,6 +661,7 @@ export default async function admin({ section = '', id }, query) {
 
   let body;
   let mountSection = null;
+  let liveData = null;
   if (section === 'recipes' && id) {
     const ed = recipeEditor(id, query);
     body = typeof ed === 'string' ? ed : ed.html;
@@ -586,6 +671,7 @@ export default async function admin({ section = '', id }, query) {
       '': overview,
       recipes: recipesList,
       courses: async () => coursesEditor(config.dataSource === 'api' ? await loadServerList('stripe-accounts') : null),
+      live: async () => { liveData = await loadLiveAdmin(); return liveEditor(liveData); },
       discounts: discountsEditor,
       categories: categoriesEditor,
       challenges: challengesEditor,
@@ -627,6 +713,83 @@ export default async function admin({ section = '', id }, query) {
           await store.saveCourse(c);
           toast(`${c.title} saved: ${money(c.priceCents, c.currency)}`);
         } catch (err) { toast(err.message); }
+      }));
+
+      offs.push(on(main, 'click', '[data-bulk-price]', (_, b) => {
+        const v = b.form.bulk.value;
+        if (v === '' || Number(v) < 0) { toast('Type a price first'); return; }
+        b.form.querySelectorAll('input[name^="price-"]').forEach((el) => { el.value = Number(v).toFixed(2); });
+        toast('Prices filled in. Press “Save single-dish prices” to keep them.');
+      }));
+      offs.push(on(main, 'submit', '[data-singles]', async (e, form) => {
+        e.preventDefault();
+        const data = new FormData(form);
+        const changed = [];
+        for (const c of store.courses.filter((x) => x.kind === 'single')) {
+          const next = clone(c);
+          next.priceCents = Math.round(Number(data.get(`price-${c.id}`)) * 100) || 0;
+          next.status = data.get(`on-${c.id}`) === 'on' ? 'published' : 'hidden';
+          if (data.has(`acct-${c.id}`)) next.stripeAccount = String(data.get(`acct-${c.id}`)).trim().toLowerCase() || 'default';
+          if (next.priceCents !== c.priceCents || next.status !== c.status || (next.stripeAccount || 'default') !== (c.stripeAccount || 'default')) changed.push(next);
+        }
+        if (!changed.length) { toast('Nothing changed'); return; }
+        try {
+          for (const c of changed) await store.saveCourse(c);
+          toast(`${changed.length} dish${changed.length === 1 ? '' : 'es'} updated`);
+        } catch (err) { toast(err.message); }
+      }));
+
+      const readLive = (form) => {
+        const data = new FormData(form);
+        return liveData.classes.map((c, i) => {
+          const start = data.get(`start-${i}`);
+          return {
+            ...c,
+            title: String(data.get(`title-${i}`) || '').trim() || c.title,
+            status: data.get(`status-${i}`) || c.status,
+            startsAt: start ? new Date(start).toISOString() : c.startsAt,
+            durationMinutes: Math.max(15, Number(data.get(`dur-${i}`)) || 60),
+            recipeId: data.get(`recipe-${i}`) || '',
+            priceCents: Math.max(0, Math.round(Number(data.get(`price-${i}`)) * 100) || 0),
+            capacity: Math.max(1, Number(data.get(`cap-${i}`)) || 1),
+            format: data.get(`format-${i}`) || 'online',
+            platform: String(data.get(`platform-${i}`) || '').trim(),
+            joinUrl: String(data.get(`join-${i}`) || '').trim(),
+            location: String(data.get(`loc-${i}`) || '').trim(),
+            host: String(data.get(`host-${i}`) || '').trim(),
+            description: data.get(`desc-${i}`) || '',
+            whatYouNeed: data.get(`need-${i}`) || '',
+          };
+        });
+      };
+      const saveLive = async (list, msg) => {
+        const bad = list.find((c) => c.status === 'published' && c.joinUrl && !/^https:\/\//.test(c.joinUrl));
+        if (bad) { toast(`“${bad.title}”: the join link should start with https://`); return; }
+        try {
+          await store.saveLiveClasses(list);
+          liveData = await loadLiveAdmin();
+          main.innerHTML = liveEditor(liveData);
+          if (msg) toast(msg);
+        } catch (err) { toast(err.message); }
+      };
+      offs.push(on(main, 'submit', '[data-live]', async (e, form) => { e.preventDefault(); await saveLive(readLive(form), 'Live classes saved'); }));
+      offs.push(on(main, 'click', '[data-add-live]', async () => {
+        const form = main.querySelector('[data-live]');
+        const list = form && liveData.classes.length ? readLive(form) : liveData.classes.slice();
+        await saveLive([...list, blankLiveClass()], 'Draft class added. Fill it in, set it to Published and save.');
+      }));
+      offs.push(on(main, 'click', '[data-del-live]', async (_, b) => {
+        const list = readLive(b.form);
+        const i = Number(b.dataset.delLive);
+        const booked = liveData.attendees.filter((a) => a.classId === list[i].id).length;
+        if (booked) { toast('People have booked this class. Set it to Cancelled instead, and refund them in Stripe.'); return; }
+        if (!confirm(`Delete “${list[i].title}”?`)) return;
+        list.splice(i, 1);
+        await saveLive(list, 'Class deleted');
+      }));
+      offs.push(on(main, 'click', '[data-copy-emails]', async (_, b) => {
+        const emails = liveData.attendees.filter((a) => a.classId === b.dataset.copyEmails).map((a) => a.email).join(', ');
+        try { await navigator.clipboard.writeText(emails); toast('Emails copied'); } catch { prompt('Guest emails', emails); }
       }));
 
       const readCategories = (form) => {

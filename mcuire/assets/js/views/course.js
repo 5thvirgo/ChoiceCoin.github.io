@@ -12,7 +12,7 @@ export default function course({ slug }) {
   const totalMins = all.reduce((s, r) => s + (r.prepMinutes || 0) + (r.cookMinutes || 0), 0);
   const hero = ready[0]?.hero || all[0]?.hero;
   const flagship = store.flagship;
-  const upgrade = c.kind === 'mini' && !store.owns(flagship.id);
+  const upgrade = c.kind !== 'flagship' && !store.owns(flagship.id);
 
   return {
     title: c.title,
@@ -21,7 +21,7 @@ export default function course({ slug }) {
       <div class="wrap recipe-hero">
         <div>
           <a class="small muted" href="#/courses" style="text-decoration:none">${icon('back', 14)} All courses</a>
-          <span class="eyebrow" style="margin-top:16px">${c.kind === 'flagship' ? 'Flagship programme' : 'Mini course'}</span>
+          <span class="eyebrow" style="margin-top:16px">${c.kind === 'flagship' ? 'Flagship programme' : c.kind === 'single' ? 'Single lesson' : 'Mini course'}</span>
           <h1 style="font-size:clamp(2rem,5vw,3.4rem)">${esc(c.title)}${c.kind === 'flagship' ? `<br><span style="font-style:italic;color:var(--jollof)">${esc(c.subtitle)}</span>` : ''}</h1>
           <p class="lede">${esc(c.blurb)}</p>
           <div class="facts">

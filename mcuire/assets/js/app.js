@@ -15,6 +15,9 @@ const routes = [
   ['/checkout/:slug', 'checkout'],
   ['/welcome/:slug', 'checkout'],
   ['/kitchen', 'kitchen'],
+  ['/live', 'live'],
+  ['/live/:id/book', 'live'],
+  ['/live/:id/booked', 'live'],
   ['/kitchen/shopping', 'shopping'],
   ['/kitchen/certificate', 'certificate'],
   ['/verify/:number', 'certificate'],
@@ -54,6 +57,7 @@ function shell() {
         <a class="brand" href="#/">${brandMark()}<span><span class="brand-name">${esc(config.brand.short)}</span><span class="brand-sub">Cooking Courses</span></span></a>
         <nav class="nav" aria-label="Main">
           <a href="#/courses" data-nav="/courses">Courses</a>
+          <a href="#/live" data-nav="/live">Live classes</a>
           <a href="#/try" class="hide-sm" data-nav="/try">Free lesson</a>
           <a href="#/kitchen" data-nav="/kitchen">My Kitchen</a>
           ${config.restaurantUrl ? `<a href="${esc(config.restaurantUrl)}" class="hide-sm">Restaurant</a>` : ''}

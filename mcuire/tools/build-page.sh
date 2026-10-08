@@ -31,3 +31,12 @@ writeFileSync(out, html);
 console.log("Built", out, wp ? "(WordPress plugin)" : api ? "(server: " + api + ")" : "(demo mode)");
 '
 rm -f dist/bundle.js
+# The plugin seeds its database from the same content as the app.
+if [ "${WP:-}" = "1" ]; then
+  node --input-type=module -e '
+import { writeFileSync } from "node:fs";
+const { SEED } = await import(process.cwd() + "/assets/js/data/seed.js");
+writeFileSync("wordpress-plugin/mcuire-cooking-courses/data/seed.json", JSON.stringify(SEED));
+console.log("Wrote seed.json: version", SEED.version, "·", SEED.courses.length, "courses ·", SEED.liveClasses.length, "live classes");
+'
+fi

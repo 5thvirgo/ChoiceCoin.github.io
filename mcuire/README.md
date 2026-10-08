@@ -5,6 +5,17 @@ Flagship course: *West African Kitchen: Beginner to Confident Cook*.
 
 Architecture, data model and phases: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
+**What customers can buy**
+- **Single dishes:** each of the 37 finished dishes is its own Cook With Me lesson: $20 CAD for quick
+  beginner dishes, $30 for the rest. Prices are set in **Admin → Courses & prices → Single dishes**
+  (there is also a "set every dish to" bulk price).
+- **Bundles** and the full **West African Kitchen** programme (which unlocks everything).
+- **Live cooking classes** (`#/live`), online (Zoom/Meet) or in person at the restaurant, with a seat
+  limit. Manage them in **Admin → Live classes**. The join link or address is only shown to people who
+  paid (in My Kitchen, from 30 minutes before the class, and in their ticket email). The three example
+  classes are installed as drafts on WordPress. Set real dates and links, then publish.
+  Live classes are supported by the WordPress plugin; the stand-alone Node server does not have them yet.
+
 ## Run it
 
 **Static demo (no back end).** Everything is stored in the browser, and payments are simulated in clearly labelled test mode:
@@ -84,6 +95,9 @@ WordPress admin → **Appearance → Menus** (block themes: **Appearance → Edi
 **6. Email delivery.** Receipts and sign-in links are sent by `sendEmail()` in
 `server/server.mjs`. Connect Postmark or Resend before launch. Until then, sign-in links appear
 only in Render’s logs.
+
+**Timezone:** WordPress → Settings → General → Timezone → *Toronto* (or your city), so live-class
+times in emails are correct.
 
 **Before the first sale:** have the chef review each recipe (**Admin → Recipes**) and upload your
 own photos and videos (**Admin → Media to shoot**).

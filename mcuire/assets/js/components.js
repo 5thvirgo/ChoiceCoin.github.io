@@ -1,7 +1,7 @@
 // Shared presentational pieces.
 import { config } from './config.js';
 import { store } from './services/store.js';
-import { esc, icon, minutes, on } from './lib/dom.js';
+import { esc, icon, minutes, money, on } from './lib/dom.js';
 
 // Renders a MediaRef: real photo/video when Mcuire has supplied one,
 // otherwise a clearly-labelled placeholder carrying the photographer's brief.
@@ -75,7 +75,7 @@ export function recipeTile(recipe, { owned = false } = {}) {
     <div style="position:relative">${media(recipe.hero, { ratio: 'tall', compact: true })}${status}</div>
     <h3>${esc(recipe.title)}</h3>
     <p>${esc(recipe.subtitle || '')}</p>
-    <div class="meta"><span>${esc(recipe.region || '')}</span><span>·</span><span>${minutes((recipe.prepMinutes || 0) + (recipe.cookMinutes || 0))}</span>${owned ? '<span>· Yours</span>' : ''}</div>
+    <div class="meta"><span>${esc(recipe.region || '')}</span><span>·</span><span>${minutes((recipe.prepMinutes || 0) + (recipe.cookMinutes || 0))}</span>${owned ? '<span>· Yours</span>' : (() => { const s = store.singleFor(recipe.id); return s ? `<span>· ${money(s.priceCents, s.currency)}</span>` : ''; })()}</div>
   </a>`;
 }
 

@@ -152,6 +152,7 @@ export default async function cook({ slug }, query, route) {
 
   function gateView() {
     const flagship = store.flagship;
+    const single = store.singleFor(recipe.id);
     const mini = store.coursesContaining(recipe.id).filter((c) => c.kind === 'mini').sort((a, b) => a.priceCents - b.priceCents)[0];
     const done = Math.min(state.index, recipe.previewSteps);
     return `
@@ -164,13 +165,18 @@ export default async function cook({ slug }, query, route) {
           <span class="eyebrow">Recommended</span>
           <h3>${esc(flagship.title)}: ${esc(flagship.subtitle)}</h3>
           <ul class="ticks small">
-            <li>${icon('check', 16)} Finish this jollof, then over 40 more dishes</li>
+            <li>${icon('check', 16)} Finish this dish, then over 40 more</li>
             <li>${icon('check', 16)} Every course, every module, every future update</li>
             <li>${icon('check', 16)} Shopping lists, serving calculator, achievements</li>
             <li>${icon('check', 16)} Mcuire Certificate of Completion</li>
           </ul>
           <a class="btn btn-primary btn-lg btn-block" href="#/checkout/${esc(flagship.slug)}?resume=${esc(recipe.slug)}">Unlock everything · ${money(flagship.priceCents, flagship.currency)}</a>
         </div>
+        ${single ? `<div class="panel">
+          <h3>Just this dish</h3>
+          <p class="small muted">The full ${esc(recipe.title)} lesson, yours to keep.</p>
+          <a class="btn btn-dark btn-block" href="#/checkout/${esc(single.slug)}?resume=${esc(recipe.slug)}">Unlock this lesson · ${money(single.priceCents, single.currency)}</a>
+        </div>` : ''}
         ${mini ? `<div class="panel">
           <h3>Just ${esc(mini.title)}</h3>
           <p class="small muted">${esc(mini.blurb)}</p>

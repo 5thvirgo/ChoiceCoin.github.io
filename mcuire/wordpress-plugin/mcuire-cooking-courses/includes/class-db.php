@@ -117,6 +117,7 @@ class Mcuire_CC_DB {
 				user_id bigint(20) unsigned DEFAULT NULL,
 				email varchar(190) NOT NULL,
 				course_id varchar(64) NOT NULL,
+				live_class_id varchar(64) DEFAULT NULL,
 				amount_cents int(11) NOT NULL,
 				currency varchar(3) NOT NULL,
 				discount_code varchar(64) DEFAULT NULL,
@@ -128,7 +129,8 @@ class Mcuire_CC_DB {
 				paid_at varchar(32) DEFAULT NULL,
 				PRIMARY KEY  (id),
 				UNIQUE KEY stripe_session_id (stripe_session_id),
-				KEY user_id (user_id)
+				KEY user_id (user_id),
+				KEY live_class_id (live_class_id)
 			) $c;",
 			"CREATE TABLE " . self::t('enrollments') . " (
 				user_id bigint(20) unsigned NOT NULL,
@@ -158,6 +160,7 @@ class Mcuire_CC_DB {
 			dbDelta($sql);
 		}
 		self::seed();
+		self::add_new_content();
 		update_option('mcuire_cc_db_version', MCUIRE_CC_VERSION);
 	}
 
@@ -183,6 +186,48 @@ class Mcuire_CC_DB {
 		foreach (array('achievements', 'challenges', 'freeLesson') as $key) {
 			self::set_meta($key, $seed[$key]);
 		}
+	}
+
+	// On every update: add dishes, courses and live classes that are new in this
+	// version, without touching anything the owner has already edited.
+	private static function add_new_content() {
+		global $wpdb;
+		$seed = json_decode(file_get_contents(MCUIRE_CC_DIR . 'data/seed.json'), true);
+		foreach ($seed['recipes'] as $r) {
+			if (!$wpdb->get_var($wpdb->prepare('SELECT 1 FROM ' . self::t('recipes') . ' WHERE id = %s OR slug = %s', $r['id'], $r['slug']))) {
+				self::save_recipe($r, null);
+			}
+		}
+		foreach ($seed['courses'] as $course) {
+			if (!$wpdb->get_var($wpdb->prepare('SELECT 1 FROM ' . self::t('courses') . ' WHERE id = %s OR slug = %s', $course['id'], $course['slug']))) {
+				self::save_course($course);
+			}
+		}
+		// Example live classes start as drafts: the owner sets real dates and links first.
+		if (self::get_meta('liveClasses') === null) {
+			self::set_meta('liveClasses', array_map(function ($c) { $c['status'] = 'draft'; return $c; }, $seed['liveClasses'] ?? array()));
+		}
+	}
+
+	public static function live_classes() {
+		return self::get_meta('liveClasses') ?: array();
+	}
+
+	public static function live_class($id) {
+		foreach (self::live_classes() as $c) {
+			if ($c['id'] === $id) {
+				return $c;
+			}
+		}
+		return null;
+	}
+
+	// Paid seats plus checkouts started in the last 30 minutes (so two people
+	// can't both pay for the last seat).
+	public static function seats_taken($class_id) {
+		global $wpdb;
+		$recent = gmdate('Y-m-d\TH:i:s.v\Z', time() - 30 * 60);
+		return (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM " . self::t('orders') . " WHERE live_class_id = %s AND (status = 'paid' OR (status = 'pending' AND created_at > %s))", $class_id, $recent));
 	}
 
 	// ---- content -----------------------------------------------------------

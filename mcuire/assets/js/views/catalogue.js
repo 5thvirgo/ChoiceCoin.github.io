@@ -13,6 +13,8 @@ export default function catalogue() {
   const cats = store.categories;
   const complete = store.recipes.filter((r) => r.status === 'complete').length;
 
+  const singlePrices = store.courses.filter((c) => c.kind === 'single' && c.status === 'published').map((c) => c.priceCents);
+  const singleFrom = singlePrices.length ? Math.min(...singlePrices) : 0;
   return {
     title: 'Cooking courses',
     html: `
@@ -20,7 +22,8 @@ export default function catalogue() {
       <div class="wrap">
         <span class="eyebrow">Mcuire Cooking Courses</span>
         <h1>Choose what you want to cook</h1>
-        <p class="lede">Take the whole programme, or start with the dishes you love most. Every course works on your phone, right next to your stove.</p>
+        <p class="lede">Take the whole programme, a bundle, or just the dishes you love: ${singleFrom ? `<b>every dish can be bought on its own from ${money(singleFrom, 'CAD')}</b>.` : ''} Every lesson works on your phone, right next to your stove.</p>
+        ${store.liveClasses.length ? `<a class="chip gold" href="#/live" style="text-decoration:none;margin-top:6px">${icon('users', 14)} ${store.liveClasses.length} live class${store.liveClasses.length > 1 ? 'es' : ''} coming up · see dates</a>` : ''}
       </div>
     </section>
 

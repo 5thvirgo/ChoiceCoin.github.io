@@ -1,7 +1,7 @@
 import { store } from '../services/store.js';
 import { AVAILABILITY } from '../data/seed.js';
 import { media } from '../components.js';
-import { esc, icon, minutes, on, toast } from '../lib/dom.js';
+import { esc, icon, minutes, money, on, toast } from '../lib/dom.js';
 import { scaleIngredient, batchWarning } from '../lib/units.js';
 
 // Meals list their dishes; allergens are gathered from every dish.
@@ -84,15 +84,22 @@ export default async function recipeView({ slug }) {
   const resumeStep = progress?.active ? progress.step : 0;
   const ready = recipe.status === 'complete';
 
+  const single = store.singleFor(recipe.id);
   let cta;
+  let ctaExtra = '';
   if (!ready) {
     cta = `<a class="btn btn-primary btn-lg btn-block" href="#/courses/${esc(cheapest?.slug || '')}">${owned ? 'In your course, coming soon' : 'See the course'}</a>`;
   } else if (owned) {
     cta = `<a class="btn btn-primary btn-lg btn-block" href="#/cook/${esc(recipe.slug)}">${icon('play', 18)} ${resumeStep ? `Continue at step ${resumeStep + 1}` : 'Start cooking'}</a>`;
   } else if (recipe.previewSteps) {
     cta = `<a class="btn btn-primary btn-lg btn-block" href="#/cook/${esc(recipe.slug)}">${icon('play', 18)} Start cooking · ${recipe.previewSteps} free steps</a>`;
+    if (single) ctaExtra = `<a class="btn btn-ghost btn-block" style="margin-top:10px" href="#/checkout/${esc(single.slug)}">Buy this lesson · ${money(single.priceCents, single.currency)}</a>`;
   } else {
-    cta = `<a class="btn btn-primary btn-lg btn-block" href="#/courses/${esc(cheapest?.slug || '')}">${icon('lock', 18)} Unlock in ${esc(cheapest?.title || 'a course')}</a>`;
+    cta = single
+      ? `<a class="btn btn-primary btn-lg btn-block" href="#/checkout/${esc(single.slug)}">${icon('lock', 18)} Buy this lesson · ${money(single.priceCents, single.currency)}</a>`
+      : `<a class="btn btn-primary btn-lg btn-block" href="#/courses/${esc(cheapest?.slug || '')}">${icon('lock', 18)} Unlock in ${esc(cheapest?.title || 'a course')}</a>`;
+    const flagship = store.flagship;
+    if (single && flagship && !store.owns(flagship.id)) ctaExtra = `<p class="small muted" style="margin:10px 0 0">Or get every dish with <a class="link" href="#/courses/${esc(flagship.slug)}">${esc(flagship.title)}</a> · ${money(flagship.priceCents, flagship.currency)}</p>`;
   }
 
   const meal = !!recipe.components;
@@ -113,7 +120,7 @@ export default async function recipeView({ slug }) {
             <div><b>${servings}</b><span>Servings</span></div>
           </div>
           <div class="row">
-            <div style="flex:1;min-width:240px">${cta}</div>
+            <div style="flex:1;min-width:240px">${cta}${ctaExtra}</div>
             <button class="icon-btn" data-action="save" aria-pressed="${store.isSaved(recipe.id)}" title="Save recipe" style="${store.isSaved(recipe.id) ? 'color:var(--jollof);border-color:var(--jollof)' : ''}">${icon('heart')}</button>
           </div>
         </div>

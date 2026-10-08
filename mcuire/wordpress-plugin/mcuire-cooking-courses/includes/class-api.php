@@ -199,6 +199,10 @@ class Mcuire_CC_API {
 			if ($order->discount_code) {
 				$wpdb->query($wpdb->prepare('UPDATE ' . self::t('discounts') . ' SET redemptions = redemptions + 1 WHERE code = %s', $order->discount_code));
 			}
+			if ($order->live_class_id) {
+				self::send_ticket($user, $order);
+				return $user;
+			}
 			$course = Mcuire_CC_DB::get_course($order->course_id);
 			$grant = $course['kind'] === 'flagship' ? wp_list_pluck(Mcuire_CC_DB::all_courses(), 'id') : array($course['id']);
 			foreach ($grant as $cid) {
@@ -207,6 +211,58 @@ class Mcuire_CC_API {
 			self::send_magic_link($user, 'Your cooking course is unlocked', sprintf('Thank you! %s is unlocked and waiting in My Kitchen.', $course['title']));
 		}
 		return $user;
+	}
+
+	// ---- live classes ---------------------------------------------------------
+	private static function class_when($c) {
+		$tz = wp_timezone();
+		$start = new DateTime($c['startsAt']);
+		$start->setTimezone($tz);
+		return $start->format('l, F j, Y \a\t g:i a T');
+	}
+
+	private static function public_class($c) {
+		unset($c['joinUrl'], $c['location']);
+		$c['seatsLeft'] = max(0, (int) $c['capacity'] - Mcuire_CC_DB::seats_taken($c['id']));
+		return $c;
+	}
+
+	private static function class_ended($c) {
+		return strtotime($c['startsAt']) + ((int) ($c['durationMinutes'] ?? 60)) * 60 < time();
+	}
+
+	private static function send_ticket($user, $order) {
+		$c = Mcuire_CC_DB::live_class($order->live_class_id);
+		if (!$c) {
+			return;
+		}
+		$where = $c['format'] === 'in-person'
+			? 'Where: ' . ($c['location'] ?: 'We will email the address before the class.')
+			: 'Join online (' . ($c['platform'] ?: 'video call') . '): ' . ($c['joinUrl'] ?: 'we will email the link before the class. It will also appear in My Kitchen.');
+		$intro = sprintf(
+			"You're booked for %s.\n\nWhen: %s (%d minutes)\n%s\n\nWhat you need: %s",
+			$c['title'], self::class_when($c), (int) $c['durationMinutes'], $where, $c['whatYouNeed'] ?: 'Nothing special.'
+		);
+		self::send_magic_link($user, 'Your live cooking class ticket: ' . $c['title'], $intro);
+		$owners = self::email_list('mcuire_cc_admin_emails');
+		if ($owners) {
+			wp_mail($owners, 'New live class booking: ' . $c['title'], sprintf("%s booked a seat for %s (%s).\nSeats taken: %d of %d.", $user->email, $c['title'], self::class_when($c), Mcuire_CC_DB::seats_taken($c['id']), (int) $c['capacity']));
+		}
+	}
+
+	private static function tickets_for($user_id) {
+		global $wpdb;
+		$rows = $wpdb->get_results($wpdb->prepare("SELECT id, live_class_id, email, amount_cents, currency, paid_at, created_at FROM " . self::t('orders') . " WHERE user_id = %d AND status = 'paid' AND live_class_id IS NOT NULL", $user_id));
+		$out = array();
+		foreach ($rows as $o) {
+			$c = Mcuire_CC_DB::live_class($o->live_class_id);
+			$out[] = array(
+				'id' => $o->id, 'classId' => $o->live_class_id, 'email' => $o->email, 'amountCents' => (int) $o->amount_cents, 'currency' => $o->currency,
+				'bookedAt' => $o->paid_at ?: $o->created_at, 'joinUrl' => $c['joinUrl'] ?? '', 'location' => $c['location'] ?? '',
+				'cancelled' => ($c['status'] ?? '') === 'cancelled',
+			);
+		}
+		return $out;
 	}
 
 	private static function stripe($account, $method, $path, $form = null) {
@@ -265,7 +321,8 @@ class Mcuire_CC_API {
 		return array_merge($state, array(
 			'account' => array('email' => $user->email, 'name' => $user->name, 'role' => $user->role, 'createdAt' => $user->created_at),
 			'enrollments' => $wpdb->get_results($wpdb->prepare('SELECT course_id AS courseId, order_id AS orderId, granted_at AS grantedAt FROM ' . self::t('enrollments') . ' WHERE user_id = %d', $user->id)),
-			'orders' => array_map(function ($o) { $o->amountCents = (int) $o->amountCents; return $o; }, $wpdb->get_results($wpdb->prepare("SELECT id, course_id AS courseId, email, amount_cents AS amountCents, currency, discount_code AS discountCode, status, created_at AS createdAt FROM " . self::t('orders') . " WHERE user_id = %d AND status != 'pending'", $user->id))),
+			'orders' => array_map(function ($o) { $o->amountCents = (int) $o->amountCents; return $o; }, $wpdb->get_results($wpdb->prepare("SELECT id, course_id AS courseId, live_class_id AS liveClassId, email, amount_cents AS amountCents, currency, discount_code AS discountCode, status, created_at AS createdAt FROM " . self::t('orders') . " WHERE user_id = %d AND status != 'pending'", $user->id))),
+			'tickets' => self::tickets_for($user->id),
 			'certificates' => $wpdb->get_results($wpdb->prepare('SELECT number, course_id AS courseId, name, issued_at AS issuedAt FROM ' . self::t('certificates') . ' WHERE user_id = %d AND revoked_at IS NULL', $user->id)),
 		));
 	}
@@ -323,6 +380,7 @@ class Mcuire_CC_API {
 				'achievements' => Mcuire_CC_DB::get_meta('achievements'),
 				'challenges' => Mcuire_CC_DB::get_meta('challenges'),
 				'freeLesson' => Mcuire_CC_DB::get_meta('freeLesson'),
+				'liveClasses' => array_values(array_map(array(__CLASS__, 'public_class'), array_filter(Mcuire_CC_DB::live_classes(), function ($c) { return $c['status'] === 'published' && !self::class_ended($c); }))),
 			));
 		}
 		if ($is('GET', '#^/recipes/([\w-]+)$#', $m)) {
@@ -373,9 +431,22 @@ class Mcuire_CC_API {
 		// ---- checkout
 		if ($is('POST', '#^/checkout/session$#')) {
 			$data = $body();
-			$course = Mcuire_CC_DB::get_course((string) ($data['courseId'] ?? ''));
-			if (!$course || $course['status'] !== 'published') {
-				self::fail(404, 'Course not available');
+			$live = null;
+			if (!empty($data['liveClassId'])) {
+				// A live class seat is sold like a course; the class is the "course" for pricing.
+				$live = Mcuire_CC_DB::live_class((string) $data['liveClassId']);
+				if (!$live || $live['status'] !== 'published' || strtotime($live['startsAt']) < time()) {
+					self::fail(404, 'This class is no longer taking bookings');
+				}
+				if (Mcuire_CC_DB::seats_taken($live['id']) >= (int) $live['capacity']) {
+					self::fail(409, 'Sorry, this class is full');
+				}
+				$course = array('id' => '', 'slug' => '', 'kind' => 'live', 'title' => 'Live class: ' . $live['title'], 'subtitle' => '', 'priceCents' => (int) $live['priceCents'], 'currency' => $live['currency'] ?? 'CAD', 'stripeAccount' => $live['stripeAccount'] ?? '');
+			} else {
+				$course = Mcuire_CC_DB::get_course((string) ($data['courseId'] ?? ''));
+				if (!$course || $course['status'] !== 'published') {
+					self::fail(404, 'Course not available');
+				}
 			}
 			$email = sanitize_email($data['email'] ?? '');
 			if ($email && !is_email($email)) {
@@ -384,7 +455,10 @@ class Mcuire_CC_API {
 			$price = self::price_for($course, $data['discountCode'] ?? ''); // price always from the database
 			$order_id = 'ord_' . bin2hex(random_bytes(8));
 			$resume = preg_match('/^[a-z0-9-]{1,80}$/', (string) ($data['resume'] ?? '')) ? '&resume=' . $data['resume'] : '';
-			$success = self::app_url('#/welcome/' . $course['slug'] . '?session_id={CHECKOUT_SESSION_ID}' . $resume);
+			$success = $live
+				? self::app_url('#/live/' . $live['id'] . '/booked?session_id={CHECKOUT_SESSION_ID}')
+				: self::app_url('#/welcome/' . $course['slug'] . '?session_id={CHECKOUT_SESSION_ID}' . $resume);
+			$live_id = $live ? $live['id'] : null;
 			$accounts = self::stripe_accounts();
 
 			if (!$accounts) {
@@ -393,7 +467,7 @@ class Mcuire_CC_API {
 				}
 				// Free test purchases: switched on by the owner in Settings while testing.
 				$sid = 'cs_dev_' . bin2hex(random_bytes(8));
-				$wpdb->insert(self::t('orders'), array('id' => $order_id, 'email' => strtolower($email ?: 'test@example.com'), 'course_id' => $course['id'], 'amount_cents' => $price['total'], 'currency' => $course['currency'], 'discount_code' => $price['code'], 'stripe_session_id' => $sid, 'stripe_account' => 'test', 'status' => 'pending', 'created_at' => self::now()));
+				$wpdb->insert(self::t('orders'), array('id' => $order_id, 'email' => strtolower($email ?: 'test@example.com'), 'course_id' => $course['id'], 'live_class_id' => $live_id, 'amount_cents' => $price['total'], 'currency' => $course['currency'], 'discount_code' => $price['code'], 'stripe_session_id' => $sid, 'stripe_account' => 'test', 'status' => 'pending', 'created_at' => self::now()));
 				return self::json(array('url' => str_replace('{CHECKOUT_SESSION_ID}', $sid, $success), 'simulated' => true));
 			}
 			$account_name = isset($accounts[$course['stripeAccount'] ?? '']) ? $course['stripeAccount'] : (isset($accounts['default']) ? 'default' : array_key_first($accounts));
@@ -403,10 +477,12 @@ class Mcuire_CC_API {
 				'line_items[0][price_data][currency]' => strtolower($course['currency']),
 				'line_items[0][price_data][unit_amount]' => (string) $price['total'],
 				'line_items[0][price_data][product_data][name]' => $course['title'] . ($course['kind'] === 'flagship' ? ': ' . $course['subtitle'] : ''),
-				'line_items[0][price_data][product_data][description]' => wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES) . ' online cooking course. Lifetime access.',
+				'line_items[0][price_data][product_data][description]' => $live
+					? self::class_when($live) . ' · ' . ($live['format'] === 'in-person' ? 'In person' : 'Online')
+					: wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES) . ' online cooking course. Lifetime access.',
 				'customer_creation' => 'if_required',
 				'success_url' => $success,
-				'cancel_url' => self::app_url('#/courses/' . $course['slug']),
+				'cancel_url' => $live ? self::app_url('#/live/' . $live['id'] . '/book') : self::app_url('#/courses/' . $course['slug']),
 				'metadata[course_id]' => $course['id'],
 				'metadata[order_id]' => $order_id,
 			);
@@ -416,8 +492,11 @@ class Mcuire_CC_API {
 			if ($price['code']) {
 				$form['metadata[discount_code]'] = $price['code'];
 			}
+			if ($live) {
+				$form['metadata[live_class_id]'] = $live['id'];
+			}
 			$session = self::stripe($accounts[$account_name], 'POST', 'checkout/sessions', $form);
-			$wpdb->insert(self::t('orders'), array('id' => $order_id, 'email' => strtolower($email), 'course_id' => $course['id'], 'amount_cents' => $price['total'], 'currency' => $course['currency'], 'discount_code' => $price['code'], 'stripe_session_id' => $session['id'], 'stripe_account' => $account_name, 'status' => 'pending', 'created_at' => self::now()));
+			$wpdb->insert(self::t('orders'), array('id' => $order_id, 'email' => strtolower($email), 'course_id' => $course['id'], 'live_class_id' => $live_id, 'amount_cents' => $price['total'], 'currency' => $course['currency'], 'discount_code' => $price['code'], 'stripe_session_id' => $session['id'], 'stripe_account' => $account_name, 'status' => 'pending', 'created_at' => self::now()));
 			return self::json(array('url' => $session['url']));
 		}
 
@@ -645,9 +724,59 @@ class Mcuire_CC_API {
 			}
 			return self::json($out);
 		}
+		if ($is('GET', '#^/admin/live-classes$#')) {
+			self::require_role($user, array('staff', 'admin'));
+			return self::json(Mcuire_CC_DB::live_classes());
+		}
+		if ($is('PUT', '#^/admin/live-classes$#')) {
+			self::require_role($user, 'admin'); // prices are admin-only
+			$list = $body();
+			$clean = array();
+			$ids = array();
+			foreach (array_values($list) as $c) {
+				$id = (string) ($c['id'] ?? '');
+				if (!preg_match('/^[a-z0-9-]{1,64}$/', $id) || isset($ids[$id]) || empty($c['title']) || strtotime((string) ($c['startsAt'] ?? '')) === false) {
+					self::fail(400, 'Each class needs a title and a date');
+				}
+				if (!is_int($c['priceCents'] ?? null) || $c['priceCents'] < 0 || !is_int($c['capacity'] ?? null) || $c['capacity'] < 1) {
+					self::fail(400, 'Invalid price or seats for ' . sanitize_text_field($c['title']));
+				}
+				$join = trim((string) ($c['joinUrl'] ?? ''));
+				if ($join !== '' && !wp_http_validate_url($join)) {
+					self::fail(400, 'The join link for ' . sanitize_text_field($c['title']) . ' is not a valid web address');
+				}
+				$ids[$id] = true;
+				$clean[] = array(
+					'id' => $id,
+					'title' => sanitize_text_field($c['title']),
+					'recipeId' => sanitize_key($c['recipeId'] ?? ''),
+					'status' => in_array($c['status'] ?? '', array('draft', 'published', 'cancelled'), true) ? $c['status'] : 'draft',
+					'description' => sanitize_textarea_field($c['description'] ?? ''),
+					'startsAt' => gmdate('Y-m-d\TH:i:s\Z', strtotime($c['startsAt'])),
+					'durationMinutes' => max(15, (int) ($c['durationMinutes'] ?? 60)),
+					'priceCents' => $c['priceCents'],
+					'currency' => in_array($c['currency'] ?? 'CAD', array('CAD', 'USD'), true) ? ($c['currency'] ?? 'CAD') : 'CAD',
+					'capacity' => $c['capacity'],
+					'format' => ($c['format'] ?? '') === 'in-person' ? 'in-person' : 'online',
+					'platform' => sanitize_text_field($c['platform'] ?? ''),
+					'joinUrl' => esc_url_raw($join),
+					'location' => sanitize_text_field($c['location'] ?? ''),
+					'host' => sanitize_text_field($c['host'] ?? ''),
+					'whatYouNeed' => sanitize_textarea_field($c['whatYouNeed'] ?? ''),
+					'stripeAccount' => sanitize_key($c['stripeAccount'] ?? ''),
+				);
+			}
+			Mcuire_CC_DB::set_meta('liveClasses', $clean);
+			return self::json(null, 204);
+		}
+		if ($is('GET', '#^/admin/live-attendees$#')) {
+			self::require_role($user, array('staff', 'admin'));
+			$rows = $wpdb->get_results("SELECT o.live_class_id AS classId, o.email, u.name, COALESCE(o.paid_at, o.created_at) AS bookedAt FROM " . self::t('orders') . " o LEFT JOIN " . self::t('users') . " u ON u.id = o.user_id WHERE o.status = 'paid' AND o.live_class_id IS NOT NULL ORDER BY o.paid_at");
+			return self::json($rows);
+		}
 		if ($is('GET', '#^/admin/orders$#')) {
 			self::require_role($user, 'admin');
-			$rows = $wpdb->get_results('SELECT id, email, course_id AS courseId, amount_cents AS amountCents, currency, discount_code AS discountCode, status, stripe_account AS stripeAccount, created_at AS createdAt FROM ' . self::t('orders') . ' ORDER BY created_at');
+			$rows = $wpdb->get_results('SELECT id, email, course_id AS courseId, live_class_id AS liveClassId, amount_cents AS amountCents, currency, discount_code AS discountCode, status, stripe_account AS stripeAccount, created_at AS createdAt FROM ' . self::t('orders') . ' ORDER BY created_at');
 			foreach ($rows as $r) {
 				$r->amountCents = (int) $r->amountCents;
 			}

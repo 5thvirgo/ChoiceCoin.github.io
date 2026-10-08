@@ -1,7 +1,7 @@
 === Mcuire Cooking Courses ===
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 
 Mcuire African Restaurant's online West African cooking academy, at /cooking-courses/.
 
@@ -14,3 +14,24 @@ Mcuire African Restaurant's online West African cooking academy, at /cooking-cou
 
 Requires "pretty" permalinks (Settings → Permalinks: anything except "Plain").
 Emails (receipts and sign-in links) are sent with WordPress's normal email (wp_mail).
+
+Set your timezone in Settings → General (e.g. Toronto) so live-class times in emails are right.
+
+== What you can sell ==
+* Single dishes: every finished dish is its own lesson ($20 for quick beginner dishes, $30 for the rest).
+  Change prices in bulk in the course admin → Courses & prices → Single dishes.
+* Bundles and the full West African Kitchen programme.
+* Live cooking classes (online or in person): course admin → Live classes. Set the date, seats, price
+  and the Zoom/Meet link or address, then switch the class to Published. Only paying guests see the
+  link (in My Kitchen and their ticket email). You get an email for each booking and can see the guest list.
+
+== Updating ==
+Upload the new zip (Plugins → Add New → Upload → Replace current). Your recipes, prices, customers and
+Stripe settings are kept; new dishes and courses are added. Example live classes arrive as drafts.
+
+== Changelog ==
+= 1.1.0 =
+* Buy any single dish on its own.
+* Live cooking classes with seat limits, tickets, booking emails and a guest list.
+= 1.0.0 =
+* First release.

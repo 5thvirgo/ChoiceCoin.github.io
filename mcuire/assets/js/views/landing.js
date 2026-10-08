@@ -115,6 +115,21 @@ export default function landing() {
       </div>
     </section>
 
+    ${store.liveClasses.length ? `<section class="section-tight">
+      <div class="wrap">
+        <div class="spread" style="margin-bottom:8px">
+          <div><span class="eyebrow">Live with our chef</span><h2>Cook with us, live</h2></div>
+          <a class="link" href="#/live">All live classes</a>
+        </div>
+        <p class="lede">Small live classes online and in our kitchen. Ask questions as you cook and get it right the first time.</p>
+        <div class="tiles" style="margin-top:20px">${store.liveClasses.slice(0, 3).map((c) => {
+          const r = store.recipe(c.recipeId);
+          const d = new Date(c.startsAt);
+          return `<a class="tile" href="#/live">${media(r?.hero, { ratio: 'wide', compact: true })}<h3>${esc(c.title)}</h3><p>${esc(d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }))} · ${esc(d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }))}</p><div class="meta"><span>${esc(c.format === 'in-person' ? 'In person' : 'Online')}</span><span>·</span><span>${money(c.priceCents, c.currency)}</span></div></a>`;
+        }).join('')}</div>
+      </div>
+    </section>` : ''}
+
     <section class="section">
       <div class="wrap narrow" style="text-align:center">
         <p class="quote" style="margin:0 auto 18px">“Free recipes are everywhere. What people really want is to know they’re doing it right.”</p>

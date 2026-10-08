@@ -71,10 +71,10 @@ export default async function checkout({ slug }, query, route) {
     return `
       <div class="row" style="flex-wrap:nowrap;align-items:flex-start">
         <div style="width:96px;flex:none">${media(hero, { ratio: 'square', compact: true })}</div>
-        <div><b style="font-family:var(--display);font-size:1.2rem">${esc(course.title)}</b><div class="small muted">${esc(course.kind === 'flagship' ? course.subtitle : 'Mini course')} · ${store.courseRecipeIds(course).length} dishes · lifetime access</div></div>
+        <div><b style="font-family:var(--display);font-size:1.2rem">${esc(course.title)}</b><div class="small muted">${esc(course.kind === 'flagship' ? course.subtitle : course.kind === 'single' ? 'Single lesson' : 'Mini course')} · ${store.courseRecipeIds(course).length} dish${store.courseRecipeIds(course).length > 1 ? 'es' : ''} · lifetime access</div></div>
       </div>
       <div style="margin-top:16px">
-        <div class="line"><span>Course</span><span>${money(p.subtotal, course.currency)}</span></div>
+        <div class="line"><span>${course.kind === 'single' ? 'Lesson' : 'Course'}</span><span>${money(p.subtotal, course.currency)}</span></div>
         ${p.applied ? `<div class="line" style="color:var(--leaf)"><span>${esc(p.applied.code)} (−${p.applied.percentOff}%)</span><span>−${money(p.discount, course.currency)}</span></div>` : ''}
         <div class="line total"><span>Total today</span><span>${money(p.total, course.currency)}</span></div>
       </div>

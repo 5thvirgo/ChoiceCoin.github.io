@@ -473,6 +473,46 @@ const courses = [
   },
 ];
 
+// Every finished dish can also be bought on its own: $20 for quicker beginner
+// dishes, $30 for longer or more advanced ones. Prices are editable in admin.
+export const singleDishPrice = (r) =>
+  (r.difficulty === 'Beginner friendly' && (r.prepMinutes || 0) + (r.cookMinutes || 0) <= 75 ? 2000 : 3000);
+for (const r of recipes.filter((x) => x.status === 'complete' && !x.components)) {
+  courses.push({
+    id: `dish-${r.id}`, slug: `dish-${r.slug}`, kind: 'single', status: 'published',
+    title: r.title, subtitle: 'Single Cook With Me lesson', priceCents: singleDishPrice(r), currency: 'CAD',
+    blurb: r.subtitle,
+    outcomes: [`Cook ${r.title} confidently, step by step`, 'Photos, timers and “does yours look like this?” checks', 'Yours to keep, on any device'],
+    modules: [{ id: 'm1', title: r.title, summary: '', recipeIds: [r.id] }],
+  });
+}
+
+// Live cooking classes. Join links are only shown to people who booked.
+// Example classes start as drafts on the live site; publish them in admin.
+const liveClasses = [
+  {
+    id: 'live-jollof', title: 'Party Jollof, Live', recipeId: 'party-jollof', status: 'published',
+    description: 'Cook party jollof together with the Mcuire kitchen in real time. Ask questions as you go and show us your pot on camera.',
+    startsAt: '2026-11-07T18:00:00-05:00', durationMinutes: 120, priceCents: 3500, currency: 'CAD', capacity: 20,
+    format: 'online', platform: 'Zoom', joinUrl: '', location: '', host: 'Mcuire Head Chef',
+    whatYouNeed: 'A large pot with a lid, a blender, and the ingredients on the shopping list (we send it after booking).',
+  },
+  {
+    id: 'live-egusi', title: 'Egusi & Pounded Yam Night', recipeId: 'egusi', status: 'published',
+    description: 'A hands-on evening: egusi soup from scratch and smooth pounded yam to go with it.',
+    startsAt: '2026-11-14T18:00:00-05:00', durationMinutes: 150, priceCents: 4000, currency: 'CAD', capacity: 16,
+    format: 'online', platform: 'Zoom', joinUrl: '', location: '', host: 'Mcuire Head Chef',
+    whatYouNeed: 'A large pot, a blender or food processor, and the shopping list ingredients.',
+  },
+  {
+    id: 'live-smallchops', title: 'Small Chops Workshop (In Person)', recipeId: 'puff-puff', status: 'published',
+    description: 'Puff-puff, chin chin and meat pie in the Mcuire kitchen. All ingredients provided, and you take home what you make.',
+    startsAt: '2026-11-21T14:00:00-05:00', durationMinutes: 180, priceCents: 7500, currency: 'CAD', capacity: 10,
+    format: 'in-person', platform: '', joinUrl: '', location: 'Mcuire African Restaurant (address on your ticket)', host: 'Mcuire Head Chef',
+    whatYouNeed: 'Just yourself and an apron. Everything else is provided.',
+  },
+];
+
 const achievements = [
   { id: 'kitchen-starter', title: 'Kitchen Starter', description: 'Finished your first Cook With Me recipe.', rule: { type: 'recipesCompleted', count: 1 } },
   { id: 'jollof-boss', title: 'Jollof Boss', description: 'Cooked Nigerian Party Jollof from start to finish.', rule: { type: 'recipe', recipeId: 'party-jollof' } },
@@ -494,7 +534,7 @@ const discounts = [
 ];
 
 export const SEED = {
-  version: 8,
+  version: 9,
   categories,
   courses,
   recipes,
@@ -502,4 +542,5 @@ export const SEED = {
   challenges,
   discounts,
   freeLesson: { recipeId: 'party-jollof' },
+  liveClasses,
 };
