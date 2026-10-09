@@ -623,13 +623,13 @@ body.has-timers .sticky-cta { bottom: calc(68px + var(--safe-bottom)); }
 .small, .tile p, .tile .meta { line-height: 1.5; }
 
 /* Links inside text: a soft underline that fills in on hover */
-main p a:not(.btn), .lede a:not(.btn), .notice a, .site-footer a:not(.btn) {
+main p a:not(.btn), .lede a:not(.btn), .notice a, .site-footer p a:not(.btn) {
   color: var(--jollof-deep); text-decoration: underline; text-decoration-thickness: 1.5px;
   text-underline-offset: 3px; text-decoration-color: rgba(196, 61, 26, 0.35);
   transition: text-decoration-color 0.2s var(--ease), color 0.2s var(--ease);
 }
 main p a:not(.btn):hover, .lede a:not(.btn):hover, .notice a:hover { color: var(--jollof); text-decoration-color: currentColor; }
-.dark-section p a:not(.btn), .site-footer a:not(.btn) { color: var(--gold-soft); text-decoration-color: rgba(246, 227, 180, 0.4); }
+.dark-section p a:not(.btn), .site-footer p a:not(.btn) { color: var(--gold-soft); text-decoration-color: rgba(246, 227, 180, 0.4); }
 .site-footer a:not(.btn):hover { color: #fff; text-decoration-color: currentColor; }
 .link { transition: color 0.2s var(--ease); }
 .link:hover { color: var(--jollof-deep); }
@@ -683,3 +683,5 @@ main p a:not(.btn):hover, .lede a:not(.btn):hover, .notice a:hover { color: var(
 .input:hover, .field input:hover, .field select:hover, .field textarea:hover { border-color: var(--muted); }
 .input:focus, .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--jollof); box-shadow: 0 0 0 4px rgba(196, 61, 26, 0.14); }
 ::placeholder { color: #9c8b7a; opacity: 1; }
+.site-footer ul a { text-decoration: none; transition: color 0.2s var(--ease); }
+.site-footer ul a:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
