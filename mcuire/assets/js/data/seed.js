@@ -6,6 +6,7 @@
 // MediaRef helper. src stays null until Mcuire uploads its own photography.
 // `brief` doubles as the photographer's shot list.
 import { MORE_CUES } from './cues-more.js';
+import { PHOTOS, STEP_PHOTOS, INGREDIENT_PHOTOS } from './photos.js';
 import { egusi, eba, pepperedChicken } from './recipes-soups-grills.js';
 import { dodo, puffPuff } from './recipes-street.js';
 import { suya, poundedYam, friedRice, moiMoi } from './recipes-more.js';
@@ -498,6 +499,32 @@ for (const r of recipes) {
   }
 }
 
+// Real photos: every dish, plus the steps and ingredients we have photos of.
+const credit = (p) => ({ author: p.author, license: p.license, page: p.page });
+const STEP_ALT = {
+  'step-jollof-pot': 'Jollof rice, cooked', 'step-egusi-pot': 'A pot of egusi soup', 'step-ogbono-pot': 'Ogbono soup simmering',
+  'step-okra-stir': 'Stirring okra soup', 'step-afang-leaves': 'Afang (okazi) leaves picked off the stem', 'step-bitterleaf-pot': 'Bitterleaf soup in the pot',
+  'step-banga-pound': 'Pounding palm fruit for banga', 'step-amala-wrap': 'Amala with ewedu', 'step-yaji': 'Suya spice (yaji) ready for the meat',
+  'step-chicken-grill': 'Chicken charring on the grill', 'step-fish-grill': 'Tilapia grilling', 'step-goat-grill': 'Browned goat meat',
+  'step-puff-shape': 'Shaping puff-puff balls', 'step-akara-frying': 'Akara frying in hot oil', 'step-dodo-fry': 'Fried plantain (dodo)',
+  'step-chinchin-cut': 'Rolling and cutting chin chin dough', 'step-moimoi-batter': 'Mixing the moi moi batter', 'step-moimoi-foil': 'Moi moi wrapped for steaming',
+};
+const photoAlt = (key) => STEP_ALT[key] || '';
+for (const r of recipes) {
+  const hero = PHOTOS[r.id];
+  if (hero) r.hero = { ...r.hero, kind: 'photo', src: hero.src, alt: r.title, credit: credit(hero) };
+  for (const st of r.steps) {
+    const key = STEP_PHOTOS[r.id]?.[st.id];
+    if (!key) continue;
+    const ph = PHOTOS[key];
+    st.media = [{ ...(st.media?.[0] || {}), kind: 'photo', src: ph.src, alt: photoAlt(key), credit: credit(ph) }, ...(st.media || []).slice(1)];
+  }
+  for (const ing of r.ingredients) {
+    const key = INGREDIENT_PHOTOS[r.id]?.[ing.id];
+    if (key) ing.photo = { kind: 'photo', src: PHOTOS[key].src, alt: ing.name, credit: credit(PHOTOS[key]) };
+  }
+}
+
 const liveClasses = [
   {
     id: 'live-jollof', title: 'Party Jollof Night at Mcuire', recipeId: 'party-jollof', status: 'published',
@@ -543,7 +570,7 @@ const discounts = [
 ];
 
 export const SEED = {
-  version: 11,
+  version: 12,
   categories,
   courses,
   recipes,

@@ -2,27 +2,24 @@
 import { config } from './config.js';
 import { store } from './services/store.js';
 import { esc, icon, minutes, money, on } from './lib/dom.js';
-import { illustration, caption } from './lib/illustrate.js';
 
 // Renders a MediaRef: real photo/video when Mcuire has supplied one,
 // otherwise a clearly-labelled placeholder carrying the photographer's brief.
 export function media(ref, { ratio = 'hero', compact = false, cls = '', eager = false } = {}) {
   const r = ref || { kind: 'photo', brief: 'Photo', tone: 'jollof' };
-  const tone = `tone-${r.tone || 'jollof'}`;
   const ratioCls = ratio ? `ratio-${ratio}` : '';
   if (r.src) {
+    const cr = r.credit ? `<a class="photo-credit" href="${esc(r.credit.page)}" target="_blank" rel="noopener">Photo: ${esc(r.credit.author)} · ${esc(r.credit.license)}</a>` : '';
     if (r.kind === 'video') {
       return `<div class="media ${ratioCls} ${cls}"><video src="${esc(r.src)}" ${r.poster ? `poster="${esc(r.poster)}"` : ''} muted loop playsinline autoplay preload="metadata" aria-label="${esc(r.alt)}"></video><span class="chip dark video-badge">${icon('video', 14)} Watch</span></div>`;
     }
-    return `<div class="media ${ratioCls} ${cls}"><img src="${esc(r.src)}" alt="${esc(r.alt || '')}" ${eager ? '' : 'loading="lazy"'} decoding="async"></div>`;
+    return `<div class="media ${ratioCls} ${cls}"><img src="${esc(r.src)}" alt="${esc(r.alt || '')}" ${eager ? '' : 'loading="lazy"'} decoding="async" referrerpolicy="no-referrer">${compact ? '' : cr}</div>`;
   }
-  // No photo yet: a drawn illustration of this exact shot, with a plain caption.
-  const cap = compact ? '' : caption(r);
-  const brief = config.showMediaBriefs && location.hash.startsWith('#/admin') && !compact && r.brief && r.brief !== r.alt ? `<span class="illus-brief">${icon(r.kind === 'video' ? 'video' : 'camera', 14)} To shoot: ${esc(r.brief)}</span>` : '';
-  return `<div class="media ${ratioCls} ${tone} illus-wrap ${compact ? 'ph-compact' : ''} ${cls}" role="img" aria-label="${esc(`Illustration: ${r.alt || r.brief || ''}`)}">
-    ${illustration(r)}
-    ${compact ? '' : '<span class="illus-tag">Illustration</span>'}
-    ${cap ? `<div class="illus-cap">${esc(cap)}${brief}</div>` : ''}
+  // No photo yet: customers see nothing; staff see what to shoot.
+  if (!location.hash.startsWith('#/admin')) return '';
+  const tone = `tone-${r.tone || 'jollof'}`;
+  return `<div class="media ${ratioCls} ${tone} ${compact ? 'ph-compact' : ''} ${cls}" role="img" aria-label="${esc(r.alt || r.brief || 'Photo coming soon')}">
+    <div class="ph">${compact ? '' : `<div class="ph-label">${icon(r.kind === 'video' ? 'video' : 'camera', 18)}<div><strong>Photo to take</strong><span>${esc(r.brief || '')}</span></div></div>`}</div>
   </div>`;
 }
 
