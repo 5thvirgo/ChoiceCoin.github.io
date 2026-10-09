@@ -1,7 +1,7 @@
 === Mcuire Cooking Courses ===
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.3.0
+Stable tag: 1.4.0
 
 Mcuire African Restaurant's online West African cooking academy, at /cooking-courses/.
 
@@ -30,6 +30,9 @@ Upload the new zip (Plugins → Add New → Upload → Replace current). Your re
 Stripe settings are kept; new dishes and courses are added. Example live classes arrive as drafts.
 
 == Changelog ==
+= 1.4.0 =
+* Event Catering page at /event-catering/ with past events gallery, quote request form and a menu link.
+* Catering requests are emailed to the owners and listed under Cooking Courses → Catering requests.
 = 1.3.0 =
 * Search engines: every dish, course and live class has its own address with title, description, photo and Recipe/Course/Event data, plus a sitemap at /cooking-courses/sitemap.xml.
 * Share buttons (WhatsApp, Facebook, X, copy link) on every dish and after finishing a lesson.

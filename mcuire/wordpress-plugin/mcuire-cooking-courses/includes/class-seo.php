@@ -202,6 +202,9 @@ class Mcuire_CC_SEO {
 
 	public static function sitemap() {
 		$urls = array(self::url());
+		if (class_exists('Mcuire_CC_Catering')) {
+			$urls[] = Mcuire_CC_Catering::url();
+		}
 		foreach (Mcuire_CC_DB::all_courses() as $c) {
 			if ($c['status'] !== 'published') {
 				continue;
