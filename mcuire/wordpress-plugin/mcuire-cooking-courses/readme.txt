@@ -1,7 +1,7 @@
 === Mcuire Cooking Courses ===
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.7.0
+Stable tag: 1.7.1
 
 Mcuire African Restaurant's online West African cooking academy, at /cooking-courses/.
 
@@ -30,6 +30,9 @@ Upload the new zip (Plugins → Add New → Upload → Replace current). Your re
 Stripe settings are kept; new dishes and courses are added. Example live classes arrive as drafts.
 
 == Changelog ==
+= 1.7.1 =
+* Fix: visitors could see an old saved copy of the Cooking Courses page from the LiteSpeed page cache. That page is now never cached, and every plugin update (and turning the site style on or off) clears saved pages in LiteSpeed and other common cache plugins.
+
 = 1.7.0 =
 * Mcuire site style for the whole website (on by default, switch in Settings → Website look): tidy one-line header with the logo and an animated kente edge that shrinks and tucks away while scrolling; full-screen phone menu; Call and Reserve buttons on phones; footer with the logo on a cream badge, round social buttons and kente edge; hover and shine on buttons, gentle photo zoom, hero slow zoom and fade-in, and scroll animations. Respects "reduce motion".
 

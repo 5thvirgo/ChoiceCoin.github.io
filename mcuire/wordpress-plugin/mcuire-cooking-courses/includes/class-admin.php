@@ -64,7 +64,11 @@ class Mcuire_CC_Admin {
 		update_option('mcuire_cc_staff_emails', sanitize_text_field(wp_unslash($_POST['staff_emails'] ?? '')));
 		update_option('mcuire_cc_test_purchases', !empty($_POST['test_purchases']) ? '1' : '0');
 		update_option('mcuire_cc_show_briefs', !empty($_POST['show_briefs']) ? 1 : 0);
-		update_option('mcuire_cc_site_style', !empty($_POST['site_style']) ? '1' : '0');
+		$style = !empty($_POST['site_style']) ? '1' : '0';
+		if ($style !== get_option('mcuire_cc_site_style', '1')) {
+			update_option('mcuire_cc_purge_cache', 1); // show the change to visitors straight away
+		}
+		update_option('mcuire_cc_site_style', $style);
 		set_transient('mcuire_cc_notice', get_settings_errors('mcuire_cc') ?: 'saved', 60);
 		wp_safe_redirect(admin_url('admin.php?page=mcuire-cooking-courses'));
 		exit;

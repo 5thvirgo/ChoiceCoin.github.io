@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Mcuire Cooking Courses
  * Description:       Mcuire African Restaurant’s online West African cooking academy: Cook With Me lessons, single dishes, courses, live cooking classes, event catering and wholesale drinks pages, Stripe payments (CAD), My Kitchen and certificates, at /cooking-courses/.
- * Version:           1.7.0
+ * Version:           1.7.1
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Mcuire African Restaurant
@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-define('MCUIRE_CC_VERSION', '1.7.0');
+define('MCUIRE_CC_VERSION', '1.7.1');
 define('MCUIRE_CC_DIR', plugin_dir_path(__FILE__));
 define('MCUIRE_CC_SLUG', 'cooking-courses');
 
@@ -44,8 +44,36 @@ add_action('plugins_loaded', function () {
 	if (get_option('mcuire_cc_db_version') !== MCUIRE_CC_VERSION) {
 		Mcuire_CC_DB::install();
 		update_option('mcuire_cc_flush_rewrites', 1); // new page addresses in this version
+		update_option('mcuire_cc_purge_cache', 1); // visitors must get the new pages, not saved copies
 	}
 });
+
+// Clear saved page copies in page caches (LiteSpeed on WHC, and other common
+// cache plugins), so an update or a style change shows to every visitor at once.
+function mcuire_cc_purge_caches() {
+	do_action('litespeed_purge_all');
+	if (!headers_sent()) {
+		header('X-LiteSpeed-Purge: *'); // server-level LiteSpeed cache, even without its plugin
+	}
+	if (function_exists('rocket_clean_domain')) {
+		rocket_clean_domain();
+	}
+	if (function_exists('w3tc_flush_all')) {
+		w3tc_flush_all();
+	}
+	if (function_exists('wp_cache_clear_cache')) {
+		wp_cache_clear_cache();
+	}
+	if (function_exists('sg_cachepress_purge_cache')) {
+		sg_cachepress_purge_cache();
+	}
+}
+add_action('init', function () {
+	if (get_option('mcuire_cc_purge_cache')) {
+		delete_option('mcuire_cc_purge_cache');
+		mcuire_cc_purge_caches();
+	}
+}, 100);
 
 // ---------------------------------------------------------------------------
 // The academy page: mcuire.ca/cooking-courses/
@@ -85,6 +113,12 @@ add_action('template_redirect', function () {
 		exit;
 	}
 	nocache_headers();
+	// Each visitor's page is personal (sign-in, admin tools): never let a page cache keep a copy.
+	if (!defined('DONOTCACHEPAGE')) {
+		define('DONOTCACHEPAGE', true);
+	}
+	do_action('litespeed_control_set_nocache', 'Mcuire Cooking Courses page');
+	header('X-LiteSpeed-Cache-Control: no-cache');
 	$config = array(
 		'dataSource' => 'api',
 		'payments' => 'stripe',
