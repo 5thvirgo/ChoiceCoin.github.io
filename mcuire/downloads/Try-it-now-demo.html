@@ -144,11 +144,16 @@ p { margin: 0 0 1em; text-wrap: pretty; }
 @media (max-width: 760px) {
   .nav a.hide-sm { display: none; }
   .brand-name { font-size: 1.08rem; }
-  .brand-sub { font-size: 0.6rem; letter-spacing: 0.12em; white-space: nowrap; }
+  .brand-sub { display: none; }
+  .brand { gap: 8px; }
   .brand-mark { width: 34px; height: 34px; }
   .nav { gap: 0; }
-  .nav a { padding: 8px 9px; font-size: 0.9rem; }
+  .nav a { padding: 8px 7px; font-size: 0.9rem; font-weight: 500; }
+  .nav a.active { font-weight: 700; }
 }
+/* Small phones: the round M logo stands for the name so the menu fits. */
+@media (max-width: 400px) { .brand-name { display: none; } }
+@media (max-width: 340px) { .nav a { padding: 8px 5px; font-size: 0.86rem; } }
 
 /* ---------------------------------------------------------------- Media placeholders
    Clearly marked slots for Mcuire's own photography. Nothing generated. */
@@ -660,6 +665,8 @@ main p a:not(.btn):hover, .lede a:not(.btn):hover, .notice a:hover { color: var(
   background: var(--jollof); transform: scaleX(0); transform-origin: left; transition: transform 0.25s var(--ease);
 }
 .nav a:not(.btn):hover::after, .nav a.active::after { transform: scaleX(1); }
+@media (max-width: 760px) { .nav a:not(.btn)::after { left: 7px; right: 7px; bottom: 3px; } }
+@media (max-width: 340px) { .nav a:not(.btn)::after { left: 5px; right: 5px; } }
 .nav a:not(.btn):hover, .nav a.active { background: transparent; }
 .brand { transition: opacity 0.2s var(--ease); }
 .brand:hover { opacity: 0.85; }
@@ -1902,7 +1909,7 @@ ${g.items.map(S=>`${r.checked[S.key]?"\u2713":"\u2610"} ${S.name}${S.amount?`: $
 ${l}`),A("List copied. Paste it into a message."))}catch{}})];return()=>n.forEach(r=>r())}}}var ns=L(()=>{ie();Le();te();Ut()});de();ie();yi();re();te();var In=Bi({"./views/admin.js":()=>Promise.resolve().then(()=>(mo(),uo)),"./views/catalogue.js":()=>Promise.resolve().then(()=>(yo(),bo)),"./views/certificate.js":()=>Promise.resolve().then(()=>(So(),$o)),"./views/checkout.js":()=>Promise.resolve().then(()=>(Io(),Co)),"./views/cook.js":()=>Promise.resolve().then(()=>(Uo(),zo)),"./views/course.js":()=>Promise.resolve().then(()=>(Ko(),Yo)),"./views/kitchen.js":()=>Promise.resolve().then(()=>(es(),Xo)),"./views/landing.js":()=>Promise.resolve().then(()=>(as(),is)),"./views/live.js":()=>Promise.resolve().then(()=>(Pi(),Qo)),"./views/recipe.js":()=>Promise.resolve().then(()=>(Ii(),Wo)),"./views/shopping.js":()=>Promise.resolve().then(()=>(ns(),ss))});var An=[["/","landing"],["/courses","catalogue"],["/courses/:slug","course"],["/recipes/:slug","recipe"],["/try","cook"],["/cook/:slug","cook"],["/checkout/:slug","checkout"],["/welcome/:slug","checkout"],["/kitchen","kitchen"],["/live","live"],["/live/:id/book","live"],["/live/:id/booked","live"],["/kitchen/shopping","shopping"],["/kitchen/certificate","certificate"],["/verify/:number","certificate"],["/admin","admin"],["/admin/:section","admin"],["/admin/:section/:id","admin"]].map(([t,e])=>{let i=[],a=new RegExp(`^${t.replace(/:(\w+)/g,(o,n)=>(i.push(n),"([^/]+)"))}/?$`);return{pattern:t,view:e,keys:i,rx:a}});function Pn(){let t=location.hash.replace(/^#/,"")||"/",[e,i=""]=t.split("?");return{path:e,query:Object.fromEntries(new URLSearchParams(i))}}function Tn(t){for(let e of An){let i=e.rx.exec(t);if(i){let a=Object.fromEntries(e.keys.map((o,n)=>[o,decodeURIComponent(i[n+1])]));return{...e,params:a}}}return null}var jn=document.getElementById("app"),ji=null;function Mn(){jn.innerHTML=`
     <header class="site-header">
       <div class="wrap bar">
-        <a class="brand" href="#/">${at()}<span><span class="brand-name">${s(I.brand.short)}</span><span class="brand-sub">Cooking Courses</span></span></a>
+        <a class="brand" href="#/" aria-label="${s(I.brand.short)} Cooking Courses home">${at()}<span><span class="brand-name">${s(I.brand.short)}</span><span class="brand-sub">Cooking Courses</span></span></a>
         <nav class="nav" aria-label="Main">
           <a href="#/courses" data-nav="/courses">Courses</a>
           <a href="#/live" data-nav="/live">Live classes</a>

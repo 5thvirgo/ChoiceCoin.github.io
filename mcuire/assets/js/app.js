@@ -54,7 +54,7 @@ function shell() {
   app.innerHTML = `
     <header class="site-header">
       <div class="wrap bar">
-        <a class="brand" href="#/">${brandMark()}<span><span class="brand-name">${esc(config.brand.short)}</span><span class="brand-sub">Cooking Courses</span></span></a>
+        <a class="brand" href="#/" aria-label="${esc(config.brand.short)} Cooking Courses home">${brandMark()}<span><span class="brand-name">${esc(config.brand.short)}</span><span class="brand-sub">Cooking Courses</span></span></a>
         <nav class="nav" aria-label="Main">
           <a href="#/courses" data-nav="/courses">Courses</a>
           <a href="#/live" data-nav="/live">Live classes</a>

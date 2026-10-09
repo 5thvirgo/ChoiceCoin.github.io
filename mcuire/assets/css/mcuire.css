@@ -132,11 +132,16 @@ p { margin: 0 0 1em; text-wrap: pretty; }
 @media (max-width: 760px) {
   .nav a.hide-sm { display: none; }
   .brand-name { font-size: 1.08rem; }
-  .brand-sub { font-size: 0.6rem; letter-spacing: 0.12em; white-space: nowrap; }
+  .brand-sub { display: none; }
+  .brand { gap: 8px; }
   .brand-mark { width: 34px; height: 34px; }
   .nav { gap: 0; }
-  .nav a { padding: 8px 9px; font-size: 0.9rem; }
+  .nav a { padding: 8px 7px; font-size: 0.9rem; font-weight: 500; }
+  .nav a.active { font-weight: 700; }
 }
+/* Small phones: the round M logo stands for the name so the menu fits. */
+@media (max-width: 400px) { .brand-name { display: none; } }
+@media (max-width: 340px) { .nav a { padding: 8px 5px; font-size: 0.86rem; } }
 
 /* ---------------------------------------------------------------- Media placeholders
    Clearly marked slots for Mcuire's own photography. Nothing generated. */
@@ -648,6 +653,8 @@ main p a:not(.btn):hover, .lede a:not(.btn):hover, .notice a:hover { color: var(
   background: var(--jollof); transform: scaleX(0); transform-origin: left; transition: transform 0.25s var(--ease);
 }
 .nav a:not(.btn):hover::after, .nav a.active::after { transform: scaleX(1); }
+@media (max-width: 760px) { .nav a:not(.btn)::after { left: 7px; right: 7px; bottom: 3px; } }
+@media (max-width: 340px) { .nav a:not(.btn)::after { left: 5px; right: 5px; } }
 .nav a:not(.btn):hover, .nav a.active { background: transparent; }
 .brand { transition: opacity 0.2s var(--ease); }
 .brand:hover { opacity: 0.85; }
