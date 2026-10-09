@@ -22,23 +22,26 @@
       var y = window.scrollY;
       body.classList.toggle('mcu-scrolled', y > 60);
       var menuOpen = document.querySelector('.wp-block-navigation__responsive-container.is-menu-open');
-      body.classList.toggle('mcu-hide-header', !menuOpen && y > 500 && y > lastY + 4);
-      if (y < lastY - 4 || y < 500) body.classList.remove('mcu-hide-header');
-      lastY = y;
+      if (!menuOpen && y > 500 && y > lastY + 4) body.classList.add('mcu-hide-header');
+      else if (menuOpen || y < 500 || y < lastY - 4) body.classList.remove('mcu-hide-header');
+      if (Math.abs(y - lastY) > 4) lastY = y;
       if (top) top.classList.toggle('is-on', y > 700);
       if (bar) bar.classList.toggle('is-on', y > 300);
       ticking = false;
     }
     window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
 
-    // ---- back to top
-    var top = document.createElement('button');
+    // ---- back to top (only if the theme has not got its own)
+    var top = null;
+    if (!document.querySelector('[class*="is-style-scroll-to-top"]')) {
+    top = document.createElement('button');
     top.className = 'mcu-top';
     top.type = 'button';
     top.setAttribute('aria-label', 'Back to top');
     top.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
     top.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }); });
     body.appendChild(top);
+    }
 
     // ---- phone action bar: Reserve + Call
     var bar = null;
