@@ -25,7 +25,7 @@ html { scroll-behavior: smooth; }
 .patterns-restaurant-header.at-pos {
   position: fixed !important; top: 0; left: 0; right: 0; z-index: 999;
   transition: transform 0.4s var(--mcu-ease);
-  animation: mcu-drop 0.8s var(--mcu-ease) both;
+  animation: mcu-drop 0.8s var(--mcu-ease) backwards; /* backwards: once finished it leaves no transform, which would trap the phone menu */
 }
 body.admin-bar .patterns-restaurant-header.at-pos { top: 32px; }
 @media (max-width: 782px) { body.admin-bar .patterns-restaurant-header.at-pos { top: 46px; } }
