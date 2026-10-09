@@ -8,6 +8,7 @@ import { keepAwake, allowSleep, wakeLockSupported } from '../services/wakelock.j
 import { achievements, newlyEarned } from '../services/achievements.js';
 import { TIP_KINDS } from '../data/seed.js';
 import { media, seal, badge } from '../components.js';
+import { shareRow, bindShare } from '../lib/share.js';
 import { esc, icon, clock, money, minutes, on } from '../lib/dom.js';
 import { scaleIngredient } from '../lib/units.js';
 import { servingsFor, servingsPicker, ingredientList, bindServings } from './recipe.js';
@@ -202,6 +203,7 @@ export default async function cook({ slug }, query, route) {
         ${state.earned.length ? `<div class="badge-row">${state.earned.map((a) => `<div class="ach">${badge(true)}<b>${esc(a.title)}</b><small>${esc(a.description)}</small></div>`).join('')}</div>` : ''}
         ${recipe.serveWith?.length ? `<p style="margin-top:24px"><b>Serve it with:</b> ${recipe.serveWith.map(esc).join(' · ')}</p>` : ''}
         ${owned && store.owns(store.flagship.id) ? `<div class="panel" style="text-align:left;margin-top:24px"><b>Certificate progress</b><div class="progress" style="margin:10px 0"><i style="width:${cert.ratio * 100}%"></i></div><span class="small muted">${cert.completed.length} of ${cert.required.length} dishes cooked</span></div>` : ''}
+        <div style="margin-top:20px">${shareRow({ title: recipe.title, text: `I just cooked ${recipe.title} with Mcuire African Restaurant’s step-by-step lesson!`, path: `/recipes/${recipe.slug}` })}</div>
         <div class="stack" style="margin-top:24px">
           ${query.from && store.recipe(query.from) ? `<a class="btn btn-primary btn-lg btn-block" href="#/cook/${esc(store.recipe(query.from).slug)}">${icon('back', 18)} Back to the ${esc(store.recipe(query.from).title)} plan</a>` : ''}
           <a class="btn ${query.from ? 'btn-ghost' : 'btn-primary btn-lg'} btn-block" href="#/kitchen">Go to My Kitchen</a>
@@ -366,8 +368,10 @@ export default async function cook({ slug }, query, route) {
         if (e.key === 'ArrowLeft' && state.index > 0) actions.prev();
       };
       document.addEventListener('keydown', onKey);
+      const offShare = bindShare(el);
 
       return () => {
+        offShare();
         offTimers();
         offs.forEach((off) => off());
         document.removeEventListener('keydown', onKey);

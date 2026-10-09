@@ -176,7 +176,17 @@ function captureSession() {
   history.replaceState(null, '', `${location.pathname}${location.search}${path}${params.toString() ? `?${params}` : ''}`);
 }
 
+// A clean address like /cooking-courses/recipes/egusi/ (from Google or a shared link)
+// opens that page in the app.
+function openCleanPath() {
+  const base = config.basePath;
+  if (!base || location.hash || !location.pathname.startsWith(base)) return;
+  const rest = location.pathname.slice(base.length).replace(/\/$/, '');
+  if (/^(recipes|courses|live)\/[\w-]+$/.test(rest)) history.replaceState(null, '', `${base}#/${rest}`);
+}
+
 (async function boot() {
+  openCleanPath();
   captureSession();
   await store.init();
   shell();

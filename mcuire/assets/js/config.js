@@ -22,6 +22,8 @@ const defaults = {
   showMediaBriefs: true,
   // Static-demo-only admin gate. Real admin access is role-based on the server.
   demoAdminPasscode: 'mcuire',
+  // Set by the WordPress plugin ('/cooking-courses/') so dishes get clean, shareable addresses.
+  basePath: '',
 };
 
 function merge(a, b) {

@@ -1,6 +1,7 @@
 import { store } from '../services/store.js';
 import { AVAILABILITY } from '../data/seed.js';
 import { media } from '../components.js';
+import { shareRow, bindShare } from '../lib/share.js';
 import { esc, icon, minutes, money, on, toast } from '../lib/dom.js';
 import { scaleIngredient, batchWarning } from '../lib/units.js';
 
@@ -123,6 +124,7 @@ export default async function recipeView({ slug }) {
             <div style="flex:1;min-width:240px">${cta}${ctaExtra}</div>
             <button class="icon-btn" data-action="save" aria-pressed="${store.isSaved(recipe.id)}" title="Save recipe" style="${store.isSaved(recipe.id) ? 'color:var(--jollof);border-color:var(--jollof)' : ''}">${icon('heart')}</button>
           </div>
+          ${shareRow({ title: recipe.title, text: `Learn to cook ${recipe.title} step by step with Mcuire African Restaurant`, path: `/recipes/${recipe.slug}` })}
         </div>
         ${media(recipe.hero, { ratio: 'hero', eager: true })}
       </div>
@@ -173,6 +175,7 @@ export default async function recipeView({ slug }) {
     title: recipe.title,
     html: render(servings),
     mount(root) {
+      const offShare = bindShare(root);
       const offServ = bindServings(root, recipe, (n) => {
         servings = n;
         const y = window.scrollY;
@@ -192,7 +195,7 @@ export default async function recipeView({ slug }) {
         store.saveShopping({ ...shopping, selections });
         toast(`Added for ${servings} people. Open it in My Kitchen.`);
       });
-      return () => { offServ(); offSave(); offShop(); };
+      return () => { offServ(); offSave(); offShop(); offShare(); };
     },
   };
 }
