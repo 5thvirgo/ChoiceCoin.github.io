@@ -205,6 +205,9 @@ class Mcuire_CC_SEO {
 		if (class_exists('Mcuire_CC_Catering')) {
 			$urls[] = Mcuire_CC_Catering::url();
 		}
+		if (class_exists('Mcuire_CC_Wholesale')) {
+			$urls[] = Mcuire_CC_Wholesale::url();
+		}
 		foreach (Mcuire_CC_DB::all_courses() as $c) {
 			if ($c['status'] !== 'published') {
 				continue;

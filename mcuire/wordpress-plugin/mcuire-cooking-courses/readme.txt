@@ -1,7 +1,7 @@
 === Mcuire Cooking Courses ===
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.5.2
+Stable tag: 1.6.0
 
 Mcuire African Restaurant's online West African cooking academy, at /cooking-courses/.
 
@@ -30,6 +30,11 @@ Upload the new zip (Plugins → Add New → Upload → Replace current). Your re
 Stripe settings are kept; new dishes and courses are added. Example live classes arrive as drafts.
 
 == Changelog ==
+= 1.6.0 =
+* Fix: checkout failed with "the product tax code is missing … Managed Payments" on Stripe accounts where Managed Payments is on by default. Checkout now takes these as normal Stripe payments (HST is already added by the plugin).
+* Wholesale Drinks page at /wholesale-drinks/: Zobo for event bulk orders and wholesale cases, with a "Request a Bulk Order Quote" form (quantity in bottles or cases, date, delivery location, pickup or delivery, serve or resell). Requests are emailed to the owners and listed under Cooking Courses → Wholesale orders.
+* Site menu put in order once: Home, Cooking Courses, Event Catering, Weekday Menu, Weekend Menu, Wholesale Drinks, then any other links. The previous menu is saved so it can be restored.
+
 = 1.5.2 =
 * Mcuire logo on the course pages (header and footer), on certificates and in search results; the browser tab uses the site icon.
 * Mcuire's own photos for Waakye and White Rice & Stew, shipped with the plugin. Updating replaces the earlier stock photos for these two dishes (photos you uploaded yourself are kept).

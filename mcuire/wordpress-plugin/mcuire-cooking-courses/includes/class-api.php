@@ -290,7 +290,16 @@ class Mcuire_CC_API {
 		}
 		$body = json_decode(wp_remote_retrieve_body($res), true);
 		if (wp_remote_retrieve_response_code($res) >= 400) {
-			self::fail(502, $body['error']['message'] ?? 'Payment provider error');
+			$message = (string) ($body['error']['message'] ?? 'Payment provider error');
+			// Stripe accounts with Managed Payments switched on (Stripe as merchant of
+			// record, for digital goods) refuse our sessions because the products have
+			// no Stripe tax code. We charge HST ourselves and sell in-person classes, so
+			// take the payment as a normal Stripe payment instead, as Stripe suggests.
+			if ($form && $path === 'checkout/sessions' && !isset($form['managed_payments[enabled]']) && stripos($message, 'managed payments') !== false) {
+				$form['managed_payments[enabled]'] = 'false';
+				return self::stripe($account, $method, $path, $form);
+			}
+			self::fail(502, $message);
 		}
 		return $body;
 	}

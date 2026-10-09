@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name:       Mcuire Cooking Courses
- * Description:       Mcuire African Restaurant’s online West African cooking academy: Cook With Me lessons, single dishes, courses, live cooking classes, event catering page, Stripe payments (CAD), My Kitchen and certificates, at /cooking-courses/.
- * Version:           1.5.2
+ * Description:       Mcuire African Restaurant’s online West African cooking academy: Cook With Me lessons, single dishes, courses, live cooking classes, event catering and wholesale drinks pages, Stripe payments (CAD), My Kitchen and certificates, at /cooking-courses/.
+ * Version:           1.6.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Mcuire African Restaurant
@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-define('MCUIRE_CC_VERSION', '1.5.2');
+define('MCUIRE_CC_VERSION', '1.6.0');
 define('MCUIRE_CC_DIR', plugin_dir_path(__FILE__));
 define('MCUIRE_CC_SLUG', 'cooking-courses');
 
@@ -22,6 +22,7 @@ require_once MCUIRE_CC_DIR . 'includes/class-api.php';
 require_once MCUIRE_CC_DIR . 'includes/class-admin.php';
 require_once MCUIRE_CC_DIR . 'includes/class-seo.php';
 require_once MCUIRE_CC_DIR . 'includes/class-catering.php';
+require_once MCUIRE_CC_DIR . 'includes/class-wholesale.php';
 
 register_activation_hook(__FILE__, function () {
 	Mcuire_CC_DB::install();

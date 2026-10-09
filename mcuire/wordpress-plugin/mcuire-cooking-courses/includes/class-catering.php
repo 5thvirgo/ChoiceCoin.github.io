@@ -245,7 +245,7 @@ class Mcuire_CC_Catering {
 		return ob_get_clean();
 	}
 
-	private static function css() {
+	public static function css() {
 		return '
 .mcu-cat{--mcu-accent:#ef9a1a;--mcu-accent-ink:#9a5a00;--mcu-ink:#1f1a17;--mcu-muted:#5f544b;--mcu-paper:#fbf6ee;--mcu-line:#e8dccb;--mcu-ease:cubic-bezier(.2,.7,.2,1);color:var(--mcu-ink);font-family:Roboto,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 @media (min-width:900px){.mcu-cat{font-size:18px}}
