@@ -64,6 +64,7 @@ class Mcuire_CC_Admin {
 		update_option('mcuire_cc_staff_emails', sanitize_text_field(wp_unslash($_POST['staff_emails'] ?? '')));
 		update_option('mcuire_cc_test_purchases', !empty($_POST['test_purchases']) ? '1' : '0');
 		update_option('mcuire_cc_show_briefs', !empty($_POST['show_briefs']) ? 1 : 0);
+		update_option('mcuire_cc_site_style', !empty($_POST['site_style']) ? '1' : '0');
 		set_transient('mcuire_cc_notice', get_settings_errors('mcuire_cc') ?: 'saved', 60);
 		wp_safe_redirect(admin_url('admin.php?page=mcuire-cooking-courses'));
 		exit;
@@ -133,6 +134,11 @@ class Mcuire_CC_Admin {
 				<table class="form-table">
 					<tr><th>Owners (full admin)</th><td><input type="text" class="regular-text" name="admin_emails" value="<?php echo esc_attr(get_option('mcuire_cc_admin_emails', '')); ?>"><p class="description">Comma-separated emails. WordPress administrators are always owners too.</p></td></tr>
 					<tr><th>Kitchen staff</th><td><input type="text" class="regular-text" name="staff_emails" value="<?php echo esc_attr(get_option('mcuire_cc_staff_emails', '')); ?>"><p class="description">Can edit recipes and photos, not prices or customers.</p></td></tr>
+				</table>
+
+				<h2>Website look</h2>
+				<table class="form-table">
+					<tr><th>Mcuire site style</th><td><label><input type="checkbox" name="site_style" value="1" <?php checked(get_option('mcuire_cc_site_style', '1'), '1'); ?>> Use the polished header, footer and animations on the whole website</label><p class="description">Woven kente edges, a header that stays handy while scrolling, a full-screen phone menu, Call / Reserve buttons on phones, and gentle animations as visitors scroll. Untick to go back to the theme's original look. Your pages and text are not changed either way.</p></td></tr>
 				</table>
 
 				<h2>Testing</h2>
