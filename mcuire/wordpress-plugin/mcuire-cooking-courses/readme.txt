@@ -1,7 +1,7 @@
 === Mcuire Cooking Courses ===
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.8.0
+Stable tag: 1.8.1
 
 Mcuire African Restaurant's online West African cooking academy, at /cooking-courses/.
 
@@ -30,6 +30,9 @@ Upload the new zip (Plugins → Add New → Upload → Replace current). Your re
 Stripe settings are kept; new dishes and courses are added. Example live classes arrive as drafts.
 
 == Changelog ==
+= 1.8.1 =
+* Fix: the Call button on phones could pick up a wrong number from elsewhere on the page. It now always calls the restaurant phone set in Cooking Courses → Settings → Website look (default (905) 324-8091).
+
 = 1.8.0 =
 * Live classes are now coached online by video call (Zoom, Microsoft Teams, Google Meet or WhatsApp video) while customers cook in their own kitchen, on Saturdays and Sundays, any hour from 9 am.
 * Four kinds of class, each with its own price: Home cooking (1 person, $75/h), Cooking help (1 person, $75/h), Group cooking (2–8 cooks, $75/h + $25/h per extra cook), Cooking for an event (1–4 cooks, $95/h + $25/h per extra cook, at least 2 hours). HST added at checkout. All editable in Course admin → Live classes.

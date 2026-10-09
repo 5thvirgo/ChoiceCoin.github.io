@@ -46,21 +46,21 @@
     // ---- phone action bar: Reserve + Call
     var bar = null;
     var reserve = document.querySelector('.patterns-restaurant-header .wp-block-button__link');
+    // The number comes from Cooking Courses → Settings; otherwise the one shown in the footer.
     var phone = cfg.phone || '';
     if (!phone) {
-      var tel = document.querySelector('a[href^="tel:"]');
-      if (tel) phone = tel.getAttribute('href').slice(4);
-      else {
-        var m = (document.querySelector('footer') || body).textContent.match(/\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/);
-        if (m) phone = m[0];
-      }
+      var m = ((document.querySelector('footer') || body).textContent || '').match(/\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/);
+      if (m) phone = m[0];
     }
+    var digits = phone.replace(/\D/g, '');
+    if (digits.length === 10) digits = '1' + digits; // North American number
+    phone = digits ? '+' + digits : '';
     if (reserve || phone) {
       bar = document.createElement('nav');
       bar.className = 'mcu-bar';
       bar.setAttribute('aria-label', 'Quick actions');
       var html = '';
-      if (phone) html += '<a href="tel:' + phone.replace(/[^\d+]/g, '') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>Call</a>';
+      if (phone) html += '<a href="tel:' + phone + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>Call</a>';
       if (reserve) html += '<a class="mcu-bar-main" href="' + reserve.getAttribute('href') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>' + (reserve.textContent.trim() || 'Reserve') + '</a>';
       bar.innerHTML = html;
       body.appendChild(bar);

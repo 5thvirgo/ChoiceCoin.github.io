@@ -69,6 +69,11 @@ class Mcuire_CC_Admin {
 			update_option('mcuire_cc_purge_cache', 1); // show the change to visitors straight away
 		}
 		update_option('mcuire_cc_site_style', $style);
+		$phone = sanitize_text_field(wp_unslash($_POST['phone'] ?? ''));
+		if ($phone !== get_option('mcuire_cc_phone', '(905) 324-8091')) {
+			update_option('mcuire_cc_purge_cache', 1);
+		}
+		update_option('mcuire_cc_phone', preg_match('/\d{7,}/', preg_replace('/\D/', '', $phone)) ? $phone : '(905) 324-8091');
 		set_transient('mcuire_cc_notice', get_settings_errors('mcuire_cc') ?: 'saved', 60);
 		wp_safe_redirect(admin_url('admin.php?page=mcuire-cooking-courses'));
 		exit;
@@ -143,6 +148,7 @@ class Mcuire_CC_Admin {
 				<h2>Website look</h2>
 				<table class="form-table">
 					<tr><th>Mcuire site style</th><td><label><input type="checkbox" name="site_style" value="1" <?php checked(get_option('mcuire_cc_site_style', '1'), '1'); ?>> Use the polished header, footer and animations on the whole website</label><p class="description">Woven kente edges, a header that stays handy while scrolling, a full-screen phone menu, Call / Reserve buttons on phones, and gentle animations as visitors scroll. Untick to go back to the theme's original look. Your pages and text are not changed either way.</p></td></tr>
+					<tr><th>Restaurant phone</th><td><input type="text" class="regular-text" name="phone" value="<?php echo esc_attr(get_option('mcuire_cc_phone', '(905) 324-8091')); ?>"><p class="description">Used by the Call button on phones.</p></td></tr>
 				</table>
 
 				<h2>Testing</h2>
