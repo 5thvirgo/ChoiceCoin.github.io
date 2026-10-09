@@ -7,7 +7,7 @@
 // `brief` doubles as the photographer's shot list.
 import { MORE_CUES } from './cues-more.js';
 import { DEFAULT_BOOKING } from '../lib/slots.js';
-import { PHOTOS, STEP_PHOTOS, INGREDIENT_PHOTOS } from './photos.js';
+import { PHOTOS, STEP_PHOTOS, INGREDIENT_PHOTOS, REPLACED_PHOTOS } from './photos.js';
 import { egusi, eba, pepperedChicken } from './recipes-soups-grills.js';
 import { dodo, puffPuff } from './recipes-street.js';
 import { suya, poundedYam, friedRice, moiMoi } from './recipes-more.js';
@@ -571,7 +571,7 @@ const discounts = [
 ];
 
 export const SEED = {
-  version: 14,
+  version: 15,
   categories,
   courses,
   recipes,
@@ -581,4 +581,5 @@ export const SEED = {
   freeLesson: { recipeId: 'party-jollof' },
   liveClasses,
   liveBooking: DEFAULT_BOOKING,
+  replacedPhotos: REPLACED_PHOTOS,
 };

@@ -54,7 +54,7 @@ function shell() {
   app.innerHTML = `
     <header class="site-header">
       <div class="wrap bar">
-        <a class="brand" href="#/" aria-label="${esc(config.brand.short)} Cooking Courses home">${brandMark()}<span><span class="brand-name">${esc(config.brand.short)}</span><span class="brand-sub">Cooking Courses</span></span></a>
+        <a class="brand" href="#/" aria-label="${esc(config.brand.short)} Cooking Courses home">${brandMark(44)}<span class="brand-sub">Cooking<br>Courses</span></a>
         <nav class="nav" aria-label="Main">
           <a href="#/courses" data-nav="/courses">Courses</a>
           <a href="#/live" data-nav="/live">Live classes</a>
@@ -70,7 +70,7 @@ function shell() {
       <div class="wrap">
         <div class="cols">
           <div>
-            <div class="row" style="margin-bottom:12px">${brandMark(36)}<b style="color:#fff;font-family:var(--display);font-size:1.2rem">${esc(config.brand.name)}</b></div>
+            <div class="row" style="margin-bottom:14px"><span class="logo-chip">${brandMark(40, 'footer-logo')}</span><b style="color:#fff;font-family:var(--display);font-size:1.15rem">African Restaurant</b></div>
             <p>${esc(config.brand.tagline)} Taught by the Mcuire kitchen, one step at a time.</p>
           </div>
           <div><h4>Learn</h4><ul><li><a href="#/courses">All courses</a></li><li><a href="#/try">Free jollof lesson</a></li><li><a href="#/kitchen">My Kitchen</a></li></ul></div>

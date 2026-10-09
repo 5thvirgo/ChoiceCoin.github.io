@@ -198,7 +198,7 @@ class Mcuire_CC_DB {
 			if (!$existing && !$wpdb->get_var($wpdb->prepare('SELECT 1 FROM ' . self::t('recipes') . ' WHERE slug = %s', $r['slug']))) {
 				self::save_recipe($r, null);
 			} elseif ($existing) {
-				$merged = self::fill_gaps($existing, $r);
+				$merged = self::fill_gaps($existing, $r, $seed['replacedPhotos'] ?? array());
 				if ($merged !== $existing) {
 					self::save_recipe($merged, null);
 				}
@@ -224,10 +224,17 @@ class Mcuire_CC_DB {
 	}
 
 	// Bring in new photos and "what it should look like" notes from an update,
-	// only where the saved recipe has none, so staff uploads and edits are kept.
-	private static function fill_gaps($have, $new) {
-		$photo = function ($old, $fresh) {
-			return (empty($old['src']) && !empty($fresh['src'])) ? array_merge((array) $old, $fresh) : $old;
+	// only where the saved recipe has none (or still has one of our earlier
+	// default photos that Mcuire has since replaced), so staff uploads and edits are kept.
+	private static function fill_gaps($have, $new, $replaced = array()) {
+		$photo = function ($old, $fresh) use ($replaced) {
+			if (empty($fresh['src'])) {
+				return $old;
+			}
+			if (empty($old['src'])) {
+				return array_merge((array) $old, $fresh);
+			}
+			return (in_array($old['src'], $replaced, true) && $old['src'] !== $fresh['src']) ? array_merge($old, $fresh) : $old;
 		};
 		if (isset($new['hero'])) {
 			$have['hero'] = $photo($have['hero'] ?? array(), $new['hero']);
@@ -259,6 +266,11 @@ class Mcuire_CC_DB {
 			}
 		}
 		return $have;
+	}
+
+	// Photos shipped with the plugin are saved as "media:<file>".
+	public static function media_url($src) {
+		return (is_string($src) && strpos($src, 'media:') === 0) ? plugins_url('media/' . basename(substr($src, 6)), MCUIRE_CC_DIR . 'mcuire-cooking-courses.php') : $src;
 	}
 
 	public static function live_classes() {

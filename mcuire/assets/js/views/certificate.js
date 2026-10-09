@@ -4,7 +4,8 @@
 
 import { config } from '../config.js';
 import { store, isValidCertificateNumber, apiFetch } from '../services/store.js';
-import { seal, brandMark } from '../components.js';
+import { seal } from '../components.js';
+import { LOGO, LOGO_RATIO } from '../data/logo.js';
 import { esc, icon, formatDate, money, on, toast } from '../lib/dom.js';
 
 const W = 1600;
@@ -35,7 +36,7 @@ export function certificateSvg({ name, course, date, number, preview = false }) 
   ${weave(60)}${weave(H - 70)}
   ${[[70, 90], [W - 70, 90], [70, H - 90], [W - 70, H - 90]].map(([x, y]) => `<g transform="translate(${x} ${y})"><rect x="-9" y="-9" width="18" height="18" transform="rotate(45)" fill="#c43d1a"/><rect x="-4" y="-4" width="8" height="8" transform="rotate(45)" fill="#e0a22a"/></g>`).join('')}
 
-  <g transform="translate(${W / 2 - 40} 110)">${brandMark(80).replace('class="brand-mark"', '')}</g>
+  <image href="${LOGO}" x="${W / 2 - 100}" y="96" width="200" height="${Math.round(200 / LOGO_RATIO)}"/>
   <text x="${W / 2}" y="242" text-anchor="middle" font-family="Roboto, Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="9" fill="#1d140e">${esc(brand.name.toUpperCase())}</text>
   <line x1="${W / 2 - 220}" y1="272" x2="${W / 2 + 220}" y2="272" stroke="#b08a2e" stroke-width="1.5"/>
   <text x="${W / 2}" y="326" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-size="52" font-weight="600" letter-spacing="6" fill="#c43d1a">CERTIFICATE OF COMPLETION</text>

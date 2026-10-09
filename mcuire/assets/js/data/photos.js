@@ -412,5 +412,20 @@ const SITE_PHOTOS = {
 for (const [key, path] of Object.entries(SITE_PHOTOS)) {
   PHOTOS[key] = { src: SITE_UPLOADS + path, author: 'Mcuire African Restaurant', license: '', page: 'https://mcuire.ca/' };
 }
+// Mcuire's own photos, shipped inside the plugin (media/ folder). These beat
+// everything above. Earlier default photos for these dishes are listed so an
+// update replaces them on sites that already have the courses installed.
+const OWN_PHOTOS = {
+  waakye: 'waakye.jpg',
+  'white-rice-and-stew': 'white-rice-and-stew.jpg',
+};
+export const REPLACED_PHOTOS = [
+  'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Waakye_with_kelewele%2C_spaghetti%2C_salad%2C_stew_and_shito.jpg/960px-Waakye_with_kelewele%2C_spaghetti%2C_salad%2C_stew_and_shito.jpg',
+  'https://upload.wikimedia.org/wikipedia/commons/e/eb/White_rice_and_stew_with_chicken.jpg',
+];
+for (const [key, file] of Object.entries(OWN_PHOTOS)) {
+  if (PHOTOS[key]) REPLACED_PHOTOS.push(PHOTOS[key].src);
+  PHOTOS[key] = { src: 'media:' + file, author: 'Mcuire African Restaurant', license: '', page: 'https://mcuire.ca/' };
+}
 STEP_PHOTOS.suya.y7 = 'step-suya-grill';
 STEP_PHOTOS['party-jollof'].s14 = 'step-jollof-plate';

@@ -1,5 +1,6 @@
 // Shared presentational pieces.
-import { config } from './config.js';
+import { config, mediaUrl } from './config.js';
+import { LOGO, LOGO_RATIO } from './data/logo.js';
 import { store } from './services/store.js';
 import { esc, icon, minutes, money, on } from './lib/dom.js';
 
@@ -11,9 +12,9 @@ export function media(ref, { ratio = 'hero', compact = false, cls = '', eager = 
   if (r.src) {
     const cr = r.credit?.license ?`<a class="photo-credit" href="${esc(r.credit.page)}" target="_blank" rel="noopener">Photo: ${esc(r.credit.author)} · ${esc(r.credit.license)}</a>` : '';
     if (r.kind === 'video') {
-      return `<div class="media ${ratioCls} ${cls}"><video src="${esc(r.src)}" ${r.poster ? `poster="${esc(r.poster)}"` : ''} muted loop playsinline autoplay preload="metadata" aria-label="${esc(r.alt)}"></video><span class="chip dark video-badge">${icon('video', 14)} Watch</span></div>`;
+      return `<div class="media ${ratioCls} ${cls}"><video src="${esc(mediaUrl(r.src))}" ${r.poster ? `poster="${esc(r.poster)}"` : ''} muted loop playsinline autoplay preload="metadata" aria-label="${esc(r.alt)}"></video><span class="chip dark video-badge">${icon('video', 14)} Watch</span></div>`;
     }
-    return `<div class="media ${ratioCls} ${cls}"><img src="${esc(r.src)}" alt="${esc(r.alt || '')}" ${eager ? '' : 'loading="lazy"'} decoding="async" referrerpolicy="no-referrer">${compact ? '' : cr}</div>`;
+    return `<div class="media ${ratioCls} ${cls}"><img src="${esc(mediaUrl(r.src))}" alt="${esc(r.alt || '')}" ${eager ? '' : 'loading="lazy"'} decoding="async" referrerpolicy="no-referrer">${compact ? '' : cr}</div>`;
   }
   // No photo yet: customers see nothing; staff see what to shoot.
   if (!location.hash.startsWith('#/admin')) return '';
@@ -23,12 +24,9 @@ export function media(ref, { ratio = 'hero', compact = false, cls = '', eager = 
   </div>`;
 }
 
-export function brandMark(size = 40) {
-  return `<svg class="brand-mark" width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true">
-    <circle cx="32" cy="32" r="31" fill="#c43d1a"/>
-    <circle cx="32" cy="32" r="25.5" fill="none" stroke="#e0a22a" stroke-width="1.5" stroke-dasharray="5 3"/>
-    <text x="32" y="43" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-size="30" font-weight="700" fill="#fbf6ee">M</text>
-  </svg>`;
+// Mcuire's own logo (the cooking pot between MCU and IRE), sized by height.
+export function brandMark(height = 44, cls = 'brand-logo') {
+  return `<img class="${cls}" src="${LOGO}" alt="${esc(config.brand.short)}" width="${Math.round(height * LOGO_RATIO)}" height="${height}">`;
 }
 
 // Official seal used on the certificate and the completion screen.

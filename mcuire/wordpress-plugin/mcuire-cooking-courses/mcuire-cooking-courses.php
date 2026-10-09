@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Mcuire Cooking Courses
  * Description:       Mcuire African Restaurant’s online West African cooking academy: Cook With Me lessons, single dishes, courses, live cooking classes, event catering page, Stripe payments (CAD), My Kitchen and certificates, at /cooking-courses/.
- * Version:           1.5.1
+ * Version:           1.5.2
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Mcuire African Restaurant
@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-define('MCUIRE_CC_VERSION', '1.5.1');
+define('MCUIRE_CC_VERSION', '1.5.2');
 define('MCUIRE_CC_DIR', plugin_dir_path(__FILE__));
 define('MCUIRE_CC_SLUG', 'cooking-courses');
 
@@ -90,6 +90,7 @@ add_action('template_redirect', function () {
 		'showMediaBriefs' => (bool) get_option('mcuire_cc_show_briefs', true),
 		'restaurantUrl' => home_url('/'),
 		'basePath' => wp_parse_url(home_url('/' . MCUIRE_CC_SLUG . '/'), PHP_URL_PATH),
+		'mediaBase' => plugins_url('media/', __FILE__),
 	);
 	// Logged-in WordPress administrators are academy admins automatically.
 	if (is_user_logged_in()) {
@@ -98,6 +99,11 @@ add_action('template_redirect', function () {
 	$html = file_get_contents(MCUIRE_CC_DIR . 'app/app.html');
 	$html = str_replace('__MCUIRE_CONFIG__', wp_json_encode($config), $html);
 	$html = Mcuire_CC_SEO::apply($html, (string) get_query_var('mcuire_path'));
+	// Same browser-tab icon as the rest of mcuire.ca.
+	$icon = get_site_icon_url(192);
+	if ($icon) {
+		$html = preg_replace('#<link rel="icon"[^>]*>#', '<link rel="icon" href="' . esc_url($icon) . '"><link rel="apple-touch-icon" href="' . esc_url(get_site_icon_url(180)) . '">', $html, 1);
+	}
 	header('Content-Type: text/html; charset=utf-8');
 	echo $html; // phpcs:ignore WordPress.Security.EscapeOutput -- prebuilt application shell
 	exit;

@@ -122,25 +122,25 @@ p { margin: 0 0 1em; text-wrap: pretty; }
 .site-header { position: sticky; top: 0; z-index: 40; background: rgba(251, 246, 238, 0.92); backdrop-filter: saturate(1.4) blur(12px); }
 .site-header .bar { display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 16px; }
 .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-.brand-mark { width: 40px; height: 40px; flex: none; }
-.brand-name { font-family: var(--display); font-size: 1.25rem; font-weight: 700; line-height: 1; }
-.brand-sub { display: block; font: 600 0.68rem/1 var(--body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--clay); margin-top: 4px; }
+.brand-logo { height: 44px; width: auto; flex: none; display: block; }
+.brand-sub { display: block; font: 700 0.66rem/1.25 var(--body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--clay); padding-left: 12px; border-left: 1.5px solid var(--line); }
+.logo-chip { display: inline-flex; background: var(--paper); border-radius: 10px; padding: 6px 10px; }
+.footer-logo { height: 40px; width: auto; display: block; }
 .nav { display: flex; align-items: center; gap: 6px; }
 .nav a { white-space: nowrap; text-decoration: none; font-weight: 600; font-size: 0.95rem; padding: 10px 14px; border-radius: 999px; color: var(--ink-2); }
 .nav a:hover, .nav a.active { color: var(--ink); background: var(--paper-2); }
 .nav .btn { color: #fff; }
 @media (max-width: 760px) {
   .nav a.hide-sm { display: none; }
-  .brand-name { font-size: 1.08rem; }
   .brand-sub { display: none; }
   .brand { gap: 8px; }
-  .brand-mark { width: 34px; height: 34px; }
+  .brand-logo { height: 34px; }
   .nav { gap: 0; }
   .nav a { padding: 8px 7px; font-size: 0.9rem; font-weight: 500; }
   .nav a.active { font-weight: 700; }
 }
-/* Small phones: the round M logo stands for the name so the menu fits. */
-@media (max-width: 400px) { .brand-name { display: none; } }
+/* Small phones: a slightly smaller logo so the menu fits. */
+@media (max-width: 400px) { .brand-logo { height: 30px; } }
 @media (max-width: 340px) { .nav a { padding: 8px 5px; font-size: 0.86rem; } }
 
 /* ---------------------------------------------------------------- Media placeholders

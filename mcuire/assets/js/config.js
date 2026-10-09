@@ -24,6 +24,8 @@ const defaults = {
   demoAdminPasscode: 'mcuire',
   // Set by the WordPress plugin ('/cooking-courses/') so dishes get clean, shareable addresses.
   basePath: '',
+  // Where photos shipped with the plugin live ("media:waakye.jpg" -> mediaBase + "waakye.jpg").
+  mediaBase: 'media/',
 };
 
 function merge(a, b) {
@@ -35,3 +37,11 @@ function merge(a, b) {
 }
 
 export const config = merge(defaults, window.MCUIRE_CONFIG);
+
+// Photos shipped with the plugin are stored as "media:<file>" so they keep
+// working if the site moves. The demo page carries them inline.
+export function mediaUrl(src) {
+  if (!src || !src.startsWith('media:')) return src;
+  const file = src.slice(6);
+  return window.MCUIRE_MEDIA?.[file] || config.mediaBase + file;
+}

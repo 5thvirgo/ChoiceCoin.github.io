@@ -27,7 +27,7 @@ class Mcuire_CC_SEO {
 	}
 
 	private static function brand() {
-		return array('@type' => 'Restaurant', 'name' => 'Mcuire African Restaurant', 'url' => home_url('/'), 'servesCuisine' => array('Nigerian', 'Ghanaian', 'West African'));
+		return array('@type' => 'Restaurant', 'name' => 'Mcuire African Restaurant', 'url' => home_url('/'), 'servesCuisine' => array('Nigerian', 'Ghanaian', 'West African'), 'logo' => plugins_url('media/mcuire-logo.png', MCUIRE_CC_DIR . 'mcuire-cooking-courses.php'));
 	}
 
 	private static function money($cents) {
@@ -81,7 +81,7 @@ class Mcuire_CC_SEO {
 			$price = $single ? ' · $' . self::money($single['priceCents']) . ' CAD' : '';
 			$page['title'] = $r['title'] . ' Recipe: Step-by-Step Cooking Lesson' . ' · Mcuire';
 			$page['desc'] = self::clip(($r['subtitle'] ?? '') . ' Cook it with Mcuire African Restaurant’s step-by-step lesson, with photos, timers and tips' . $price . '.');
-			$page['image'] = $r['hero']['src'] ?? '';
+			$page['image'] = Mcuire_CC_DB::media_url($r['hero']['src'] ?? '');
 			$page['url'] = $url;
 			$page['type'] = 'article';
 			$ingredients = array_values(array_filter(array_map(array(__CLASS__, 'ingredient_line'), $r['ingredients'] ?? array())));
@@ -114,7 +114,7 @@ class Mcuire_CC_SEO {
 			$page['url'] = $url;
 			$first = $c['modules'][0]['recipeIds'][0] ?? '';
 			$fr = $first ? Mcuire_CC_DB::get_recipe($first) : null;
-			$page['image'] = $fr['hero']['src'] ?? '';
+			$page['image'] = Mcuire_CC_DB::media_url($fr['hero']['src'] ?? '');
 			$page['schema'][] = self::course_schema($c, $url, $page['desc']);
 			$page['body'] = '<h1>' . esc_html($c['title']) . '</h1><p>' . esc_html($page['desc']) . '</p>';
 		} elseif ($type === 'live' && ($cls = Mcuire_CC_DB::live_class($slug)) && $cls['status'] === 'published') {
@@ -125,7 +125,7 @@ class Mcuire_CC_SEO {
 			$rec = !empty($cls['recipeId']) ? Mcuire_CC_DB::get_recipe($cls['recipeId']) : null;
 			$page['title'] = $cls['title'] . ' · Live Cooking Class · Mcuire African Restaurant';
 			$page['desc'] = self::clip($when . '. ' . ($cls['description'] ?? '') . ' $' . self::money($cls['priceCents']) . ' CAD per seat.');
-			$page['image'] = $rec['hero']['src'] ?? '';
+			$page['image'] = Mcuire_CC_DB::media_url($rec['hero']['src'] ?? '');
 			$page['url'] = $url;
 			$event = array(
 				'@type' => 'Event', 'name' => $cls['title'], 'description' => self::clip($cls['description'] ?? '', 300),
@@ -160,12 +160,12 @@ class Mcuire_CC_SEO {
 				$items[] = array('@type' => 'ListItem', 'position' => count($items) + 1, 'item' => self::course_schema($c, $u, self::clip($r['subtitle'] ?? '', 200)));
 				$links[] = '<li><a href="' . esc_url($u) . '">' . esc_html($r['title']) . '</a> · $' . self::money($c['priceCents']) . ' CAD</li>';
 				if (!$page['image'] && !empty($r['hero']['src'])) {
-					$page['image'] = $r['hero']['src'];
+					$page['image'] = Mcuire_CC_DB::media_url($r['hero']['src']);
 				}
 			}
 			$jollof = Mcuire_CC_DB::get_recipe('party-jollof');
 			if (!empty($jollof['hero']['src'])) {
-				$page['image'] = $jollof['hero']['src'];
+				$page['image'] = Mcuire_CC_DB::media_url($jollof['hero']['src']);
 			}
 			$page['schema'][] = array('@type' => 'ItemList', 'name' => 'West African cooking lessons', 'itemListElement' => $items);
 			$page['body'] = '<h1>Learn to cook West African food with Mcuire</h1><p>' . esc_html($page['desc']) . '</p><h2>Cooking lessons</h2><ul>' . implode('', $links) . '</ul>';

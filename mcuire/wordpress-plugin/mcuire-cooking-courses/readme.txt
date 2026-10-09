@@ -1,7 +1,7 @@
 === Mcuire Cooking Courses ===
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.5.1
+Stable tag: 1.5.2
 
 Mcuire African Restaurant's online West African cooking academy, at /cooking-courses/.
 
@@ -30,6 +30,10 @@ Upload the new zip (Plugins → Add New → Upload → Replace current). Your re
 Stripe settings are kept; new dishes and courses are added. Example live classes arrive as drafts.
 
 == Changelog ==
+= 1.5.2 =
+* Mcuire logo on the course pages (header and footer), on certificates and in search results; the browser tab uses the site icon.
+* Mcuire's own photos for Waakye and White Rice & Stew, shipped with the plugin. Updating replaces the earlier stock photos for these two dishes (photos you uploaded yourself are kept).
+
 = 1.5.1 =
 * Same fonts as mcuire.ca everywhere: Playfair Display headings and Roboto text, larger and easier to read, with stronger contrast.
 * Buttons, links, menus, dish cards, photos and form fields respond to hover, tap and keyboard focus.
