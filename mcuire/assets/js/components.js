@@ -9,7 +9,7 @@ export function media(ref, { ratio = 'hero', compact = false, cls = '', eager = 
   const r = ref || { kind: 'photo', brief: 'Photo', tone: 'jollof' };
   const ratioCls = ratio ? `ratio-${ratio}` : '';
   if (r.src) {
-    const cr = r.credit ? `<a class="photo-credit" href="${esc(r.credit.page)}" target="_blank" rel="noopener">Photo: ${esc(r.credit.author)} · ${esc(r.credit.license)}</a>` : '';
+    const cr = r.credit?.license ?`<a class="photo-credit" href="${esc(r.credit.page)}" target="_blank" rel="noopener">Photo: ${esc(r.credit.author)} · ${esc(r.credit.license)}</a>` : '';
     if (r.kind === 'video') {
       return `<div class="media ${ratioCls} ${cls}"><video src="${esc(r.src)}" ${r.poster ? `poster="${esc(r.poster)}"` : ''} muted loop playsinline autoplay preload="metadata" aria-label="${esc(r.alt)}"></video><span class="chip dark video-badge">${icon('video', 14)} Watch</span></div>`;
     }

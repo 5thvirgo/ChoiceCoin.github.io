@@ -387,3 +387,30 @@ export const STEP_PHOTOS = {
 export const INGREDIENT_PHOTOS = {
   egusi: { 'egusi-seed': 'step-egusi-seeds' }, afang: { 'afang-leaf': 'step-afang-leaves' }, eba: { garri: 'step-garri' },
 };
+
+// Photos from Mcuire's own website (mcuire.ca). These come first wherever we have one.
+const SITE_UPLOADS = 'https://mcuire.ca/wp-content/uploads/';
+const SITE_PHOTOS = {
+  'party-jollof': '2026/01/ChatGPT-Image-Jan-19-2026-09_58_39-AM-683x1024.png',
+  suya: '2026/01/IMG_3339-768x1024.jpeg',
+  egusi: '2026/01/ChatGPT-Image-Jan-10-2026-02_13_59-PM-768x768.png',
+  okra: '2026/01/ChatGPT-Image-Jan-10-2026-02_11_12-PM-1-768x768.png',
+  'puff-puff': '2026/01/ChatGPT-Image-Jan-10-2026-02_17_22-PM-768x768.png',
+  'egusi-pounded-yam': '2026/01/2025-08-31.jpg',
+  fufu: '2026/01/2025-07-05.jpg',
+  'white-rice-and-stew': '2025/12/keesha-s-kitchen-N_544vYDfwM-unsplash-1024x683.jpg',
+  'grilled-chicken': '2025/12/femoree-SC7R-d27_9E-unsplash-1024x683.jpg',
+  'party-platter': '2025/12/ChatGPT-Image-Jan-3-2026-02_01_30-PM-1024x683.png',
+  'sunday-dinner': '2025/12/ChatGPT-Image-Jan-3-2026-04_32_09-PM-1024x683.png',
+  waakye: '2025/12/2022-12-26.webp',
+  'grilled-fish': '2025/12/2024-07-13.webp',
+  'jollof-chicken-plantain': '2025/12/social-cat-instagram_mcuire__5-768x1024.jpg',
+  'rice-stew-protein': '2025/12/social-cat-instagram_mcuire__10-768x1024.jpg',
+  'step-suya-grill': '2026/01/ChatGPT-Image-Jan-19-2026-10_18_18-AM-683x1024.png',
+  'step-jollof-plate': '2026/01/Jollof-Rice-768x576.jpg',
+};
+for (const [key, path] of Object.entries(SITE_PHOTOS)) {
+  PHOTOS[key] = { src: SITE_UPLOADS + path, author: 'Mcuire African Restaurant', license: '', page: 'https://mcuire.ca/' };
+}
+STEP_PHOTOS.suya.y7 = 'step-suya-grill';
+STEP_PHOTOS['party-jollof'].s14 = 'step-jollof-plate';
