@@ -1,7 +1,7 @@
 === Mcuire Cooking Courses ===
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.4.0
+Stable tag: 1.5.0
 
 Mcuire African Restaurant's online West African cooking academy, at /cooking-courses/.
 
@@ -30,6 +30,11 @@ Upload the new zip (Plugins → Add New → Upload → Replace current). Your re
 Stripe settings are kept; new dishes and courses are added. Example live classes arrive as drafts.
 
 == Changelog ==
+= 1.5.0 =
+* Weekend cooking classes in the restaurant: customers pick any Saturday or Sunday, a start time, how many hours and how many people. $75 per hour per person plus 13% HST, paid by Stripe.
+* Places are limited per hour (10 by default) so the kitchen is never overbooked.
+* Course admin → Live classes → Weekend classes: change the price, days, times, hours, group size, tax and see every weekend booking.
+
 = 1.4.0 =
 * Event Catering page at /event-catering/ with past events gallery, quote request form and a menu link.
 * Catering requests are emailed to the owners and listed under Cooking Courses → Catering requests.

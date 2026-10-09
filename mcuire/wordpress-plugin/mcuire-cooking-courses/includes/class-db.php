@@ -215,6 +215,9 @@ class Mcuire_CC_DB {
 		$current = self::get_meta('liveClasses');
 		$untouched = is_array($current) && !array_filter($current, function ($c) { return ($c['status'] ?? '') !== 'draft'; })
 			&& !$wpdb->get_var('SELECT 1 FROM ' . self::t('orders') . ' WHERE live_class_id IS NOT NULL LIMIT 1');
+		if (self::get_meta('liveBooking') === null && !empty($seed['liveBooking'])) {
+			self::set_meta('liveBooking', $seed['liveBooking']);
+		}
 		if ($current === null || $untouched) {
 			self::set_meta('liveClasses', array_map(function ($c) { $c['status'] = 'draft'; return $c; }, $seed['liveClasses'] ?? array()));
 		}
@@ -268,7 +271,108 @@ class Mcuire_CC_DB {
 				return $c;
 			}
 		}
-		return null;
+		return strpos((string) $id, 'slot-') === 0 ? self::slot_class($id) : null;
+	}
+
+	// ---- weekend classes booked by the hour (same rules as assets/js/lib/slots.js) ----
+	public static function booking_settings() {
+		$defaults = array(
+			'enabled' => true, 'title' => 'Hands-on cooking class at Mcuire',
+			'description' => 'Book your own hands-on class in the Mcuire kitchen on any Saturday or Sunday.',
+			'days' => array(6, 0), 'times' => array('10:00', '12:00', '14:00', '16:00'), 'minHours' => 1, 'maxHours' => 4,
+			'latestEnd' => '20:00', 'pricePerHourCents' => 7500, 'perPerson' => true, 'maxPeople' => 10, 'taxRate' => 0.13,
+			'taxLabel' => 'HST', 'leadDays' => 2, 'weeksAhead' => 12, 'timeZone' => 'America/Toronto',
+			'location' => 'Mcuire African Restaurant', 'currency' => 'CAD',
+		);
+		return array_merge($defaults, (array) (self::get_meta('liveBooking') ?: array()));
+	}
+
+	public static function parse_slot($id) {
+		if (!preg_match('/^slot-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})-(\d+)h-(\d+)p$/', (string) $id, $m)) {
+			return null;
+		}
+		return array('date' => "$m[1]-$m[2]-$m[3]", 'time' => "$m[4]:$m[5]", 'hours' => (int) $m[6], 'people' => (int) $m[7]);
+	}
+
+	public static function slot_class($id) {
+		$slot = self::parse_slot($id);
+		if (!$slot) {
+			return null;
+		}
+		$s = self::booking_settings();
+		try {
+			$start = new DateTime($slot['date'] . ' ' . $slot['time'], new DateTimeZone($s['timeZone']));
+		} catch (Exception $e) {
+			return null;
+		}
+		return array(
+			'id' => $id, 'slot' => $slot, 'status' => 'published', 'title' => $s['title'], 'description' => $s['description'],
+			'startsAt' => $start->format('c'), 'durationMinutes' => $slot['hours'] * 60,
+			'priceCents' => (int) $s['pricePerHourCents'] * $slot['hours'] * ($s['perPerson'] ? $slot['people'] : 1),
+			'currency' => $s['currency'], 'taxRate' => (float) $s['taxRate'], 'taxLabel' => $s['taxLabel'],
+			'capacity' => (int) $s['maxPeople'], 'format' => 'in-person', 'platform' => '', 'joinUrl' => '', 'location' => $s['location'],
+			'host' => 'Mcuire kitchen team', 'whatYouNeed' => 'Just yourselves. Aprons, ingredients and equipment are provided.', 'recipeId' => 'party-jollof',
+		);
+	}
+
+	// People booked per date and hour (paid, or checkout started in the last 30 minutes).
+	public static function slot_usage() {
+		global $wpdb;
+		$recent = gmdate('Y-m-d\TH:i:s.v\Z', time() - 30 * 60);
+		$ids = $wpdb->get_col($wpdb->prepare("SELECT live_class_id FROM " . self::t('orders') . " WHERE live_class_id LIKE %s AND (status = 'paid' OR (status = 'pending' AND created_at > %s))", 'slot-%', $recent));
+		$usage = array();
+		foreach ($ids as $id) {
+			$slot = self::parse_slot($id);
+			if (!$slot) {
+				continue;
+			}
+			$h0 = (int) substr($slot['time'], 0, 2);
+			for ($h = $h0; $h < $h0 + $slot['hours']; $h++) {
+				$usage[$slot['date']][$h] = ($usage[$slot['date']][$h] ?? 0) + $slot['people'];
+			}
+		}
+		return $usage;
+	}
+
+	// Why this weekend slot can't be booked, or '' if it can.
+	public static function slot_problem($slot) {
+		$s = self::booking_settings();
+		if (empty($s['enabled'])) {
+			return 'Weekend classes are not taking bookings right now.';
+		}
+		$tz = new DateTimeZone($s['timeZone']);
+		$day = DateTime::createFromFormat('!Y-m-d', $slot['date'], $tz);
+		$today = new DateTime('today', $tz);
+		if (!$day) {
+			return 'Please choose one of the listed dates.';
+		}
+		$diff = (int) floor(($day->getTimestamp() - $today->getTimestamp()) / DAY_IN_SECONDS + 0.5);
+		if (!in_array((int) $day->format('w'), array_map('intval', $s['days']), true) || $diff < (int) $s['leadDays'] || $diff >= (int) $s['leadDays'] + 7 * (int) $s['weeksAhead']) {
+			return 'Please choose one of the listed dates.';
+		}
+		if (!in_array($slot['time'], $s['times'], true)) {
+			return 'Please choose one of the listed start times.';
+		}
+		if ($slot['hours'] < (int) $s['minHours'] || $slot['hours'] > (int) $s['maxHours']) {
+			return 'Classes run ' . (int) $s['minHours'] . ' to ' . (int) $s['maxHours'] . ' hours.';
+		}
+		list($eh, $em) = array_map('intval', explode(':', $s['latestEnd']));
+		list($sh, $sm) = array_map('intval', explode(':', $slot['time']));
+		if ($sh * 60 + $sm + $slot['hours'] * 60 > $eh * 60 + $em) {
+			return 'Classes must finish by ' . $s['latestEnd'] . '. Choose an earlier time or fewer hours.';
+		}
+		if ($slot['people'] < 1 || $slot['people'] > (int) $s['maxPeople']) {
+			return 'Up to ' . (int) $s['maxPeople'] . ' people per class.';
+		}
+		$usage = self::slot_usage();
+		$used = 0;
+		for ($h = $sh; $h < $sh + $slot['hours']; $h++) {
+			$used = max($used, $usage[$slot['date']][$h] ?? 0);
+		}
+		if ((int) $s['maxPeople'] - $used < $slot['people']) {
+			return 'Not enough places left at that time. Try another time or date.';
+		}
+		return '';
 	}
 
 	// Paid seats plus checkouts started in the last 30 minutes (so two people

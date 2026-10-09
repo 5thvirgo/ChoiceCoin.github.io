@@ -9,6 +9,7 @@
 import { config } from '../config.js';
 import { SEED } from '../data/seed.js';
 import { uid } from '../lib/dom.js';
+import { bookingSettings, slotClass, parseSlotId, addUsage, slotProblem } from '../lib/slots.js';
 
 const CONTENT_KEY = 'mcuire.content.v1';
 const USER_KEY = 'mcuire.kitchen.v1';
@@ -131,6 +132,7 @@ class ApiAdapter {
     if (changed?.categories) await this.request('admin/categories', { method: 'PUT', body: changed.categories });
     if (changed?.challenges) await this.request('admin/challenges', { method: 'PUT', body: changed.challenges });
     if (changed?.liveClasses) await this.request('admin/live-classes', { method: 'PUT', body: changed.liveClasses });
+    if (changed?.liveBooking) await this.request('admin/live-booking', { method: 'PUT', body: changed.liveBooking });
     if (changed?.discounts) await this.request('admin/discounts', { method: 'PUT', body: changed.discounts });
     if (changed?.deleteRecipe) await this.request(`admin/recipes/${changed.deleteRecipe}`, { method: 'DELETE' });
   }
@@ -315,10 +317,12 @@ class Store {
     if (!code) return null;
     return this.content.discounts.find((d) => d.active && d.code.toUpperCase() === code.trim().toUpperCase()) || null;
   }
+  // Weekend classes add sales tax (HST) on top of the discounted price.
   priceFor(course, code) {
     const d = this.discount(code);
     const off = d ? Math.round((course.priceCents * d.percentOff) / 100) : 0;
-    return { subtotal: course.priceCents, discount: off, total: course.priceCents - off, applied: d };
+    const tax = course.taxRate ? Math.round((course.priceCents - off) * course.taxRate) : 0;
+    return { subtotal: course.priceCents, discount: off, tax, total: course.priceCents - off + tax, applied: d };
   }
 
   // Returns { order } (demo, unlocked immediately) or { url } (Stripe redirect).
@@ -338,7 +342,25 @@ class Store {
       .sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
   }
   liveClass(id) {
-    return (this.content.liveClasses || []).find((c) => c.id === id) || null;
+    return (this.content.liveClasses || []).find((c) => c.id === id) || (String(id).startsWith('slot-') ? slotClass(this.liveBooking, id) : null);
+  }
+  // Weekend classes booked by the hour.
+  get liveBooking() { return bookingSettings(this.content); }
+  // People already booked per date and hour, so full times can be greyed out.
+  async loadSlotUsage() {
+    let usage = {};
+    if (config.dataSource === 'api') {
+      try { usage = (await this.adapter.request('live/availability')) || {}; } catch { usage = {}; }
+    } else {
+      for (const t of this.kitchen.tickets || []) { const slot = parseSlotId(t.classId); if (slot) addUsage(usage, slot); }
+    }
+    this.slotUsage = usage;
+    return usage;
+  }
+  async saveLiveBooking(settings) {
+    this.content.liveBooking = settings;
+    await this.adapter.saveContent(this.content, { liveBooking: settings });
+    this.emit();
   }
   ticket(classId) {
     return (this.kitchen.tickets || []).find((t) => t.classId === classId) || null;
@@ -350,6 +372,10 @@ class Store {
   }
   async bookLiveClass(classId, email, discountCode) {
     const liveClass = this.liveClass(classId);
+    if (liveClass?.kind === 'slot') {
+      const problem = slotProblem(this.liveBooking, liveClass.slot, this.slotUsage || {});
+      if (problem) throw new Error(problem);
+    }
     const { total, applied } = this.priceFor(liveClass, discountCode);
     const result = await this.adapter.checkout({ liveClass, email, discountCode: applied?.code, amountCents: total });
     if (result.order) this.grant(result.order);

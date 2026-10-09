@@ -6,6 +6,7 @@
 // MediaRef helper. src stays null until Mcuire uploads its own photography.
 // `brief` doubles as the photographer's shot list.
 import { MORE_CUES } from './cues-more.js';
+import { DEFAULT_BOOKING } from '../lib/slots.js';
 import { PHOTOS, STEP_PHOTOS, INGREDIENT_PHOTOS } from './photos.js';
 import { egusi, eba, pepperedChicken } from './recipes-soups-grills.js';
 import { dodo, puffPuff } from './recipes-street.js';
@@ -570,7 +571,7 @@ const discounts = [
 ];
 
 export const SEED = {
-  version: 13,
+  version: 14,
   categories,
   courses,
   recipes,
@@ -579,4 +580,5 @@ export const SEED = {
   discounts,
   freeLesson: { recipeId: 'party-jollof' },
   liveClasses,
+  liveBooking: DEFAULT_BOOKING,
 };

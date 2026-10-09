@@ -583,3 +583,18 @@ body.has-timers .sticky-cta { bottom: calc(68px + var(--safe-bottom)); }
 
 .share-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 16px; }
 .complete .share-row { justify-content: center; }
+
+/* Weekend class booking */
+.weekend { padding: clamp(18px, 3vw, 30px); }
+.wk-label { font-size: 1rem; margin: 22px 0 10px; }
+.chips-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+.chip-btn { flex: none; display: inline-flex; flex-direction: column; align-items: center; gap: 2px; min-height: 44px; padding: 8px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
+.chip-btn small { font-weight: 400; font-size: 0.72rem; color: var(--muted); }
+.chip-btn.is-on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.chip-btn.is-on small { color: var(--gold-soft); }
+.chip-btn:disabled { opacity: 0.4; cursor: not-allowed; text-decoration: line-through; }
+.stepper { display: inline-flex; align-items: center; gap: 10px; }
+.stepper span { font-weight: 600; margin-right: 4px; }
+.stepper button { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); font-size: 1.2rem; cursor: pointer; color: var(--ink); }
+.stepper b { min-width: 1.5em; text-align: center; font-size: 1.2rem; }
+.wk-total { margin-top: 24px; max-width: 460px; }

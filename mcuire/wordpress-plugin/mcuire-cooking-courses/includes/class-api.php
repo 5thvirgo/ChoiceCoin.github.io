@@ -214,8 +214,13 @@ class Mcuire_CC_API {
 	}
 
 	// ---- live classes ---------------------------------------------------------
-	private static function class_when($c) {
-		$tz = wp_timezone();
+	// Class times are shown in the restaurant's time zone (set under Weekend classes).
+	public static function class_when($c) {
+		try {
+			$tz = new DateTimeZone(Mcuire_CC_DB::booking_settings()['timeZone']);
+		} catch (Exception $e) {
+			$tz = wp_timezone();
+		}
 		$start = new DateTime($c['startsAt']);
 		$start->setTimezone($tz);
 		return $start->format('l, F j, Y \a\t g:i a T');
@@ -240,13 +245,20 @@ class Mcuire_CC_API {
 			? 'Where: ' . ($c['location'] ?: 'We will email the address before the class.')
 			: 'Join online (' . ($c['platform'] ?: 'video call') . '): ' . ($c['joinUrl'] ?: 'we will email the link before the class. It will also appear in My Kitchen.');
 		$intro = sprintf(
-			"You're booked for %s.\n\nWhen: %s (%d minutes)\n%s\n\nWhat you need: %s",
-			$c['title'], self::class_when($c), (int) $c['durationMinutes'], $where, $c['whatYouNeed'] ?: 'Nothing special.'
+			"You're booked for %s.\n\nWhen: %s (%d minutes)\n%s%s\n\nWhat you need: %s",
+			$c['title'], self::class_when($c), (int) $c['durationMinutes'], $where,
+			!empty($c['slot']) ? "\nGroup: " . (int) $c['slot']['people'] . ' ' . ((int) $c['slot']['people'] === 1 ? 'person' : 'people') . "\nPaid: $" . number_format($order->amount_cents / 100, 2) . ' ' . $order->currency . ' (incl. ' . ($c['taxLabel'] ?? 'tax') . ')' : '',
+			$c['whatYouNeed'] ?: 'Nothing special.'
 		);
 		self::send_magic_link($user, 'Your live cooking class ticket: ' . $c['title'], $intro);
 		$owners = self::email_list('mcuire_cc_admin_emails');
 		if ($owners) {
-			wp_mail($owners, 'New live class booking: ' . $c['title'], sprintf("%s booked a seat for %s (%s).\nSeats taken: %d of %d.", $user->email, $c['title'], self::class_when($c), Mcuire_CC_DB::seats_taken($c['id']), (int) $c['capacity']));
+			if (!empty($c['slot'])) {
+				$msg = sprintf("%s booked a weekend class: %s, %d h, %d %s.\nPaid: $%s %s (incl. %s).\nSee all weekend bookings in Cooking Courses → Course admin → Live classes.", $user->email, self::class_when($c), (int) $c['slot']['hours'], (int) $c['slot']['people'], (int) $c['slot']['people'] === 1 ? 'person' : 'people', number_format($order->amount_cents / 100, 2), $order->currency, $c['taxLabel'] ?? 'tax');
+				wp_mail($owners, 'New weekend class booking: ' . self::class_when($c), $msg);
+			} else {
+				wp_mail($owners, 'New live class booking: ' . $c['title'], sprintf("%s booked a seat for %s (%s).\nSeats taken: %d of %d.", $user->email, $c['title'], self::class_when($c), Mcuire_CC_DB::seats_taken($c['id']), (int) $c['capacity']));
+			}
 		}
 	}
 
@@ -380,6 +392,7 @@ class Mcuire_CC_API {
 				'achievements' => Mcuire_CC_DB::get_meta('achievements'),
 				'challenges' => Mcuire_CC_DB::get_meta('challenges'),
 				'freeLesson' => Mcuire_CC_DB::get_meta('freeLesson'),
+				'liveBooking' => Mcuire_CC_DB::booking_settings(),
 				'liveClasses' => array_values(array_map(array(__CLASS__, 'public_class'), array_filter(Mcuire_CC_DB::live_classes(), function ($c) { return $c['status'] === 'published' && !self::class_ended($c); }))),
 			));
 		}
@@ -438,7 +451,13 @@ class Mcuire_CC_API {
 				if (!$live || $live['status'] !== 'published' || strtotime($live['startsAt']) < time()) {
 					self::fail(404, 'This class is no longer taking bookings');
 				}
-				if (Mcuire_CC_DB::seats_taken($live['id']) >= (int) $live['capacity']) {
+				if (!empty($live['slot'])) {
+					// Weekend class booked by the hour: re-check the day, time, length, group size and free places.
+					$problem = Mcuire_CC_DB::slot_problem($live['slot']);
+					if ($problem) {
+						self::fail(409, $problem);
+					}
+				} elseif (Mcuire_CC_DB::seats_taken($live['id']) >= (int) $live['capacity']) {
 					self::fail(409, 'Sorry, this class is full');
 				}
 				$course = array('id' => '', 'slug' => '', 'kind' => 'live', 'title' => 'Live class: ' . $live['title'], 'subtitle' => '', 'priceCents' => (int) $live['priceCents'], 'currency' => $live['currency'] ?? 'CAD', 'stripeAccount' => $live['stripeAccount'] ?? '');
@@ -453,6 +472,8 @@ class Mcuire_CC_API {
 				self::fail(400, 'Please enter a valid email');
 			}
 			$price = self::price_for($course, $data['discountCode'] ?? ''); // price always from the database
+			$tax = ($live && !empty($live['taxRate'])) ? (int) round($price['total'] * (float) $live['taxRate']) : 0;
+			$charge = $price['total'] + $tax;
 			$order_id = 'ord_' . bin2hex(random_bytes(8));
 			$resume = preg_match('/^[a-z0-9-]{1,80}$/', (string) ($data['resume'] ?? '')) ? '&resume=' . $data['resume'] : '';
 			$success = $live
@@ -467,7 +488,7 @@ class Mcuire_CC_API {
 				}
 				// Free test purchases: switched on by the owner in Settings while testing.
 				$sid = 'cs_dev_' . bin2hex(random_bytes(8));
-				$wpdb->insert(self::t('orders'), array('id' => $order_id, 'email' => strtolower($email ?: 'test@example.com'), 'course_id' => $course['id'], 'live_class_id' => $live_id, 'amount_cents' => $price['total'], 'currency' => $course['currency'], 'discount_code' => $price['code'], 'stripe_session_id' => $sid, 'stripe_account' => 'test', 'status' => 'pending', 'created_at' => self::now()));
+				$wpdb->insert(self::t('orders'), array('id' => $order_id, 'email' => strtolower($email ?: 'test@example.com'), 'course_id' => $course['id'], 'live_class_id' => $live_id, 'amount_cents' => $charge, 'currency' => $course['currency'], 'discount_code' => $price['code'], 'stripe_session_id' => $sid, 'stripe_account' => 'test', 'status' => 'pending', 'created_at' => self::now()));
 				return self::json(array('url' => str_replace('{CHECKOUT_SESSION_ID}', $sid, $success), 'simulated' => true));
 			}
 			$account_name = isset($accounts[$course['stripeAccount'] ?? '']) ? $course['stripeAccount'] : (isset($accounts['default']) ? 'default' : array_key_first($accounts));
@@ -478,7 +499,7 @@ class Mcuire_CC_API {
 				'line_items[0][price_data][unit_amount]' => (string) $price['total'],
 				'line_items[0][price_data][product_data][name]' => $course['title'] . ($course['kind'] === 'flagship' ? ': ' . $course['subtitle'] : ''),
 				'line_items[0][price_data][product_data][description]' => $live
-					? self::class_when($live) . ' · ' . ($live['format'] === 'in-person' ? 'In person' : 'Online')
+					? self::class_when($live) . ' · ' . ($live['format'] === 'in-person' ? 'In person' : 'Online') . (!empty($live['slot']) ? ' · ' . (int) $live['slot']['people'] . ' ' . ((int) $live['slot']['people'] === 1 ? 'person' : 'people') . ' · ' . (int) $live['slot']['hours'] . ' h' : '')
 					: wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES) . ' online cooking course. Lifetime access.',
 				'customer_creation' => 'if_required',
 				'success_url' => $success,
@@ -486,6 +507,12 @@ class Mcuire_CC_API {
 				'metadata[course_id]' => $course['id'],
 				'metadata[order_id]' => $order_id,
 			);
+			if ($tax) {
+				$form['line_items[1][quantity]'] = '1';
+				$form['line_items[1][price_data][currency]'] = strtolower($course['currency']);
+				$form['line_items[1][price_data][unit_amount]'] = (string) $tax;
+				$form['line_items[1][price_data][product_data][name]'] = ($live['taxLabel'] ?? 'Tax') . ' (' . round((float) $live['taxRate'] * 100, 2) . '%)';
+			}
 			if ($email) {
 				$form['customer_email'] = $email;
 			}
@@ -496,7 +523,7 @@ class Mcuire_CC_API {
 				$form['metadata[live_class_id]'] = $live['id'];
 			}
 			$session = self::stripe($accounts[$account_name], 'POST', 'checkout/sessions', $form);
-			$wpdb->insert(self::t('orders'), array('id' => $order_id, 'email' => strtolower($email), 'course_id' => $course['id'], 'live_class_id' => $live_id, 'amount_cents' => $price['total'], 'currency' => $course['currency'], 'discount_code' => $price['code'], 'stripe_session_id' => $session['id'], 'stripe_account' => $account_name, 'status' => 'pending', 'created_at' => self::now()));
+			$wpdb->insert(self::t('orders'), array('id' => $order_id, 'email' => strtolower($email), 'course_id' => $course['id'], 'live_class_id' => $live_id, 'amount_cents' => $charge, 'currency' => $course['currency'], 'discount_code' => $price['code'], 'stripe_session_id' => $session['id'], 'stripe_account' => $account_name, 'status' => 'pending', 'created_at' => self::now()));
 			return self::json(array('url' => $session['url']));
 		}
 
@@ -723,6 +750,40 @@ class Mcuire_CC_API {
 				$out[] = array('name' => $name, 'webhook' => rest_url('mcuire/v1/api/stripe/webhook' . ($name === 'default' ? '' : '/' . $name)), 'webhookReady' => !empty($a['webhook']), 'live' => strpos($a['secret'], 'sk_live') === 0);
 			}
 			return self::json($out);
+		}
+		if ($is('GET', '#^/live/availability$#')) {
+			return self::json((object) Mcuire_CC_DB::slot_usage());
+		}
+		if ($is('PUT', '#^/admin/live-booking$#')) {
+			self::require_role($user, 'admin');
+			$d = $body();
+			$times = array_values(array_unique(array_filter(array_map(function ($t) { return preg_match('/^\d{2}:\d{2}$/', (string) $t) ? $t : null; }, (array) ($d['times'] ?? array())))));
+			sort($times);
+			$days = array_values(array_unique(array_filter(array_map('intval', (array) ($d['days'] ?? array())), function ($x) { return $x >= 0 && $x <= 6; })));
+			if (!$times || !$days) {
+				self::fail(400, 'Choose at least one day and one start time');
+			}
+			$min = max(1, (int) ($d['minHours'] ?? 1));
+			$clean = array(
+				'enabled' => !empty($d['enabled']),
+				'title' => sanitize_text_field($d['title'] ?? 'Hands-on cooking class at Mcuire'),
+				'description' => sanitize_textarea_field($d['description'] ?? ''),
+				'days' => $days, 'times' => $times,
+				'minHours' => $min, 'maxHours' => max($min, (int) ($d['maxHours'] ?? $min)),
+				'latestEnd' => preg_match('/^\d{2}:\d{2}$/', (string) ($d['latestEnd'] ?? '')) ? $d['latestEnd'] : '20:00',
+				'pricePerHourCents' => max(0, (int) ($d['pricePerHourCents'] ?? 0)),
+				'perPerson' => !empty($d['perPerson']),
+				'maxPeople' => max(1, (int) ($d['maxPeople'] ?? 1)),
+				'taxRate' => min(0.3, max(0, (float) ($d['taxRate'] ?? 0))),
+				'taxLabel' => sanitize_text_field($d['taxLabel'] ?? 'HST'),
+				'leadDays' => max(0, (int) ($d['leadDays'] ?? 0)),
+				'weeksAhead' => min(52, max(1, (int) ($d['weeksAhead'] ?? 12))),
+				'timeZone' => in_array($d['timeZone'] ?? '', timezone_identifiers_list(), true) ? $d['timeZone'] : 'America/Toronto',
+				'location' => sanitize_text_field($d['location'] ?? 'Mcuire African Restaurant'),
+				'currency' => 'CAD',
+			);
+			Mcuire_CC_DB::set_meta('liveBooking', $clean);
+			return self::json(null, 204);
 		}
 		if ($is('GET', '#^/admin/live-classes$#')) {
 			self::require_role($user, array('staff', 'admin'));

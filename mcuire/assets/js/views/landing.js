@@ -115,6 +115,17 @@ export default function landing() {
       </div>
     </section>
 
+    ${store.liveBooking.enabled ? `<section class="section-tight">
+      <div class="wrap">
+        <div class="panel spread" style="align-items:center;gap:18px">
+          <div style="flex:1;min-width:240px"><span class="eyebrow">Saturdays &amp; Sundays at Mcuire</span>
+            <h2 style="margin:6px 0">Book a hands-on cooking class</h2>
+            <p class="muted" style="margin:0">Pick any weekend day and time. Cook with our chef in the restaurant kitchen, then eat what you made. ${money(store.liveBooking.pricePerHourCents, store.liveBooking.currency)} per hour${store.liveBooking.perPerson ? ' per person' : ''} + ${esc(store.liveBooking.taxLabel)}.</p></div>
+          <a class="btn btn-primary btn-lg" href="#/live">Choose a date</a>
+        </div>
+      </div>
+    </section>` : ''}
+
     ${store.liveClasses.length ? `<section class="section-tight">
       <div class="wrap">
         <div class="spread" style="margin-bottom:8px">

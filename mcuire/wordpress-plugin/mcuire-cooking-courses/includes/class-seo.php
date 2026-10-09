@@ -120,7 +120,7 @@ class Mcuire_CC_SEO {
 		} elseif ($type === 'live' && ($cls = Mcuire_CC_DB::live_class($slug)) && $cls['status'] === 'published') {
 			$url = self::url('live/' . $cls['id']);
 			$start = strtotime($cls['startsAt']);
-			$when = wp_date('l, F j, Y \a\t g:i a', $start);
+			$when = Mcuire_CC_API::class_when($cls);
 			$in_person = ($cls['format'] ?? '') === 'in-person';
 			$rec = !empty($cls['recipeId']) ? Mcuire_CC_DB::get_recipe($cls['recipeId']) : null;
 			$page['title'] = $cls['title'] . ' · Live Cooking Class · Mcuire African Restaurant';
