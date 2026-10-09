@@ -194,8 +194,14 @@ class Mcuire_CC_DB {
 		global $wpdb;
 		$seed = json_decode(file_get_contents(MCUIRE_CC_DIR . 'data/seed.json'), true);
 		foreach ($seed['recipes'] as $r) {
-			if (!$wpdb->get_var($wpdb->prepare('SELECT 1 FROM ' . self::t('recipes') . ' WHERE id = %s OR slug = %s', $r['id'], $r['slug']))) {
+			$existing = self::get_recipe($r['id']);
+			if (!$existing && !$wpdb->get_var($wpdb->prepare('SELECT 1 FROM ' . self::t('recipes') . ' WHERE slug = %s', $r['slug']))) {
 				self::save_recipe($r, null);
+			} elseif ($existing) {
+				$merged = self::fill_gaps($existing, $r);
+				if ($merged !== $existing) {
+					self::save_recipe($merged, null);
+				}
 			}
 		}
 		foreach ($seed['courses'] as $course) {
@@ -204,9 +210,52 @@ class Mcuire_CC_DB {
 			}
 		}
 		// Example live classes start as drafts: the owner sets real dates and links first.
-		if (self::get_meta('liveClasses') === null) {
+		// Example classes are replaced by the newer examples while they are all still
+		// untouched drafts with no bookings; once the owner publishes one, they are kept.
+		$current = self::get_meta('liveClasses');
+		$untouched = is_array($current) && !array_filter($current, function ($c) { return ($c['status'] ?? '') !== 'draft'; })
+			&& !$wpdb->get_var('SELECT 1 FROM ' . self::t('orders') . ' WHERE live_class_id IS NOT NULL LIMIT 1');
+		if ($current === null || $untouched) {
 			self::set_meta('liveClasses', array_map(function ($c) { $c['status'] = 'draft'; return $c; }, $seed['liveClasses'] ?? array()));
 		}
+	}
+
+	// Bring in new photos and "what it should look like" notes from an update,
+	// only where the saved recipe has none, so staff uploads and edits are kept.
+	private static function fill_gaps($have, $new) {
+		$photo = function ($old, $fresh) {
+			return (empty($old['src']) && !empty($fresh['src'])) ? array_merge((array) $old, $fresh) : $old;
+		};
+		if (isset($new['hero'])) {
+			$have['hero'] = $photo($have['hero'] ?? array(), $new['hero']);
+		}
+		$steps = array();
+		foreach ($new['steps'] as $s) {
+			$steps[$s['id']] = $s;
+		}
+		foreach ($have['steps'] as $i => $s) {
+			$n = $steps[$s['id'] ?? ''] ?? null;
+			if (!$n) {
+				continue;
+			}
+			if (empty($s['cues']) && !empty($n['cues'])) {
+				$have['steps'][$i]['cues'] = $n['cues'];
+			}
+			if (!empty($n['media'][0]['src'])) {
+				$have['steps'][$i]['media'][0] = $photo($s['media'][0] ?? array(), $n['media'][0]);
+			}
+		}
+		$ings = array();
+		foreach ($new['ingredients'] as $g) {
+			$ings[$g['id']] = $g;
+		}
+		foreach ($have['ingredients'] as $i => $g) {
+			$n = $ings[$g['id'] ?? ''] ?? null;
+			if ($n && !empty($n['photo']['src'])) {
+				$have['ingredients'][$i]['photo'] = $photo($g['photo'] ?? array(), $n['photo']);
+			}
+		}
+		return $have;
 	}
 
 	public static function live_classes() {
