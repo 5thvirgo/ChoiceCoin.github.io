@@ -118,10 +118,10 @@ export default function landing() {
     ${store.liveBooking.enabled ? `<section class="section-tight">
       <div class="wrap">
         <div class="panel spread" style="align-items:center;gap:18px">
-          <div style="flex:1;min-width:240px"><span class="eyebrow">Saturdays &amp; Sundays at Mcuire</span>
-            <h2 style="margin:6px 0">Book a hands-on cooking class</h2>
-            <p class="muted" style="margin:0">Pick any weekend day and time. Cook with our chef in the restaurant kitchen, then eat what you made. ${money(store.liveBooking.pricePerHourCents, store.liveBooking.currency)} per hour${store.liveBooking.perPerson ? ' per person' : ''} + ${esc(store.liveBooking.taxLabel)}.</p></div>
-          <a class="btn btn-primary btn-lg" href="#/live">Choose a date</a>
+          <div style="flex:1;min-width:240px"><span class="eyebrow">Saturdays &amp; Sundays · live by video call</span>
+            <h2 style="margin:6px 0">Cook at home with a Mcuire chef</h2>
+            <p class="muted" style="margin:0">Our chef coaches you live on Zoom, Microsoft Teams or Google Meet while you cook in your own kitchen: casual home cooking, cooking for an event, group cooking, or help as you cook. From ${money(Math.min(...store.liveBooking.types.filter((t) => t.enabled !== false).map((t) => t.pricePerHourCents)), store.liveBooking.currency)} per hour + ${esc(store.liveBooking.taxLabel)}.</p></div>
+          <a class="btn btn-primary btn-lg" href="#/live">Book a live class</a>
         </div>
       </div>
     </section>` : ''}

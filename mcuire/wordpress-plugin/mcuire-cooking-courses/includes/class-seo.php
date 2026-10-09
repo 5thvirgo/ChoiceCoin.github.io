@@ -71,7 +71,7 @@ class Mcuire_CC_SEO {
 		$home = home_url('/');
 		$page = array(
 			'title' => 'West African Cooking Classes Online · Mcuire African Restaurant',
-			'desc' => 'Learn to cook Nigerian and Ghanaian food step by step: party jollof, egusi, suya, puff-puff and more. Lessons from $20 CAD, plus hands-on live classes at Mcuire.',
+			'desc' => 'Learn to cook Nigerian and Ghanaian food step by step: party jollof, egusi, suya, puff-puff and more. Lessons from $20 CAD, plus live online cooking classes with a Mcuire chef every weekend.',
 			'image' => '', 'url' => self::url(), 'type' => 'website', 'schema' => array(), 'body' => '',
 		);
 

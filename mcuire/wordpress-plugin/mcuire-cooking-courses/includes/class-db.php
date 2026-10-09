@@ -121,6 +121,7 @@ class Mcuire_CC_DB {
 				amount_cents int(11) NOT NULL,
 				currency varchar(3) NOT NULL,
 				discount_code varchar(64) DEFAULT NULL,
+				note varchar(500) DEFAULT NULL,
 				stripe_session_id varchar(190) DEFAULT NULL,
 				stripe_account varchar(64) DEFAULT NULL,
 				payment_intent varchar(190) DEFAULT NULL,
@@ -215,8 +216,17 @@ class Mcuire_CC_DB {
 		$current = self::get_meta('liveClasses');
 		$untouched = is_array($current) && !array_filter($current, function ($c) { return ($c['status'] ?? '') !== 'draft'; })
 			&& !$wpdb->get_var('SELECT 1 FROM ' . self::t('orders') . ' WHERE live_class_id IS NOT NULL LIMIT 1');
-		if (self::get_meta('liveBooking') === null && !empty($seed['liveBooking'])) {
-			self::set_meta('liveBooking', $seed['liveBooking']);
+		$booking = self::get_meta('liveBooking');
+		if (!empty($seed['liveBooking']) && ($booking === null || empty($booking['types']))) {
+			// New install, or settings from before classes moved online: start from the new
+			// defaults, keeping the owner's on/off switch and tax.
+			$fresh = $seed['liveBooking'];
+			foreach (array('enabled', 'taxRate', 'taxLabel') as $k) {
+				if (is_array($booking) && array_key_exists($k, $booking)) {
+					$fresh[$k] = $booking[$k];
+				}
+			}
+			self::set_meta('liveBooking', $fresh);
 		}
 		if ($current === null || $untouched) {
 			self::set_meta('liveClasses', array_map(function ($c) { $c['status'] = 'draft'; return $c; }, $seed['liveClasses'] ?? array()));
@@ -287,23 +297,37 @@ class Mcuire_CC_DB {
 	}
 
 	// ---- weekend classes booked by the hour (same rules as assets/js/lib/slots.js) ----
+	// Live online class settings. Defaults come from data/seed.json (the same
+	// source as the app); settings saved before online classes (no "types")
+	// are replaced by those defaults.
 	public static function booking_settings() {
-		$defaults = array(
-			'enabled' => true, 'title' => 'Hands-on cooking class at Mcuire',
-			'description' => 'Book your own hands-on class in the Mcuire kitchen on any Saturday or Sunday.',
-			'days' => array(6, 0), 'times' => array('10:00', '12:00', '14:00', '16:00'), 'minHours' => 1, 'maxHours' => 4,
-			'latestEnd' => '20:00', 'pricePerHourCents' => 7500, 'perPerson' => true, 'maxPeople' => 10, 'taxRate' => 0.13,
-			'taxLabel' => 'HST', 'leadDays' => 2, 'weeksAhead' => 12, 'timeZone' => 'America/Toronto',
-			'location' => 'Mcuire African Restaurant', 'currency' => 'CAD',
-		);
-		return array_merge($defaults, (array) (self::get_meta('liveBooking') ?: array()));
+		static $defaults = null;
+		if ($defaults === null) {
+			$seed = json_decode((string) file_get_contents(MCUIRE_CC_DIR . 'data/seed.json'), true);
+			$defaults = (array) ($seed['liveBooking'] ?? array());
+		}
+		$saved = (array) (self::get_meta('liveBooking') ?: array());
+		return !empty($saved['types']) ? array_merge($defaults, $saved) : $defaults;
+	}
+
+	public static function session_type($s, $id) {
+		foreach ((array) ($s['types'] ?? array()) as $t) {
+			if (($t['id'] ?? '') === ($id ?: 'home')) {
+				return $t;
+			}
+		}
+		return null;
+	}
+
+	public static function hourly_rate($type, $people) {
+		return (int) $type['pricePerHourCents'] + max(0, (int) $people - 1) * (int) ($type['extraPersonCents'] ?? 0);
 	}
 
 	public static function parse_slot($id) {
-		if (!preg_match('/^slot-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})-(\d+)h-(\d+)p$/', (string) $id, $m)) {
+		if (!preg_match('/^slot-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})-(\d+)h-(\d+)p(?:-([a-z]+))?$/', (string) $id, $m)) {
 			return null;
 		}
-		return array('date' => "$m[1]-$m[2]-$m[3]", 'time' => "$m[4]:$m[5]", 'hours' => (int) $m[6], 'people' => (int) $m[7]);
+		return array('date' => "$m[1]-$m[2]-$m[3]", 'time' => "$m[4]:$m[5]", 'hours' => (int) $m[6], 'people' => (int) $m[7], 'type' => !empty($m[8]) ? $m[8] : 'home');
 	}
 
 	public static function slot_class($id) {
@@ -312,22 +336,30 @@ class Mcuire_CC_DB {
 			return null;
 		}
 		$s = self::booking_settings();
+		$type = self::session_type($s, $slot['type']);
+		if (!$type) {
+			return null;
+		}
 		try {
 			$start = new DateTime($slot['date'] . ' ' . $slot['time'], new DateTimeZone($s['timeZone']));
 		} catch (Exception $e) {
 			return null;
 		}
+		$need = $type['id'] === 'event'
+			? 'A phone, tablet or laptop with a camera, set up so we can see your stove and worktop. We plan the menu and quantities with you and email the shopping list before the class.'
+			: 'A phone, tablet or laptop with a camera, set up so we can see your stove and worktop. We email the ingredient list before the class.';
 		return array(
-			'id' => $id, 'slot' => $slot, 'status' => 'published', 'title' => $s['title'], 'description' => $s['description'],
+			'id' => $id, 'kind' => 'slot', 'slot' => $slot, 'status' => 'published', 'title' => $type['name'] . ': live online class',
+			'description' => $type['blurb'] ?? '', 'typeName' => $type['name'],
 			'startsAt' => $start->format('c'), 'durationMinutes' => $slot['hours'] * 60,
-			'priceCents' => (int) $s['pricePerHourCents'] * $slot['hours'] * ($s['perPerson'] ? $slot['people'] : 1),
+			'priceCents' => self::hourly_rate($type, $slot['people']) * $slot['hours'],
 			'currency' => $s['currency'], 'taxRate' => (float) $s['taxRate'], 'taxLabel' => $s['taxLabel'],
-			'capacity' => (int) $s['maxPeople'], 'format' => 'in-person', 'platform' => '', 'joinUrl' => '', 'location' => $s['location'],
-			'host' => 'Mcuire kitchen team', 'whatYouNeed' => 'Just yourselves. Aprons, ingredients and equipment are provided.', 'recipeId' => 'party-jollof',
+			'capacity' => (int) $type['maxPeople'], 'format' => 'online', 'platform' => 'Video call', 'joinUrl' => '', 'location' => $s['location'],
+			'host' => 'Mcuire chef', 'whatYouNeed' => $need, 'recipeId' => 'party-jollof',
 		);
 	}
 
-	// People booked per date and hour (paid, or checkout started in the last 30 minutes).
+	// Classes booked per date and hour (paid, or checkout started in the last 30 minutes).
 	public static function slot_usage() {
 		global $wpdb;
 		$recent = gmdate('Y-m-d\TH:i:s.v\Z', time() - 30 * 60);
@@ -340,17 +372,21 @@ class Mcuire_CC_DB {
 			}
 			$h0 = (int) substr($slot['time'], 0, 2);
 			for ($h = $h0; $h < $h0 + $slot['hours']; $h++) {
-				$usage[$slot['date']][$h] = ($usage[$slot['date']][$h] ?? 0) + $slot['people'];
+				$usage[$slot['date']][$h] = ($usage[$slot['date']][$h] ?? 0) + 1;
 			}
 		}
 		return $usage;
 	}
 
-	// Why this weekend slot can't be booked, or '' if it can.
+	// Why this live class slot can't be booked, or '' if it can (same rules as the app).
 	public static function slot_problem($slot) {
 		$s = self::booking_settings();
 		if (empty($s['enabled'])) {
-			return 'Weekend classes are not taking bookings right now.';
+			return 'Live classes are not taking bookings right now.';
+		}
+		$type = self::session_type($s, $slot['type'] ?? 'home');
+		if (!$type || (isset($type['enabled']) && !$type['enabled'])) {
+			return 'Please choose a kind of class.';
 		}
 		$tz = new DateTimeZone($s['timeZone']);
 		$day = DateTime::createFromFormat('!Y-m-d', $slot['date'], $tz);
@@ -365,24 +401,27 @@ class Mcuire_CC_DB {
 		if (!in_array($slot['time'], $s['times'], true)) {
 			return 'Please choose one of the listed start times.';
 		}
-		if ($slot['hours'] < (int) $s['minHours'] || $slot['hours'] > (int) $s['maxHours']) {
-			return 'Classes run ' . (int) $s['minHours'] . ' to ' . (int) $s['maxHours'] . ' hours.';
+		$min_h = max((int) $s['minHours'], (int) ($type['minHours'] ?? 1));
+		if ($slot['hours'] < $min_h || $slot['hours'] > (int) $s['maxHours']) {
+			return $type['name'] . ' runs ' . $min_h . ' to ' . (int) $s['maxHours'] . ' hours.';
 		}
 		list($eh, $em) = array_map('intval', explode(':', $s['latestEnd']));
 		list($sh, $sm) = array_map('intval', explode(':', $slot['time']));
 		if ($sh * 60 + $sm + $slot['hours'] * 60 > $eh * 60 + $em) {
 			return 'Classes must finish by ' . $s['latestEnd'] . '. Choose an earlier time or fewer hours.';
 		}
-		if ($slot['people'] < 1 || $slot['people'] > (int) $s['maxPeople']) {
-			return 'Up to ' . (int) $s['maxPeople'] . ' people per class.';
+		if ($slot['people'] < (int) $type['minPeople'] || $slot['people'] > (int) $type['maxPeople']) {
+			return (int) $type['minPeople'] === (int) $type['maxPeople']
+				? $type['name'] . ' is for ' . (int) $type['maxPeople'] . ' ' . ((int) $type['maxPeople'] > 1 ? 'people' : 'person') . '.'
+				: $type['name'] . ' is for ' . (int) $type['minPeople'] . ' to ' . (int) $type['maxPeople'] . ' cooks.';
 		}
 		$usage = self::slot_usage();
 		$used = 0;
 		for ($h = $sh; $h < $sh + $slot['hours']; $h++) {
 			$used = max($used, $usage[$slot['date']][$h] ?? 0);
 		}
-		if ((int) $s['maxPeople'] - $used < $slot['people']) {
-			return 'Not enough places left at that time. Try another time or date.';
+		if (max(1, (int) ($s['maxClassesAtOnce'] ?? 1)) - $used < 1) {
+			return 'That time is already booked. Try another time or date.';
 		}
 		return '';
 	}

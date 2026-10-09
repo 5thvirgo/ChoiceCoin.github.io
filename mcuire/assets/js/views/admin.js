@@ -236,7 +236,7 @@ const blankLiveClass = () => {
 
 async function loadLiveAdmin() {
   if (config.dataSource !== 'api') {
-    const attendees = (store.kitchen.tickets || []).map((t) => ({ classId: t.classId, email: t.email, name: store.kitchen.account?.name || '', bookedAt: t.bookedAt }));
+    const attendees = (store.kitchen.tickets || []).map((t) => ({ classId: t.classId, email: t.email, name: store.kitchen.account?.name || '', bookedAt: t.bookedAt, note: t.note || '' }));
     return { classes: clone(store.content.liveClasses || []), attendees };
   }
   const [classes, attendees] = await Promise.all([loadServerList('live-classes'), loadServerList('live-attendees')]);
@@ -248,29 +248,41 @@ const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frid
 function weekendSettings(attendees) {
   const s = store.liveBooking;
   const bookings = attendees.map((a) => ({ ...a, slot: parseSlotId(a.classId) })).filter((a) => a.slot).sort((a, b) => (a.slot.date + a.slot.time).localeCompare(b.slot.date + b.slot.time));
+  const typeName = (id) => (s.types || []).find((t) => t.id === id)?.name || id;
+  const cad = (c) => (c / 100).toFixed(2);
   return `<form class="panel" data-live-booking>
-    <div class="spread"><h3 style="margin:0">Weekend classes (customers pick the day and time)</h3><label class="row" style="gap:6px"><input type="checkbox" name="enabled" ${s.enabled ? 'checked' : ''} style="width:20px;height:20px"> Taking bookings</label></div>
+    <div class="spread"><h3 style="margin:0">Live online classes (customers pick the kind, day and time)</h3><label class="row" style="gap:6px"><input type="checkbox" name="enabled" ${s.enabled ? 'checked' : ''} style="width:20px;height:20px"> Taking bookings</label></div>
+    <p class="small muted" style="margin:6px 0 12px">Coached live by video call while customers cook at home. Price per hour = base price + extra price for each cook after the first. ${esc(s.taxLabel)} is added at checkout.</p>
+    <div class="table-wrap"><table class="table"><thead><tr><th>On</th><th>Kind of class</th><th>Price / hour</th><th>+ per extra cook / hour</th><th>Cooks</th><th>Min hours</th></tr></thead><tbody>
+      ${(s.types || []).map((t) => `<tr data-type-row="${esc(t.id)}">
+        <td><input type="checkbox" name="on-${esc(t.id)}" ${t.enabled !== false ? 'checked' : ''} aria-label="Offer ${esc(t.name)}"></td>
+        <td><input class="input" name="name-${esc(t.id)}" value="${esc(t.name)}" style="min-height:40px;min-width:150px"><textarea class="input" name="blurb-${esc(t.id)}" rows="2" style="margin-top:6px;min-width:220px">${esc(t.blurb)}</textarea></td>
+        <td><input class="input" name="price-${esc(t.id)}" type="number" step="0.01" min="0" value="${cad(t.pricePerHourCents)}" style="min-height:40px;width:100px"></td>
+        <td><input class="input" name="extra-${esc(t.id)}" type="number" step="0.01" min="0" value="${cad(t.extraPersonCents || 0)}" style="min-height:40px;width:100px"></td>
+        <td style="white-space:nowrap"><input class="input" name="minp-${esc(t.id)}" type="number" min="1" value="${t.minPeople}" style="min-height:40px;width:64px"> to <input class="input" name="maxp-${esc(t.id)}" type="number" min="1" value="${t.maxPeople}" style="min-height:40px;width:64px"></td>
+        <td><input class="input" name="minh-${esc(t.id)}" type="number" min="1" value="${t.minHours || 1}" style="min-height:40px;width:64px"></td>
+      </tr>`).join('')}
+    </tbody></table></div>
     <div class="grid-3" style="margin-top:12px">
-      <div class="field"><label>Price per hour (CAD)</label><input name="price" type="number" step="0.01" min="0" value="${(s.pricePerHourCents / 100).toFixed(2)}"></div>
-      <div class="field"><label>Charge</label><select name="perPerson"><option value="1" ${s.perPerson ? 'selected' : ''}>Per person</option><option value="0" ${s.perPerson ? '' : 'selected'}>Per group (whole booking)</option></select></div>
       <div class="field"><label>Tax</label><div class="row" style="flex-wrap:nowrap;gap:6px"><input name="taxLabel" value="${esc(s.taxLabel)}" style="max-width:90px"><input name="taxRate" type="number" step="0.01" min="0" max="30" value="${Math.round(s.taxRate * 10000) / 100}" style="max-width:90px"><span>%</span></div></div>
+      <div class="field"><label>Classes at the same time</label><input name="maxAtOnce" type="number" min="1" value="${s.maxClassesAtOnce || 1}"><small>1 = one chef, one call at a time</small></div>
+      <div class="field"><label>Video apps offered</label><input name="platforms" value="${esc((s.platforms || []).join(', '))}"></div>
     </div>
     <div class="field"><label>Days</label><div class="row">${DAY_NAMES.map((d, i) => `<label class="chip" style="cursor:pointer"><input type="checkbox" name="day" value="${i}" ${s.days.includes(i) ? 'checked' : ''}> ${d}</label>`).join('')}</div></div>
     <div class="grid-3">
-      <div class="field"><label>Start times</label><input name="times" value="${esc(s.times.join(', '))}"><small>24-hour clock, comma-separated, e.g. 10:00, 12:00, 14:00</small></div>
+      <div class="field"><label>Start times</label><input name="times" value="${esc(s.times.join(', '))}"><small>24-hour clock, comma-separated, e.g. 09:00, 10:00, 14:00</small></div>
       <div class="field"><label>Hours per class</label><div class="row" style="flex-wrap:nowrap;gap:6px"><input name="minHours" type="number" min="1" value="${s.minHours}" style="max-width:80px"> to <input name="maxHours" type="number" min="1" value="${s.maxHours}" style="max-width:80px"></div></div>
       <div class="field"><label>Must finish by</label><input name="latestEnd" value="${esc(s.latestEnd)}"></div>
     </div>
     <div class="grid-3">
-      <div class="field"><label>Most people at one time</label><input name="maxPeople" type="number" min="1" value="${s.maxPeople}"></div>
       <div class="field"><label>Book at least (days ahead)</label><input name="leadDays" type="number" min="0" value="${s.leadDays}"></div>
       <div class="field"><label>Show dates up to (weeks ahead)</label><input name="weeksAhead" type="number" min="1" max="52" value="${s.weeksAhead}"></div>
     </div>
     <div class="field"><label>Description</label><textarea name="description" rows="2">${esc(s.description)}</textarea></div>
-    <div class="field"><label>Where</label><input name="location" value="${esc(s.location)}"></div>
-    <div class="row"><button class="btn btn-primary btn-sm">Save weekend classes</button></div>
-    <details style="margin-top:14px" ${bookings.length ? 'open' : ''}><summary class="link" style="cursor:pointer">Weekend bookings (${bookings.length})</summary>
-      ${bookings.length ? `<div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Time</th><th>Hours</th><th>People</th><th>Customer</th><th>Booked</th></tr></thead><tbody>${bookings.map((b) => `<tr><td>${esc(slotDate(b.slot.date, { year: 'numeric' }))}</td><td>${esc(formatTime(b.slot.time))}</td><td>${b.slot.hours}</td><td>${b.slot.people}</td><td>${esc(b.name || '')} ${esc(b.email)}</td><td>${esc(String(b.bookedAt || '').slice(0, 10))}</td></tr>`).join('')}</tbody></table></div>` : '<p class="small muted">No weekend bookings yet.</p>'}
+    <div class="row"><button class="btn btn-primary btn-sm">Save live classes</button></div>
+    <details style="margin-top:14px" ${bookings.length ? 'open' : ''}><summary class="link" style="cursor:pointer">Bookings (${bookings.length})</summary>
+      <p class="small muted">Email each customer their video call link and ingredient list before the class.</p>
+      ${bookings.length ? `<div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Time</th><th>Kind</th><th>Hours</th><th>Cooks</th><th>Customer</th><th>What to cook · app</th><th>Booked</th></tr></thead><tbody>${bookings.map((b) => `<tr><td>${esc(slotDate(b.slot.date, { year: 'numeric' }))}</td><td>${esc(formatTime(b.slot.time))}</td><td>${esc(typeName(b.slot.type))}</td><td>${b.slot.hours}</td><td>${b.slot.people}</td><td>${esc(b.name || '')} <a href="mailto:${esc(b.email)}">${esc(b.email)}</a></td><td class="small">${esc(b.note || '')}</td><td>${esc(String(b.bookedAt || '').slice(0, 10))}</td></tr>`).join('')}</tbody></table></div>` : '<p class="small muted">No bookings yet.</p>'}
     </details>
   </form>`;
 }
@@ -813,25 +825,39 @@ export default async function admin({ section = '', id }, query) {
         const times = String(d.get('times') || '').split(',').map((t) => t.trim()).filter((t) => /^\d{1,2}:\d{2}$/.test(t)).map((t) => t.padStart(5, '0'));
         const days = d.getAll('day').map(Number);
         if (!times.length || !days.length) { toast('Choose at least one day and one start time'); return; }
+        const cents = (v) => Math.max(0, Math.round(Number(v) * 100) || 0);
+        const types = (store.liveBooking.types || []).map((t) => {
+          const minPeople = Math.max(1, Number(d.get(`minp-${t.id}`)) || 1);
+          return {
+            ...t,
+            enabled: d.get(`on-${t.id}`) === 'on',
+            name: String(d.get(`name-${t.id}`) || t.name).trim() || t.name,
+            blurb: String(d.get(`blurb-${t.id}`) || '').trim(),
+            pricePerHourCents: cents(d.get(`price-${t.id}`)),
+            extraPersonCents: cents(d.get(`extra-${t.id}`)),
+            minPeople, maxPeople: Math.max(minPeople, Number(d.get(`maxp-${t.id}`)) || minPeople),
+            minHours: Math.max(1, Number(d.get(`minh-${t.id}`)) || 1),
+          };
+        });
+        if (!types.some((t) => t.enabled)) { toast('Offer at least one kind of class'); return; }
         const next = {
           ...store.liveBooking,
           enabled: d.get('enabled') === 'on',
-          pricePerHourCents: Math.max(0, Math.round(Number(d.get('price')) * 100) || 0),
-          perPerson: d.get('perPerson') === '1',
+          types,
+          maxClassesAtOnce: Math.max(1, Number(d.get('maxAtOnce')) || 1),
+          platforms: String(d.get('platforms') || '').split(',').map((x) => x.trim()).filter(Boolean),
           taxLabel: String(d.get('taxLabel') || 'HST').trim(),
           taxRate: Math.max(0, Number(d.get('taxRate')) || 0) / 100,
           days, times: [...new Set(times)].sort(),
           minHours: Math.max(1, Number(d.get('minHours')) || 1),
           maxHours: Math.max(1, Number(d.get('maxHours')) || 1),
-          latestEnd: /^\d{1,2}:\d{2}$/.test(String(d.get('latestEnd'))) ? String(d.get('latestEnd')).padStart(5, '0') : '20:00',
-          maxPeople: Math.max(1, Number(d.get('maxPeople')) || 1),
+          latestEnd: /^\d{1,2}:\d{2}$/.test(String(d.get('latestEnd'))) ? String(d.get('latestEnd')).padStart(5, '0') : '21:00',
           leadDays: Math.max(0, Number(d.get('leadDays')) || 0),
           weeksAhead: Math.min(52, Math.max(1, Number(d.get('weeksAhead')) || 12)),
           description: String(d.get('description') || ''),
-          location: String(d.get('location') || '').trim() || 'Mcuire African Restaurant',
         };
         if (next.maxHours < next.minHours) next.maxHours = next.minHours;
-        try { await store.saveLiveBooking(next); toast('Weekend classes saved'); } catch (err) { toast(err.message); }
+        try { await store.saveLiveBooking(next); toast('Live classes saved'); } catch (err) { toast(err.message); }
       }));
       offs.push(on(main, 'submit', '[data-live]', async (e, form) => { e.preventDefault(); await saveLive(readLive(form), 'Live classes saved'); }));
       offs.push(on(main, 'click', '[data-add-live]', async () => {

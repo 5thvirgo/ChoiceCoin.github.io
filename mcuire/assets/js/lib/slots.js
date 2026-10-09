@@ -1,31 +1,65 @@
-// Weekend live classes: customers pick any open Saturday or Sunday, a start
-// time, how many hours and how many people. Priced per hour (per person by
-// default) plus HST. A booking is identified by its slot id, e.g.
-// "slot-20261017-1200-2h-3p" (Sat 17 Oct 2026, 12:00, 2 hours, 3 people);
-// the server re-checks every part of it and the price.
+// Weekend live classes, coached online: on any open Saturday or Sunday the
+// customer picks a kind of session (home cooking, cooking help, group, event),
+// a start time, how many hours and how many cooks. The chef joins them by video
+// call (Zoom, Microsoft Teams, Google Meet…) while they cook in their own kitchen.
+// A booking is identified by its slot id, e.g.
+// "slot-20261017-1200-2h-3p-group" (Sat 17 Oct 2026, 12:00, 2 hours, 3 cooks,
+// group session); the server re-checks every part of it and the price.
+// Ids without a kind (older bookings) are read as "home".
+
+export const SESSION_TYPES = [
+  {
+    id: 'home', name: 'Home cooking', short: 'Just me',
+    blurb: 'You cook an everyday meal or a dish you love in your own kitchen while our chef coaches you live, step by step.',
+    pricePerHourCents: 7500, extraPersonCents: 0, minPeople: 1, maxPeople: 1, minHours: 1, enabled: true,
+  },
+  {
+    id: 'help', name: 'Cooking help', short: 'Help as I cook',
+    blurb: 'Stuck on a recipe, or want a chef beside you? Get live help, tips and fixes while you cook.',
+    pricePerHourCents: 7500, extraPersonCents: 0, minPeople: 1, maxPeople: 1, minHours: 1, enabled: true,
+  },
+  {
+    id: 'group', name: 'Group cooking', short: 'Family, friends or team',
+    blurb: 'Cook together with family, friends or your team, in one kitchen or several, all on one call.',
+    pricePerHourCents: 7500, extraPersonCents: 2500, minPeople: 2, maxPeople: 8, minHours: 1, enabled: true,
+  },
+  {
+    id: 'event', name: 'Cooking for an event', short: 'Party or celebration',
+    blurb: 'Cooking for a party, celebration or big gathering? We plan the menu and quantities with you and send a shopping list, then coach you through the cook.',
+    pricePerHourCents: 9500, extraPersonCents: 2500, minPeople: 1, maxPeople: 4, minHours: 2, enabled: true,
+  },
+];
 
 export const DEFAULT_BOOKING = {
   enabled: true,
-  title: 'Hands-on cooking class at Mcuire',
-  description: 'Book your own hands-on class in the Mcuire kitchen on any Saturday or Sunday. Choose the dish you want to learn when you arrive, or tell us when you book. All ingredients, aprons and equipment are provided, and you eat what you cook.',
+  title: 'Live online cooking class',
+  description: 'Cook in your own kitchen while a Mcuire chef coaches you live by video call, on any Saturday or Sunday. Tell us what you would like to cook when you book; we email the ingredient list and your call link before the class.',
   days: [6, 0], // Saturday, Sunday
-  times: ['10:00', '12:00', '14:00', '16:00'],
+  times: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'],
   minHours: 1,
   maxHours: 4,
-  latestEnd: '20:00',
-  pricePerHourCents: 7500,
-  perPerson: true,
-  maxPeople: 10,
+  latestEnd: '21:00',
+  types: SESSION_TYPES,
+  maxClassesAtOnce: 1, // the chef coaches one call at a time
   taxRate: 0.13,
   taxLabel: 'HST',
   leadDays: 2,
   weeksAhead: 12,
   timeZone: 'America/Toronto',
-  location: 'Mcuire African Restaurant',
+  format: 'online',
+  platforms: ['Zoom', 'Microsoft Teams', 'Google Meet', 'WhatsApp video'],
+  location: 'Online by video call, from your own kitchen',
   currency: 'CAD',
 };
 
-export const bookingSettings = (content) => ({ ...DEFAULT_BOOKING, ...(content?.liveBooking || {}) });
+// Settings saved before online classes (no "types") are replaced by the new defaults.
+export const bookingSettings = (content) => {
+  const saved = content?.liveBooking || {};
+  return Array.isArray(saved.types) ? { ...DEFAULT_BOOKING, ...saved } : { ...DEFAULT_BOOKING };
+};
+
+export const sessionType = (s, id) => (s.types || []).find((t) => t.id === (id || 'home')) || null;
+export const activeTypes = (s) => (s.types || []).filter((t) => t.enabled !== false);
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -64,46 +98,55 @@ export function slotDates(s) {
   return out;
 }
 
-export const slotId = ({ date, time, hours, people }) => `slot-${date.replace(/-/g, '')}-${time.replace(':', '')}-${hours}h-${people}p`;
+export const slotId = ({ date, time, hours, people, type }) => `slot-${date.replace(/-/g, '')}-${time.replace(':', '')}-${hours}h-${people}p-${type || 'home'}`;
 
 export function parseSlotId(id) {
-  const m = /^slot-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})-(\d+)h-(\d+)p$/.exec(id || '');
+  const m = /^slot-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})-(\d+)h-(\d+)p(?:-([a-z]+))?$/.exec(id || '');
   if (!m) return null;
-  return { date: `${m[1]}-${m[2]}-${m[3]}`, time: `${m[4]}:${m[5]}`, hours: +m[6], people: +m[7] };
+  return { date: `${m[1]}-${m[2]}-${m[3]}`, time: `${m[4]}:${m[5]}`, hours: +m[6], people: +m[7], type: m[8] || 'home' };
 }
 
 const toMin = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
 
 // Why a slot can't be booked, or '' if it can.
 export function slotProblem(s, slot, usage = {}) {
-  if (!s.enabled) return 'Weekend classes are not taking bookings right now.';
+  if (!s.enabled) return 'Live classes are not taking bookings right now.';
+  const type = sessionType(s, slot.type);
+  if (!type || type.enabled === false) return 'Please choose a kind of class.';
   if (!slotDates(s).includes(slot.date)) return 'Please choose one of the listed dates.';
   if (!s.times.includes(slot.time)) return 'Please choose one of the listed start times.';
-  if (slot.hours < s.minHours || slot.hours > s.maxHours) return `Classes run ${s.minHours} to ${s.maxHours} hours.`;
+  const minH = Math.max(s.minHours, type.minHours || 1);
+  if (slot.hours < minH || slot.hours > s.maxHours) return `${type.name} runs ${minH} to ${s.maxHours} hours.`;
   if (toMin(slot.time) + slot.hours * 60 > toMin(s.latestEnd)) return `Classes must finish by ${formatTime(s.latestEnd)}. Choose an earlier time or fewer hours.`;
-  if (slot.people < 1 || slot.people > s.maxPeople) return `Up to ${s.maxPeople} people per class.`;
-  if (seatsFree(s, slot, usage) < slot.people) return 'Not enough places left at that time. Try another time or date.';
+  if (slot.people < type.minPeople || slot.people > type.maxPeople) return type.minPeople === type.maxPeople ? `${type.name} is for ${type.maxPeople} ${type.maxPeople > 1 ? 'people' : 'person'}.` : `${type.name} is for ${type.minPeople} to ${type.maxPeople} cooks.`;
+  if (classesFree(s, slot, usage) < 1) return 'That time is already booked. Try another time or date.';
   return '';
 }
 
-// usage: { 'YYYY-MM-DD': { hour: peopleBooked } }
-export function seatsFree(s, slot, usage = {}) {
+// usage: { 'YYYY-MM-DD': { hour: classesBooked } }
+export function classesFree(s, slot, usage = {}) {
   const day = usage[slot.date] || {};
   const startH = Math.floor(toMin(slot.time) / 60);
   let used = 0;
   for (let h = startH; h < startH + slot.hours; h++) used = Math.max(used, day[h] || 0);
-  return Math.max(0, s.maxPeople - used);
+  return Math.max(0, (s.maxClassesAtOnce || 1) - used);
 }
 
 export function addUsage(usage, slot) {
   const day = (usage[slot.date] ||= {});
   const startH = Math.floor(toMin(slot.time) / 60);
-  for (let h = startH; h < startH + slot.hours; h++) day[h] = (day[h] || 0) + slot.people;
+  for (let h = startH; h < startH + slot.hours; h++) day[h] = (day[h] || 0) + 1;
   return usage;
 }
 
+// Price per hour for this many cooks.
+export function hourlyRate(type, people) {
+  return type.pricePerHourCents + Math.max(0, people - 1) * (type.extraPersonCents || 0);
+}
+
 export function slotSubtotal(s, slot) {
-  return s.pricePerHourCents * slot.hours * (s.perPerson ? slot.people : 1);
+  const type = sessionType(s, slot.type);
+  return type ? hourlyRate(type, slot.people) * slot.hours : 0;
 }
 
 export const taxOn = (s, cents) => Math.round(cents * (s.taxRate || 0));
@@ -118,17 +161,23 @@ export function formatDate(date, opts = {}) {
   return new Date(Date.UTC(y, m - 1, d, 12)).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC', ...opts });
 }
 
+const NEED = {
+  event: 'A phone, tablet or laptop with a camera, set up so we can see your stove and worktop. We plan the menu and quantities with you and email the shopping list before the class.',
+  default: 'A phone, tablet or laptop with a camera, set up so we can see your stove and worktop. We email the ingredient list before the class.',
+};
+
 // A booked slot shown like any other live class (My Kitchen, tickets, calendar).
 export function slotClass(s, id) {
   const slot = parseSlotId(id);
   if (!slot) return null;
+  const type = sessionType(s, slot.type) || SESSION_TYPES[0];
   return {
-    id, kind: 'slot', slot, status: 'published', title: s.title,
-    description: s.description,
+    id, kind: 'slot', slot, status: 'published', title: `${type.name}: live online class`,
+    description: type.blurb, typeName: type.name,
     startsAt: zonedISO(slot.date, slot.time, s.timeZone), durationMinutes: slot.hours * 60,
     priceCents: slotSubtotal(s, slot), currency: s.currency, taxRate: s.taxRate, taxLabel: s.taxLabel,
-    capacity: s.maxPeople, format: 'in-person', location: s.location, host: 'Mcuire kitchen team',
-    whatYouNeed: 'Just yourselves. Aprons, ingredients and equipment are provided.',
+    capacity: type.maxPeople, format: 'online', platform: 'Video call', joinUrl: '', location: s.location, host: 'Mcuire chef',
+    whatYouNeed: NEED[type.id] || NEED.default,
     recipeId: 'party-jollof',
   };
 }

@@ -98,12 +98,12 @@ class LocalAdapter {
   async saveKitchen(kitchen) {
     write(USER_KEY, kitchen);
   }
-  async checkout({ course, liveClass, email, discountCode, amountCents }) {
+  async checkout({ course, liveClass, email, discountCode, amountCents, note }) {
     // Demo only: mirrors what the Stripe webhook does on the server.
     const item = course || liveClass;
     const order = {
       id: uid('ord'), courseId: course ? course.id : null, liveClassId: liveClass ? liveClass.id : null,
-      email, amountCents, currency: item.currency,
+      email, amountCents, currency: item.currency, note: note || '',
       discountCode: discountCode || null, status: 'paid', createdAt: new Date().toISOString(),
     };
     return { order };
@@ -174,10 +174,10 @@ class ApiAdapter {
     const { progress, cookLog, saved, recent, shopping, account } = kitchen;
     await this.request('me/state', { method: 'PUT', body: { progress, cookLog, saved, recent, shopping, name: account.name } });
   }
-  async checkout({ course, liveClass, email, discountCode, resume }) {
+  async checkout({ course, liveClass, email, discountCode, resume, note }) {
     // Server creates a Stripe Checkout Session using the database price.
     const target = course ? { courseId: course.id } : { liveClassId: liveClass.id };
-    return this.request('checkout/session', { method: 'POST', body: { ...target, email, discountCode, resume } });
+    return this.request('checkout/session', { method: 'POST', body: { ...target, email, discountCode, resume, note } });
   }
   async issueCertificate(courseId, name) {
     return this.request('me/certificates', { method: 'POST', body: { courseId, name } });
@@ -346,7 +346,7 @@ class Store {
   }
   // Weekend classes booked by the hour.
   get liveBooking() { return bookingSettings(this.content); }
-  // People already booked per date and hour, so full times can be greyed out.
+  // Classes already booked per date and hour, so taken times can be greyed out.
   async loadSlotUsage() {
     let usage = {};
     if (config.dataSource === 'api') {
@@ -370,14 +370,14 @@ class Store {
     const taken = (this.kitchen.tickets || []).filter((t) => t.classId === cls.id).length;
     return Math.max(0, (cls.capacity || 0) - taken);
   }
-  async bookLiveClass(classId, email, discountCode) {
+  async bookLiveClass(classId, email, discountCode, note = '') {
     const liveClass = this.liveClass(classId);
     if (liveClass?.kind === 'slot') {
       const problem = slotProblem(this.liveBooking, liveClass.slot, this.slotUsage || {});
       if (problem) throw new Error(problem);
     }
     const { total, applied } = this.priceFor(liveClass, discountCode);
-    const result = await this.adapter.checkout({ liveClass, email, discountCode: applied?.code, amountCents: total });
+    const result = await this.adapter.checkout({ liveClass, email, discountCode: applied?.code, amountCents: total, note });
     if (result.order) this.grant(result.order);
     return result;
   }
@@ -395,7 +395,7 @@ class Store {
       k.tickets = k.tickets || [];
       const cls = this.liveClass(order.liveClassId);
       if (!this.ticket(order.liveClassId)) {
-        k.tickets.push({ id: order.id, classId: order.liveClassId, email: order.email, amountCents: order.amountCents, currency: order.currency, bookedAt: order.createdAt, joinUrl: cls?.joinUrl || '', location: cls?.location || '' });
+        k.tickets.push({ id: order.id, classId: order.liveClassId, email: order.email, amountCents: order.amountCents, currency: order.currency, bookedAt: order.createdAt, joinUrl: cls?.joinUrl || '', location: cls?.location || '', note: order.note || '' });
       }
       this.persist();
       return;

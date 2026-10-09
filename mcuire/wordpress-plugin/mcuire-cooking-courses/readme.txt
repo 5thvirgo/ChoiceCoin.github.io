@@ -1,7 +1,7 @@
 === Mcuire Cooking Courses ===
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.7.1
+Stable tag: 1.8.0
 
 Mcuire African Restaurant's online West African cooking academy, at /cooking-courses/.
 
@@ -30,6 +30,12 @@ Upload the new zip (Plugins → Add New → Upload → Replace current). Your re
 Stripe settings are kept; new dishes and courses are added. Example live classes arrive as drafts.
 
 == Changelog ==
+= 1.8.0 =
+* Live classes are now coached online by video call (Zoom, Microsoft Teams, Google Meet or WhatsApp video) while customers cook in their own kitchen, on Saturdays and Sundays, any hour from 9 am.
+* Four kinds of class, each with its own price: Home cooking (1 person, $75/h), Cooking help (1 person, $75/h), Group cooking (2–8 cooks, $75/h + $25/h per extra cook), Cooking for an event (1–4 cooks, $95/h + $25/h per extra cook, at least 2 hours). HST added at checkout. All editable in Course admin → Live classes.
+* One class at a time (the chef coaches one call), so a booked time is taken.
+* When booking, customers say what they want to cook and which video app they prefer; this appears in both emails and in the bookings list.
+
 = 1.7.1 =
 * Fix: visitors could see an old saved copy of the Cooking Courses page from the LiteSpeed page cache. That page is now never cached, and every plugin update (and turning the site style on or off) clears saved pages in LiteSpeed and other common cache plugins.
 

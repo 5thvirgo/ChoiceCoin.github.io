@@ -5,7 +5,7 @@ import { config } from '../config.js';
 import { store, apiFetch, setSessionToken } from '../services/store.js';
 import { media } from '../components.js';
 import { esc, icon, money, minutes, on, toast } from '../lib/dom.js';
-import { slotDates, slotId, slotProblem, seatsFree, slotSubtotal, taxOn, formatTime, formatDate } from '../lib/slots.js';
+import { slotDates, slotId, slotProblem, taxOn, formatTime, formatDate, sessionType, activeTypes, hourlyRate } from '../lib/slots.js';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -72,65 +72,83 @@ function classCard(cls) {
   </article>`;
 }
 
-// Book any open Saturday or Sunday, by the hour.
+// Book any open Saturday or Sunday, by the hour, coached online.
 function weekendPanel(st) {
   const s = store.liveBooking;
+  const types = activeTypes(s);
+  const type = sessionType(s, st.type) || types[0];
   const dates = slotDates(s);
   const usage = store.slotUsage || {};
-  const slot = { date: st.date || dates[0], time: st.time, hours: st.hours, people: st.people };
-  const sub = slot.time ? slotSubtotal(s, slot) : s.pricePerHourCents * slot.hours * (s.perPerson ? slot.people : 1);
+  const slot = { date: st.date || dates[0], time: st.time, hours: st.hours, people: st.people, type: type.id };
+  const sub = hourlyRate(type, slot.people) * slot.hours;
   const tax = taxOn(s, sub);
   const problem = slot.time ? slotProblem(s, slot, usage) : '';
-  const rate = `${money(s.pricePerHourCents, s.currency)} per hour${s.perPerson ? ' per person' : ''} + ${s.taxLabel}`;
+  const perHour = (t) => `${money(t.pricePerHourCents, s.currency)}/h${t.extraPersonCents ? ` + ${money(t.extraPersonCents, s.currency)}/h per extra cook` : ''}`;
+  const minH = Math.max(s.minHours, type.minHours || 1);
   return `<div class="panel weekend" data-weekend>
     <div class="spread" style="align-items:flex-start"><div>
-      <span class="eyebrow">Saturdays &amp; Sundays</span>
-      <h2 style="margin:4px 0 6px">Book a hands-on class</h2>
-      <p class="muted" style="margin:0;max-width:44em">${esc(s.description)}</p></div>
-      <span class="chip gold" style="white-space:nowrap">${esc(rate)}</span></div>
+      <span class="eyebrow">Saturdays &amp; Sundays · live by video call</span>
+      <h2 style="margin:4px 0 6px">Book a live online class</h2>
+      <p class="muted" style="margin:0;max-width:46em">${esc(s.description)}</p></div>
+      <span class="chip gold" style="white-space:nowrap">From ${money(Math.min(...types.map((t) => t.pricePerHourCents)), s.currency)} per hour + ${esc(s.taxLabel)}</span></div>
 
-    <h3 class="wk-label">1. Choose a day</h3>
+    <h3 class="wk-label">1. What kind of class?</h3>
+    <div class="wk-types" role="radiogroup" aria-label="Kind of class">${types.map((t) => `<button type="button" role="radio" aria-checked="${t.id === type.id}" class="wk-type ${t.id === type.id ? 'is-on' : ''}" data-wk-type="${esc(t.id)}">
+      <b>${esc(t.name)}</b><span class="small muted">${esc(t.short)}</span><span class="wk-type-price">${esc(perHour(t))}</span></button>`).join('')}</div>
+    <p class="small muted" style="margin:10px 0 0">${esc(type.blurb)}</p>
+
+    <h3 class="wk-label">2. Choose a day</h3>
     <div class="chips-scroll" role="group" aria-label="Dates">${dates.map((d) => `<button type="button" class="chip-btn ${d === slot.date ? 'is-on' : ''}" data-wk-date="${d}">${esc(formatDate(d))}</button>`).join('')}</div>
 
-    <h3 class="wk-label">2. How long, and how many people?</h3>
+    <h3 class="wk-label">3. How long${type.maxPeople > 1 ? ', and how many cooks' : ''}?</h3>
     <div class="row" style="gap:20px">
-      <div class="stepper"><span>Hours</span><button type="button" data-wk-step="hours" data-d="-1" aria-label="Fewer hours">−</button><b>${slot.hours}</b><button type="button" data-wk-step="hours" data-d="1" aria-label="More hours">+</button></div>
-      <div class="stepper"><span>People</span><button type="button" data-wk-step="people" data-d="-1" aria-label="Fewer people">−</button><b>${slot.people}</b><button type="button" data-wk-step="people" data-d="1" aria-label="More people">+</button></div>
+      <div class="stepper"><span>Hours</span><button type="button" data-wk-step="hours" data-d="-1" aria-label="Fewer hours" ${slot.hours <= minH ? 'disabled' : ''}>−</button><b>${slot.hours}</b><button type="button" data-wk-step="hours" data-d="1" aria-label="More hours" ${slot.hours >= s.maxHours ? 'disabled' : ''}>+</button></div>
+      ${type.maxPeople > 1 ? `<div class="stepper"><span>Cooks</span><button type="button" data-wk-step="people" data-d="-1" aria-label="Fewer cooks" ${slot.people <= type.minPeople ? 'disabled' : ''}>−</button><b>${slot.people}</b><button type="button" data-wk-step="people" data-d="1" aria-label="More cooks" ${slot.people >= type.maxPeople ? 'disabled' : ''}>+</button></div>` : ''}
     </div>
+    ${type.minHours > 1 ? `<p class="small muted" style="margin:8px 0 0">${esc(type.name)} needs at least ${type.minHours} hours.</p>` : ''}
 
-    <h3 class="wk-label">3. Pick a start time</h3>
+    <h3 class="wk-label">4. Pick a start time <span class="small muted" style="font-weight:400">(Toronto time)</span></h3>
     <div class="row" role="group" aria-label="Start times">${s.times.map((t) => {
-      const opt = { ...slot, time: t };
-      const why = slotProblem(s, opt, usage);
-      const free = seatsFree(s, opt, usage);
-      return `<button type="button" class="chip-btn ${t === slot.time ? 'is-on' : ''}" data-wk-time="${t}" ${why ? 'disabled' : ''} title="${esc(why || `${free} places left`)}">${esc(formatTime(t))}${why ? '' : `<small>${free} left</small>`}</button>`;
+      const why = slotProblem(s, { ...slot, time: t }, usage);
+      return `<button type="button" class="chip-btn ${t === slot.time ? 'is-on' : ''}" data-wk-time="${t}" ${why ? 'disabled' : ''} title="${esc(why || 'Available')}">${esc(formatTime(t))}</button>`;
     }).join('')}</div>
 
     <div class="wk-total">
-      <div class="small muted">${slot.hours} h × ${s.perPerson ? `${slot.people} ${slot.people > 1 ? 'people' : 'person'} × ` : ''}${money(s.pricePerHourCents, s.currency)}</div>
+      <div class="small muted">${esc(type.name)} · ${slot.hours} h × ${money(hourlyRate(type, slot.people), s.currency)}/h${type.maxPeople > 1 ? ` (${slot.people} ${slot.people > 1 ? 'cooks' : 'cook'})` : ''}</div>
       <div class="line"><span>Class</span><span>${money(sub, s.currency)}</span></div>
       <div class="line"><span>${esc(s.taxLabel)} (${Math.round(s.taxRate * 100)}%)</span><span>${money(tax, s.currency)}</span></div>
       <div class="line total"><span>Total</span><span>${money(sub + tax, s.currency)}</span></div>
       ${problem ? `<p class="small" style="color:var(--fix)">${esc(problem)}</p>` : ''}
       <button type="button" class="btn btn-primary btn-lg btn-block" data-wk-book ${!slot.time || problem ? 'disabled' : ''}>${slot.time ? `Book ${esc(formatDate(slot.date))} at ${esc(formatTime(slot.time))}` : 'Pick a start time'}</button>
-      <p class="small muted" style="margin:8px 0 0">${icon('home', 14)} At ${esc(s.location)}. Pay securely by card, Apple Pay or Google Pay.</p>
+      <p class="small muted" style="margin:8px 0 0">${icon('video', 14)} On ${esc((s.platforms || []).slice(0, 3).join(', '))} or your favourite video app. Pay securely by card, Apple Pay or Google Pay.</p>
     </div>
   </div>`;
+}
+
+// Keep hours and cooks inside what the chosen kind of class allows.
+function fitToType(st) {
+  const s = store.liveBooking;
+  const type = sessionType(s, st.type) || activeTypes(s)[0];
+  st.type = type.id;
+  st.people = Math.min(type.maxPeople, Math.max(type.minPeople, st.people));
+  st.hours = Math.min(s.maxHours, Math.max(Math.max(s.minHours, type.minHours || 1), st.hours));
+  return st;
 }
 
 async function list() {
   const classes = store.liveClasses;
   const s = store.liveBooking;
   if (s.enabled) await store.loadSlotUsage();
-  const st = { date: '', time: '', hours: Math.min(Math.max(2, s.minHours), s.maxHours), people: Math.min(2, s.maxPeople) };
+  const st = fitToType({ type: activeTypes(s)[0]?.id, date: '', time: '', hours: 1, people: 1 });
   return {
-    title: 'Live cooking classes',
+    title: 'Live online cooking classes',
     html: `
     <section class="section-tight">
       <div class="wrap">
         <span class="eyebrow">Live with the ${esc(config.brand.short)} kitchen</span>
-        <h1>Live cooking classes</h1>
-        <p class="lede">Come into Mcuire African Restaurant and cook alongside our chef. Small hands-on groups, all ingredients and equipment provided, and you eat what you make.</p>
+        <h1>Live online cooking classes</h1>
+        <p class="lede">Cook in your own kitchen while a Mcuire chef coaches you live by video call (Zoom, Microsoft Teams, Google Meet or your favourite app), every Saturday and Sunday. Casual home cooking, cooking for an event, cooking as a group, or simply a chef to help you as you cook.</p>
+        <p class="muted" style="margin:0">Prefer your own pace? <a class="link" href="#/courses">Buy any course</a> and cook whenever you like with step-by-step lessons.</p>
       </div>
     </section>
     <section class="section-tight" style="padding-top:0">
@@ -144,17 +162,18 @@ async function list() {
       if (!host) return null;
       const redraw = () => { host.innerHTML = weekendPanel(st); };
       const offs = [
+        on(host, 'click', '[data-wk-type]', (_, b) => { st.type = b.dataset.wkType; st.time = ''; fitToType(st); redraw(); }),
         on(host, 'click', '[data-wk-date]', (_, b) => { st.date = b.dataset.wkDate; st.time = ''; redraw(); }),
         on(host, 'click', '[data-wk-time]', (_, b) => { st.time = b.dataset.wkTime; redraw(); }),
         on(host, 'click', '[data-wk-step]', (_, b) => {
           const k = b.dataset.wkStep;
-          const [lo, hi] = k === 'hours' ? [s.minHours, s.maxHours] : [1, s.maxPeople];
-          st[k] = Math.min(hi, Math.max(lo, st[k] + Number(b.dataset.d)));
+          st[k] += Number(b.dataset.d);
+          fitToType(st);
           redraw();
         }),
         on(host, 'click', '[data-wk-book]', () => {
           const date = st.date || slotDates(s)[0];
-          location.hash = `#/live/${slotId({ date, time: st.time, hours: st.hours, people: st.people })}/book`;
+          location.hash = `#/live/${slotId({ date, time: st.time, hours: st.hours, people: st.people, type: st.type })}/book`;
         }),
       ];
       return () => offs.forEach((o) => o());
@@ -169,7 +188,8 @@ function book(cls, query) {
   const recipe = store.recipe(cls.recipeId);
   const demo = config.payments !== 'stripe';
   const isSlot = cls.kind === 'slot';
-  const what = isSlot ? `${cls.slot.hours} h × ${store.liveBooking.perPerson ? `${cls.slot.people} ${cls.slot.people > 1 ? 'people' : 'person'}` : 'your group'}` : '1 seat';
+  const what = isSlot ? `${cls.typeName} · ${cls.slot.hours} h${cls.capacity > 1 ? ` · ${cls.slot.people} ${cls.slot.people > 1 ? 'cooks' : 'cook'}` : ''}` : '1 seat';
+  const platforms = store.liveBooking.platforms || ['Zoom', 'Microsoft Teams', 'Google Meet'];
   const when = classWhen(cls, { year: true });
   let code = '';
   const summary = () => {
@@ -200,11 +220,16 @@ function book(cls, query) {
         <div>
           <a class="small muted" href="#/live" style="text-decoration:none">${icon('back', 14)} All live classes</a>
           <h1 style="font-size:clamp(1.9rem,4vw,2.8rem);margin-top:12px">${isSlot ? 'Book your class' : 'Book your seat'}</h1>
-          <p class="muted">${isSlot ? `${esc(cls.slot.people)} ${cls.slot.people > 1 ? 'people' : 'person'} for ${cls.slot.hours} ${cls.slot.hours > 1 ? 'hours' : 'hour'} at ${esc(cls.location)}. Your booking confirmation arrives by email.` : cls.format === 'in-person' ? 'Your ticket and the address arrive by email.' : 'Your ticket and join link appear in My Kitchen and arrive by email.'}</p>
+          <p class="muted">${isSlot ? `${esc(cls.typeName)}, ${cls.slot.hours} ${cls.slot.hours > 1 ? 'hours' : 'hour'}, live by video call from your kitchen. Your confirmation arrives by email; we send the ingredient list and your call link before the class.` : cls.format === 'in-person' ? 'Your ticket and the address arrive by email.' : 'Your ticket and join link appear in My Kitchen and arrive by email.'}</p>
           <form data-pay-form novalidate>
             <div class="field"><label for="email">Email</label>
               <input id="email" name="email" type="email" inputmode="email" autocomplete="email" required placeholder="you@example.com" value="${esc(store.kitchen.account?.email || '')}">
               <small>Your ticket and sign-in link go here.</small></div>
+            ${isSlot ? `<div class="field"><label for="dish">What would you like to cook?</label>
+              <textarea id="dish" name="dish" rows="3" maxlength="400" placeholder="${cls.slot.type === 'event' ? 'e.g. Jollof rice and chicken for 30 guests at a birthday party' : cls.slot.type === 'help' ? 'e.g. My egusi soup keeps turning out bitter' : 'e.g. Egusi soup and pounded yam'}"></textarea>
+              <small>So the chef can prepare and send you the ingredient list.</small></div>
+            <div class="field"><label for="videoapp">Video app you prefer</label>
+              <select id="videoapp" name="videoapp">${platforms.map((p) => `<option>${esc(p)}</option>`).join('')}<option>Any is fine</option></select></div>` : ''}
             <div class="paybox">
               ${demo ? '<div class="test-banner"><b>Test mode.</b> No real payment is taken.</div>' : '<p class="small muted" style="margin-top:0">You’ll pay on Stripe’s secure page with card, Apple Pay or Google Pay.</p>'}
               <button class="btn btn-primary btn-lg btn-block" type="submit" data-pay>${icon('lock', 18)} ${demo ? 'Pay and book' : 'Continue to secure payment'}</button>
@@ -228,7 +253,8 @@ function book(cls, query) {
           btn.disabled = true;
           btn.textContent = demo ? 'Booking…' : 'Opening secure payment…';
           try {
-            const result = await store.bookLiveClass(cls.id, email, code);
+            const note = isSlot ? [form.dish?.value.trim() && `Cook: ${form.dish.value.trim()}`, form.videoapp && `App: ${form.videoapp.value}`].filter(Boolean).join(' · ') : '';
+            const result = await store.bookLiveClass(cls.id, email, code, note);
             if (result.url) { location.href = result.url; return; }
             location.hash = `#/live/${cls.id}/booked`;
           } catch (ex) {
@@ -271,11 +297,12 @@ async function booked(cls, query) {
     <section class="section">
       <div class="wrap narrow" style="text-align:center">
         <span class="eyebrow">You’re booked</span>
-        <h1>See you in the kitchen</h1>
+        <h1>${cls.kind === 'slot' ? 'See you on the call' : 'See you in the kitchen'}</h1>
         <p class="lede" style="margin:0 auto 24px"><b>${esc(cls.title)}</b><br>${esc(when.text)}</p>
         <div class="panel" style="text-align:left;max-width:520px;margin:0 auto 24px">
           ${cls.format === 'in-person'
             ? `<p style="margin:0"><b>Where:</b> ${esc(ticket.location || cls.location || config.brand.name)}</p>`
+            : cls.kind === 'slot' ? '<p style="margin:0"><b>How to join:</b> we email you the video call link and the ingredient list before the class. Have your phone, tablet or laptop set up in the kitchen.</p>'
             : `<p style="margin:0"><b>How to join:</b> your ${esc(cls.platform || 'class')} link appears in My Kitchen 30 minutes before class.</p>`}
           ${cls.whatYouNeed ? `<p class="small" style="margin:12px 0 0"><b>What you’ll need:</b> ${esc(cls.whatYouNeed)}</p>` : ''}
         </div>
