@@ -247,36 +247,46 @@ class Mcuire_CC_Catering {
 
 	private static function css() {
 		return '
-.mcu-cat{--mcu-accent:#ef9a1a;--mcu-ink:#1f1a17;--mcu-muted:#6b5f55;--mcu-paper:#fbf6ee;--mcu-line:#e8dccb;color:var(--mcu-ink);font-size:17px;line-height:1.6}
+.mcu-cat{--mcu-accent:#ef9a1a;--mcu-accent-ink:#9a5a00;--mcu-ink:#1f1a17;--mcu-muted:#5f544b;--mcu-paper:#fbf6ee;--mcu-line:#e8dccb;--mcu-ease:cubic-bezier(.2,.7,.2,1);color:var(--mcu-ink);font-family:Roboto,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+@media (min-width:900px){.mcu-cat{font-size:18px}}
+.mcu-cat p{text-wrap:pretty}
 .mcu-cat *{box-sizing:border-box}
 .mcu-wrap{max-width:1180px;margin:0 auto;padding:0 20px}
 .mcu-hero{background:var(--mcu-paper);padding:64px 0 48px;margin-bottom:48px}
-.mcu-eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:.8rem;color:var(--mcu-accent);font-weight:700;margin:0 0 8px}
-.mcu-cat h1{font-family:"Playfair Display",Georgia,serif;font-size:clamp(2.4rem,6vw,4rem);line-height:1.05;margin:0 0 16px;color:var(--mcu-ink)}
-.mcu-cat h2{font-family:"Playfair Display",Georgia,serif;font-size:clamp(1.8rem,4vw,2.4rem);margin:0 0 16px;color:var(--mcu-ink)}
-.mcu-cat h3{font-size:1.1rem;margin:0 0 6px;color:var(--mcu-ink)}
+.mcu-eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:.8rem;color:var(--mcu-accent-ink);font-weight:700;margin:0 0 8px}
+.mcu-cat h1{font-family:"Playfair Display",Georgia,serif;font-size:clamp(2.4rem,6vw,4rem);line-height:1.08;margin:0 0 16px;color:var(--mcu-ink);font-weight:700;text-wrap:balance}
+.mcu-cat h2{font-family:"Playfair Display",Georgia,serif;font-size:clamp(1.8rem,4vw,2.4rem);line-height:1.15;margin:0 0 16px;color:var(--mcu-ink);font-weight:700;text-wrap:balance}
+.mcu-cat h3{font-family:"Playfair Display",Georgia,serif;font-size:1.25rem;line-height:1.25;font-weight:700;margin:0 0 8px;color:var(--mcu-ink)}
 .mcu-lede{font-size:1.2rem;max-width:44em;color:var(--mcu-muted);margin:0 0 24px}
 .mcu-actions{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:28px}
 .mcu-btn{display:inline-block;background:var(--mcu-accent);color:#fff!important;border:0;border-radius:4px;padding:14px 26px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.85rem;text-decoration:none;cursor:pointer}
-.mcu-btn:hover{filter:brightness(.95)}
+.mcu-btn{transition:transform .18s var(--mcu-ease),box-shadow .25s var(--mcu-ease),background-color .2s var(--mcu-ease)}
+.mcu-btn:hover{transform:translateY(-2px);box-shadow:0 12px 24px -12px rgba(154,90,0,.7)}
+.mcu-btn:active{transform:translateY(0) scale(.98)}
+.mcu-btn-ghost:hover{background:#fff;box-shadow:inset 0 0 0 2px var(--mcu-ink),0 10px 22px -14px rgba(0,0,0,.5)}
+.mcu-cat :focus-visible{outline:3px solid var(--mcu-accent);outline-offset:2px}
 .mcu-btn-ghost{background:transparent;color:var(--mcu-ink)!important;box-shadow:inset 0 0 0 2px var(--mcu-ink)}
 .mcu-proof{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
 .mcu-proof li{background:#fff;border:1px solid var(--mcu-line);border-radius:8px;padding:12px 14px;font-size:.95rem;color:var(--mcu-muted)}
-.mcu-proof b{display:block;color:var(--mcu-ink);font-size:1.15rem}
+.mcu-proof b{display:block;color:var(--mcu-ink);font-family:"Playfair Display",Georgia,serif;font-size:1.3rem;font-variant-numeric:lining-nums}
 .mcu-what{margin-bottom:56px}
 .mcu-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-.mcu-cards>div{border:1px solid var(--mcu-line);border-radius:8px;padding:18px;background:#fff}
+.mcu-cards>div{border:1px solid var(--mcu-line);border-radius:8px;padding:20px;background:#fff;transition:transform .25s var(--mcu-ease),box-shadow .25s var(--mcu-ease),border-color .2s}
+.mcu-cards>div:hover{transform:translateY(-4px);border-color:var(--mcu-accent);box-shadow:0 18px 34px -22px rgba(31,26,23,.45)}
 .mcu-cards p{margin:0;color:var(--mcu-muted);font-size:.98rem}
 .mcu-note{color:var(--mcu-muted);margin-top:16px}
 .mcu-filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
-.mcu-filters button{border:1px solid var(--mcu-line);background:#fff;border-radius:999px;padding:8px 16px;font-size:.92rem;cursor:pointer;color:var(--mcu-ink)}
+.mcu-filters button{border:1px solid var(--mcu-line);background:#fff;border-radius:999px;padding:8px 16px;font-size:.92rem;cursor:pointer;color:var(--mcu-ink);transition:background-color .2s,border-color .2s,color .2s}
+.mcu-filters button:hover{border-color:var(--mcu-ink)}
 .mcu-filters button.is-on{background:var(--mcu-ink);border-color:var(--mcu-ink);color:#fff}
 .mcu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-bottom:64px}
 .mcu-grid figure{margin:0}
 .mcu-grid figure[hidden]{display:none}
 .mcu-grid button{display:block;width:100%;padding:0;border:0;background:#eee;border-radius:8px;overflow:hidden;cursor:zoom-in;aspect-ratio:1}
-.mcu-grid img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
-.mcu-grid button:hover img{transform:scale(1.04)}
+.mcu-grid img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s var(--mcu-ease)}
+.mcu-grid button{transition:box-shadow .25s var(--mcu-ease)}
+.mcu-grid button:hover{box-shadow:0 16px 30px -18px rgba(31,26,23,.6)}
+.mcu-grid button:hover img{transform:scale(1.06)}
 .mcu-grid figcaption{padding:8px 2px 0;font-size:.9rem;line-height:1.35}
 .mcu-grid figcaption span,.mcu-lightbox figcaption span{display:block;color:var(--mcu-muted);font-size:.85rem}
 .mcu-quote{display:grid;grid-template-columns:1fr 1.3fr;gap:40px;padding-top:40px;padding-bottom:72px;border-top:1px solid var(--mcu-line)}
@@ -284,8 +294,9 @@ class Mcuire_CC_Catering {
 .mcu-form{display:grid;gap:14px;background:var(--mcu-paper);padding:24px;border-radius:10px}
 .mcu-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .mcu-form label{display:grid;gap:6px;font-weight:600;font-size:.92rem}
-.mcu-form input,.mcu-form select,.mcu-form textarea{width:100%;font:inherit;font-weight:400;padding:11px 12px;border:1px solid var(--mcu-line);border-radius:6px;background:#fff;color:var(--mcu-ink)}
-.mcu-form input:focus,.mcu-form select:focus,.mcu-form textarea:focus{outline:2px solid var(--mcu-accent);outline-offset:1px}
+.mcu-form input,.mcu-form select,.mcu-form textarea{width:100%;font:inherit;font-weight:400;padding:12px 14px;border:1px solid var(--mcu-line);border-radius:6px;background:#fff;color:var(--mcu-ink);transition:border-color .2s,box-shadow .2s}
+.mcu-form input:hover,.mcu-form select:hover,.mcu-form textarea:hover{border-color:#b9a892}
+.mcu-form input:focus,.mcu-form select:focus,.mcu-form textarea:focus{outline:none;border-color:var(--mcu-accent);box-shadow:0 0 0 4px rgba(239,154,26,.2)}
 .mcu-hp{position:absolute!important;left:-9999px!important}
 .mcu-status{margin:0;font-weight:600}
 .mcu-lightbox{position:fixed;inset:0;z-index:99999;background:rgba(15,10,6,.92);display:flex;align-items:center;justify-content:center;padding:20px}
@@ -294,7 +305,9 @@ class Mcuire_CC_Catering {
 .mcu-lightbox img{max-width:100%;max-height:78vh;border-radius:6px}
 .mcu-lightbox figcaption{margin-top:10px}
 .mcu-lightbox figcaption span{color:#d9cfc4}
-.mcu-lightbox button{position:absolute;background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:999px;width:48px;height:48px;font-size:28px;cursor:pointer}
+.mcu-lightbox button{position:absolute;background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:999px;width:48px;height:48px;font-size:28px;cursor:pointer;transition:background-color .2s}
+.mcu-lightbox button:hover{background:rgba(255,255,255,.25)}
+@media (prefers-reduced-motion:reduce){.mcu-cat *{transition:none!important}}
 .mcu-x{top:16px;right:16px}.mcu-prev{left:12px;top:50%}.mcu-next{right:12px;top:50%}
 @media (max-width:780px){.mcu-quote{grid-template-columns:1fr}.mcu-row{grid-template-columns:1fr}.mcu-hero{padding:40px 0 32px}}
 ';

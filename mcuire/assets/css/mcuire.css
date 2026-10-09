@@ -8,7 +8,7 @@
   --card: #fffdf9;
   --ink: #23170f;
   --ink-2: #4f4035;
-  --muted: #84715f;
+  --muted: #6f5d4c; /* 5:1 on paper, easy to read */
   --line: #e8dccb;
   --jollof: #c43d1a;
   --jollof-deep: #93290f;
@@ -24,8 +24,10 @@
   --radius: 18px;
   --radius-sm: 12px;
   --shadow: 0 1px 2px rgba(35, 23, 15, 0.06), 0 8px 24px -12px rgba(35, 23, 15, 0.25);
-  --display: 'Fraunces', Georgia, 'Times New Roman', serif;
-  --body: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Same type as mcuire.ca: Playfair Display headings, Roboto text. */
+  --display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --body: 'Roboto', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   --gutter: clamp(16px, 4vw, 40px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   color-scheme: light;
@@ -39,8 +41,11 @@ body {
   color: var(--ink);
   font-family: var(--body);
   font-size: 17px;
-  line-height: 1.6;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
   overflow-x: hidden;
 }
 img, video { max-width: 100%; display: block; }
@@ -52,12 +57,15 @@ button { cursor: pointer; }
 .ic { flex: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-h1, h2, h3, h4 { font-family: var(--display); font-weight: 600; line-height: 1.12; margin: 0 0 0.4em; letter-spacing: -0.01em; font-optical-sizing: auto; }
+h1, h2, h3, h4 { font-family: var(--display); font-weight: 700; line-height: 1.15; margin: 0 0 0.45em; letter-spacing: 0; font-variant-numeric: lining-nums; text-wrap: balance; color: var(--ink); }
+.dark-section h1, .dark-section h2, .dark-section h3, .flagship h2, .flagship h3 { color: inherit; }
 h1 { font-size: clamp(2.2rem, 6vw, 4.2rem); }
 h2 { font-size: clamp(1.7rem, 3.6vw, 2.6rem); }
-h3 { font-size: 1.35rem; }
-p { margin: 0 0 1em; }
-.eyebrow { font: 600 0.78rem/1.2 var(--body); letter-spacing: 0.14em; text-transform: uppercase; color: var(--clay); margin-bottom: 0.9rem; display: block; }
+h3 { font-size: 1.35rem; line-height: 1.25; }
+h4 { line-height: 1.3; }
+p { margin: 0 0 1em; text-wrap: pretty; }
+@media (min-width: 900px) { body { font-size: 18px; } }
+.eyebrow { font: 700 0.78rem/1.2 var(--body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--clay); margin-bottom: 0.9rem; display: block; }
 .lede { font-size: clamp(1.08rem, 1.6vw, 1.25rem); color: var(--ink-2); max-width: 38em; }
 .muted { color: var(--muted); }
 .small { font-size: 0.9rem; }
@@ -598,3 +606,73 @@ body.has-timers .sticky-cta { bottom: calc(68px + var(--safe-bottom)); }
 .stepper button { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); font-size: 1.2rem; cursor: pointer; color: var(--ink); }
 .stepper b { min-width: 1.5em; text-align: center; font-size: 1.2rem; }
 .wk-total { margin-top: 24px; max-width: 460px; }
+
+/* ---------------------------------------------------------------- Type & interaction polish
+   Numbers line up, links and buttons respond to the hand, and everything
+   keeps a clear focus ring for keyboard users. */
+::selection { background: var(--gold-soft); color: var(--ink); }
+.price, .facts b, .journey li::before, .wk-total, .table td, .qty, .stepper, .timer-card .big { font-variant-numeric: lining-nums tabular-nums; }
+.price { font-weight: 700; letter-spacing: 0; }
+.quote { font-weight: 500; }
+.lede { line-height: 1.6; }
+.small, .tile p, .tile .meta { line-height: 1.5; }
+
+/* Links inside text: a soft underline that fills in on hover */
+main p a:not(.btn), .lede a:not(.btn), .notice a, .site-footer a:not(.btn) {
+  color: var(--jollof-deep); text-decoration: underline; text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px; text-decoration-color: rgba(196, 61, 26, 0.35);
+  transition: text-decoration-color 0.2s var(--ease), color 0.2s var(--ease);
+}
+main p a:not(.btn):hover, .lede a:not(.btn):hover, .notice a:hover { color: var(--jollof); text-decoration-color: currentColor; }
+.dark-section p a:not(.btn), .site-footer a:not(.btn) { color: var(--gold-soft); text-decoration-color: rgba(246, 227, 180, 0.4); }
+.site-footer a:not(.btn):hover { color: #fff; text-decoration-color: currentColor; }
+.link { transition: color 0.2s var(--ease); }
+.link:hover { color: var(--jollof-deep); }
+
+/* Buttons lift slightly under the pointer and press down on tap */
+.btn { letter-spacing: 0.01em; transition: transform 0.18s var(--ease), background-color 0.2s var(--ease), border-color 0.2s var(--ease), box-shadow 0.25s var(--ease), color 0.2s var(--ease); }
+@media (hover: hover) {
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary:hover { box-shadow: 0 14px 28px -12px rgba(147, 41, 15, 0.75); }
+  .btn-dark:hover { background: #3a2a1f; box-shadow: 0 12px 24px -14px rgba(29, 20, 14, 0.8); }
+  .btn-ghost:hover { background: var(--card); box-shadow: var(--shadow); }
+  .btn-light:hover { box-shadow: 0 12px 24px -14px rgba(0, 0, 0, 0.6); }
+  .btn-gold:hover { background: #eab042; box-shadow: 0 12px 24px -14px rgba(224, 162, 42, 0.9); }
+}
+.btn:active { transform: translateY(0) scale(0.98); transition-duration: 0.06s; }
+
+/* Header links: an underline that slides in */
+.nav a:not(.btn) { position: relative; transition: color 0.2s var(--ease), background-color 0.2s var(--ease); }
+.nav a:not(.btn)::after {
+  content: ''; position: absolute; left: 14px; right: 14px; bottom: 5px; height: 2px; border-radius: 2px;
+  background: var(--jollof); transform: scaleX(0); transform-origin: left; transition: transform 0.25s var(--ease);
+}
+.nav a:not(.btn):hover::after, .nav a.active::after { transform: scaleX(1); }
+.nav a:not(.btn):hover, .nav a.active { background: transparent; }
+.brand { transition: opacity 0.2s var(--ease); }
+.brand:hover { opacity: 0.85; }
+
+/* Dish and course cards: photo zooms gently, title picks up the brand colour */
+.tile .media img, .course-row .media img, .flagship .media img { transition: transform 0.6s var(--ease); }
+.tile h3 { transition: color 0.2s var(--ease); }
+@media (hover: hover) {
+  .tile:hover .media { transform: translateY(-4px); box-shadow: var(--shadow); }
+  .tile:hover .media img, .course-row:hover .media img, .flagship:hover .media img { transform: scale(1.05); }
+  .tile:hover h3 { color: var(--jollof); }
+  .cat-nav a:hover { background: var(--card); }
+  .chip-btn:not(:disabled):not(.is-on):hover { border-color: var(--ink-2); background: var(--card); }
+  .seg button:not([aria-pressed='true']):hover { border-color: var(--ink-2); background: var(--card); }
+  .icon-btn:hover { background: var(--paper-2); }
+  .lesson-list li a:hover { color: var(--jollof); }
+  .module summary:hover h3 { color: var(--jollof); }
+  .table tbody tr:hover td { background: var(--paper-2); }
+}
+.cat-nav a, .chip-btn, .seg button, .icon-btn, .module summary h3, .lesson-list li a, .table td { transition: background-color 0.2s var(--ease), border-color 0.2s var(--ease), color 0.2s var(--ease), transform 0.15s var(--ease); }
+.chip-btn:active:not(:disabled), .seg button:active, .icon-btn:active { transform: scale(0.96); }
+.module summary .ic { transition: transform 0.25s var(--ease); }
+
+/* Form fields: clear focus with a warm ring */
+.input, .field input, .field select, .field textarea { transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease); }
+.input:hover, .field input:hover, .field select:hover, .field textarea:hover { border-color: var(--muted); }
+.input:focus, .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--jollof); box-shadow: 0 0 0 4px rgba(196, 61, 26, 0.14); }
+::placeholder { color: #9c8b7a; opacity: 1; }

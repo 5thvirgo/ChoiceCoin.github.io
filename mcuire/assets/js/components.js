@@ -27,7 +27,7 @@ export function brandMark(size = 40) {
   return `<svg class="brand-mark" width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true">
     <circle cx="32" cy="32" r="31" fill="#c43d1a"/>
     <circle cx="32" cy="32" r="25.5" fill="none" stroke="#e0a22a" stroke-width="1.5" stroke-dasharray="5 3"/>
-    <text x="32" y="43" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-size="30" font-weight="700" fill="#fbf6ee">M</text>
+    <text x="32" y="43" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-size="30" font-weight="700" fill="#fbf6ee">M</text>
   </svg>`;
 }
 
@@ -40,9 +40,9 @@ export function seal(size = 120, id = 'seal') {
     <circle cx="100" cy="100" r="88" fill="#c43d1a"/>
     <circle cx="100" cy="100" r="84" fill="none" stroke="#e0a22a" stroke-width="2"/>
     <circle cx="100" cy="100" r="56" fill="none" stroke="#e0a22a" stroke-width="1.5"/>
-    <text font-family="DM Sans, Arial, sans-serif" font-size="12.5" font-weight="700" letter-spacing="2.4" fill="#fbf6ee"><textPath href="#${id}-arc" startOffset="0">${esc(text)}</textPath></text>
-    <text x="100" y="112" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-size="46" font-weight="700" fill="#fbf6ee">M</text>
-    <text x="100" y="135" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="9" font-weight="700" letter-spacing="2" fill="#f6e3b4">EST. KITCHEN</text>
+    <text font-family="Roboto, Arial, sans-serif" font-size="12.5" font-weight="700" letter-spacing="2.4" fill="#fbf6ee"><textPath href="#${id}-arc" startOffset="0">${esc(text)}</textPath></text>
+    <text x="100" y="112" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-size="46" font-weight="700" fill="#fbf6ee">M</text>
+    <text x="100" y="135" text-anchor="middle" font-family="Roboto, Arial, sans-serif" font-size="9" font-weight="700" letter-spacing="2" fill="#f6e3b4">EST. KITCHEN</text>
   </svg>`;
 }
 
@@ -53,7 +53,7 @@ export function ring(ratio, size = 72, stroke = 7, color = 'var(--jollof)') {
     <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--line)" stroke-width="${stroke}"/>
     <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round"
       stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - Math.min(1, ratio))}" transform="rotate(-90 ${size / 2} ${size / 2})"/>
-    <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" font-family="Fraunces, Georgia, serif" font-size="${size / 4.2}" font-weight="600" fill="var(--ink)">${Math.round(ratio * 100)}%</text>
+    <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" font-family="Playfair Display, Georgia, serif" font-size="${size / 4.2}" font-weight="600" fill="var(--ink)">${Math.round(ratio * 100)}%</text>
   </svg>`;
 }
 

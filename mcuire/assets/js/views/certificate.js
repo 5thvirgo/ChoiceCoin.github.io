@@ -36,33 +36,33 @@ export function certificateSvg({ name, course, date, number, preview = false }) 
   ${[[70, 90], [W - 70, 90], [70, H - 90], [W - 70, H - 90]].map(([x, y]) => `<g transform="translate(${x} ${y})"><rect x="-9" y="-9" width="18" height="18" transform="rotate(45)" fill="#c43d1a"/><rect x="-4" y="-4" width="8" height="8" transform="rotate(45)" fill="#e0a22a"/></g>`).join('')}
 
   <g transform="translate(${W / 2 - 40} 110)">${brandMark(80).replace('class="brand-mark"', '')}</g>
-  <text x="${W / 2}" y="242" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="9" fill="#1d140e">${esc(brand.name.toUpperCase())}</text>
+  <text x="${W / 2}" y="242" text-anchor="middle" font-family="Roboto, Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="9" fill="#1d140e">${esc(brand.name.toUpperCase())}</text>
   <line x1="${W / 2 - 220}" y1="272" x2="${W / 2 + 220}" y2="272" stroke="#b08a2e" stroke-width="1.5"/>
-  <text x="${W / 2}" y="326" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-size="52" font-weight="600" letter-spacing="6" fill="#c43d1a">CERTIFICATE OF COMPLETION</text>
+  <text x="${W / 2}" y="326" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-size="52" font-weight="600" letter-spacing="6" fill="#c43d1a">CERTIFICATE OF COMPLETION</text>
 
-  <text x="${W / 2}" y="406" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-style="italic" font-size="30" fill="#4f4035">This certifies that</text>
-  <text x="${W / 2}" y="${500}" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-style="italic" font-weight="600" font-size="${nameSize}" fill="#1d140e">${esc(name)}</text>
+  <text x="${W / 2}" y="406" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-style="italic" font-size="30" fill="#4f4035">This certifies that</text>
+  <text x="${W / 2}" y="${500}" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-style="italic" font-weight="600" font-size="${nameSize}" fill="#1d140e">${esc(name)}</text>
   <line x1="${W / 2 - 420}" y1="528" x2="${W / 2 + 420}" y2="528" stroke="#1d140e" stroke-width="1"/>
-  <text x="${W / 2}" y="582" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-style="italic" font-size="30" fill="#4f4035">has successfully completed</text>
-  <text x="${W / 2}" y="652" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-weight="600" font-size="54" fill="#1d140e">${esc(course.certificateTitle || course.title)}</text>
-  <text x="${W / 2}" y="712" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="23" fill="#4f4035">Mcuire’s guided home-cooking programme in West African dishes, ingredients,</text>
-  <text x="${W / 2}" y="744" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="23" fill="#4f4035">preparation methods and cooking techniques, taught step by step by the Mcuire kitchen.</text>
+  <text x="${W / 2}" y="582" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-style="italic" font-size="30" fill="#4f4035">has successfully completed</text>
+  <text x="${W / 2}" y="652" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-weight="600" font-size="54" fill="#1d140e">${esc(course.certificateTitle || course.title)}</text>
+  <text x="${W / 2}" y="712" text-anchor="middle" font-family="Roboto, Arial, sans-serif" font-size="23" fill="#4f4035">Mcuire’s guided home-cooking programme in West African dishes, ingredients,</text>
+  <text x="${W / 2}" y="744" text-anchor="middle" font-family="Roboto, Arial, sans-serif" font-size="23" fill="#4f4035">preparation methods and cooking techniques, taught step by step by the Mcuire kitchen.</text>
 
-  <g font-family="DM Sans, Arial, sans-serif">
-    <text x="300" y="900" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-size="32" fill="#1d140e">${esc(date)}</text>
+  <g font-family="Roboto, Arial, sans-serif">
+    <text x="300" y="900" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-size="32" fill="#1d140e">${esc(date)}</text>
     <line x1="160" y1="918" x2="440" y2="918" stroke="#1d140e"/>
     <text x="300" y="950" text-anchor="middle" font-size="18" letter-spacing="3" font-weight="700" fill="#84715f">DATE OF COMPLETION</text>
 
-    <text x="${W - 300}" y="900" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-style="italic" font-size="44" fill="#23170f">${esc(brand.signatory.name)}</text>
+    <text x="${W - 300}" y="900" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-style="italic" font-size="44" fill="#23170f">${esc(brand.signatory.name)}</text>
     <line x1="${W - 450}" y1="918" x2="${W - 150}" y2="918" stroke="#1d140e"/>
     <text x="${W - 300}" y="950" text-anchor="middle" font-size="18" letter-spacing="3" font-weight="700" fill="#84715f">AUTHORISED SIGNATURE</text>
     <text x="${W - 300}" y="976" text-anchor="middle" font-size="17" fill="#84715f">${esc(brand.signatory.title)}</text>
   </g>
   <g transform="translate(${W / 2 - 100} 780)">${seal(200, 'cert-seal')}</g>
 
-  <text x="${W / 2}" y="1028" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="18" letter-spacing="2" fill="#4f4035">CERTIFICATE NO. ${esc(number)}</text>
-  <text x="${W / 2}" y="1052" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="14" fill="#84715f">A Mcuire Certificate of Completion. Not an accredited culinary qualification.</text>
-  ${preview ? `<text x="${W / 2}" y="${H / 2 + 60}" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="230" font-weight="700" fill="#c43d1a" fill-opacity="0.08" transform="rotate(-18 ${W / 2} ${H / 2})">PREVIEW</text>` : ''}
+  <text x="${W / 2}" y="1028" text-anchor="middle" font-family="Roboto, Arial, sans-serif" font-size="18" letter-spacing="2" fill="#4f4035">CERTIFICATE NO. ${esc(number)}</text>
+  <text x="${W / 2}" y="1052" text-anchor="middle" font-family="Roboto, Arial, sans-serif" font-size="14" fill="#84715f">A Mcuire Certificate of Completion. Not an accredited culinary qualification.</text>
+  ${preview ? `<text x="${W / 2}" y="${H / 2 + 60}" text-anchor="middle" font-family="Roboto, Arial, sans-serif" font-size="230" font-weight="700" fill="#c43d1a" fill-opacity="0.08" transform="rotate(-18 ${W / 2} ${H / 2})">PREVIEW</text>` : ''}
 </svg>`;
 }
 
