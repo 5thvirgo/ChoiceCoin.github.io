@@ -15,7 +15,7 @@ import { suya, poundedYam, friedRice, moiMoi } from './recipes-more.js';
 import { efoRiro, ogbono, akara, chinChin, riceAndStew } from './recipes-extra.js';
 import { MEALS } from './meals.js';
 import { coconutRice, ofadaAyamase, waakye, thieboudienne } from './batch-rice.js';
-import { okraSoup, ohaSoup, afang, edikangIkong, bitterleaf, nsala, banga } from './batch-soups.js';
+import { okraSoup, ohaSoup, afang, edikangIkong, bitterleaf, nsala, banga, pepperSoup } from './batch-soups.js';
 import { fufu, semolina, amala, grilledChicken, grilledFish, asun, friedBeef, assortedMeat, ataDindin } from './batch-swallows-grills.js';
 import { meatPie, kelewele } from './batch-street.js';
 
@@ -387,6 +387,7 @@ const outlines = [
   outline('bitterleaf-soup', 'soups', 'Bitterleaf Soup (Ofe Onugbu)', 'Nigeria (Igbo)', 'Washed bitterleaf in a cocoyam-thickened palm oil broth.', 40, 60, 'Intermediate', 'leaf'),
   outline('nsala', 'soups', 'Nsala (White Soup)', 'Nigeria (Igbo)', 'A light, peppery soup thickened with yam, often with catfish.', 25, 45),
   outline('banga', 'soups', 'Banga Soup', 'Nigeria (Delta)', 'Palm fruit soup with fragrant banga spices and fresh fish.', 40, 60, 'Intermediate'),
+  outline('pepper-soup', 'soups', 'Assorted Meat Pepper Soup', 'Nigeria', 'Hot, fragrant pepper soup with assorted meat, yam and scent leaf.', 30, 100, 'Intermediate'),
   outline('pounded-yam', 'soups', 'Pounded Yam', 'Nigeria', 'Smooth and stretchy. We show you the method and the shortcut.', 15, 25, 'Beginner friendly', 'rice'),
   outline('eba', 'soups', 'Eba', 'Nigeria', 'Garri swallow: get the water ratio and the turn right every time.', 2, 5, 'Beginner friendly', 'rice'),
   outline('fufu', 'soups', 'Fufu', 'West Africa', 'Fermented cassava swallow, smooth and soft.', 10, 20, 'Beginner friendly', 'rice'),
@@ -419,7 +420,7 @@ const outlines = [
 
 // Finished Cook With Me lessons replace their outline in place, keeping catalogue order.
 const finished = Object.fromEntries([egusi, eba, pepperedChicken, dodo, puffPuff, suya, poundedYam, friedRice, moiMoi, efoRiro, ogbono, akara, chinChin, riceAndStew, ...MEALS,
-  coconutRice, ofadaAyamase, waakye, thieboudienne, okraSoup, ohaSoup, afang, edikangIkong, bitterleaf, nsala, banga,
+  coconutRice, ofadaAyamase, waakye, thieboudienne, okraSoup, ohaSoup, afang, edikangIkong, bitterleaf, nsala, banga, pepperSoup,
   fufu, semolina, amala, grilledChicken, grilledFish, asun, friedBeef, assortedMeat, ataDindin, meatPie, kelewele].map((r) => [r.id, r]));
 const recipes = [jollof, ...outlines.map((o) => finished[o.id] || o)];
 const ids = (cat) => recipes.filter((r) => r.categoryId === cat).map((r) => r.id);
@@ -439,7 +440,7 @@ const courses = [
     ],
     modules: [
       { id: 'm1', title: 'Rice & Classics', summary: 'Start with the pot everyone judges you by.', recipeIds: ids('rice') },
-      { id: 'm2', title: 'Soups & Swallows', summary: 'Eight soups and five swallows, made by hand.', recipeIds: ids('soups') },
+      { id: 'm2', title: 'Soups & Swallows', summary: 'Nine soups and five swallows, made by hand.', recipeIds: ids('soups') },
       { id: 'm3', title: 'Proteins & Grills', summary: 'Seasoning, boiling, frying and grilling meat and fish.', recipeIds: ids('grills') },
       { id: 'm4', title: 'Street Food & Snacks', summary: 'Small chops and street favourites.', recipeIds: ids('street') },
       { id: 'm5', title: 'Complete Meals', summary: 'Timing several dishes into one meal.', recipeIds: ids('meals') },
@@ -479,7 +480,7 @@ const courses = [
 
 // Every finished dish can also be bought on its own: $20 for quicker beginner
 // dishes, $30 for longer or more advanced ones. Prices are editable in admin.
-export const singleDishPrice = (r) =>
+export const singleDishPrice = (r) => r.singlePriceCents ??
   (r.difficulty === 'Beginner friendly' && (r.prepMinutes || 0) + (r.cookMinutes || 0) <= 75 ? 2000 : 3000);
 for (const r of recipes.filter((x) => x.status === 'complete' && !x.components)) {
   courses.push({
@@ -572,7 +573,7 @@ const discounts = [
 ];
 
 export const SEED = {
-  version: 19,
+  version: 20,
   categories,
   courses,
   recipes,

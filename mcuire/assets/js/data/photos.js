@@ -424,6 +424,7 @@ const OWN_PHOTOS = {
   nsala: 'nsala.jpg',
   'ofada-rice-ayamase': 'ofada-rice-ayamase.jpg',
   'sunday-dinner': 'sunday-dinner.jpg',
+  'pepper-soup': 'pepper-soup.jpg',
   'nigerian-fried-rice': 'nigerian-fried-rice.jpg',
   'efo-riro': 'efo-riro-2.jpg',
   'meat-pie': 'meat-pie.jpg',

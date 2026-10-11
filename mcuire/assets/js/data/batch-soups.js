@@ -256,3 +256,45 @@ export const banga = {
     servedStep('bg7', 'jollof', 'Try it as “banga rice”: spoon it over white rice instead of serving it with swallow.'),
   ],
 };
+
+// ---------------------------------------------------------------------------
+export const pepperSoup = {
+  ...soupBase(),
+  id: 'pepper-soup', slug: 'pepper-soup', title: 'Assorted Meat Pepper Soup', region: 'Nigeria',
+  subtitle: 'A hot, fragrant broth of assorted meat and soft yam, full of pepper soup spices and scent leaf.',
+  story: 'Pepper soup is Nigeria’s comfort in a bowl: for cold days, celebrations and anyone feeling under the weather. It’s a clear, peppery broth, not a thick soup, so the flavour comes from the meat stock, the toasted pepper soup spices and fresh scent leaf. At Mcuire we add chunks of yam so it’s a full meal.',
+  prepMinutes: 30, cookMinutes: 100, difficulty: 'Intermediate', singlePriceCents: 2000,
+  allergens: ['Shellfish (crayfish, optional)', STOCK_NOTE],
+  dietary: ['Dairy-free', 'Gluten-free if your stock cubes are'],
+  serveWith: ['On its own, piping hot', 'White rice', 'Boiled yam or plantain'],
+  hero: photo('Assorted meat pepper soup with yam and scent leaf. 45°.', 'onion', 'Assorted meat pepper soup with yam'),
+  ingredients: [
+    ing('assorted', 'Assorted meat: shaki (tripe), cow foot and beef or goat', 1.2, 'kg', 'Meat & Fish', ['african-grocery', 'mainstream'], { note: 'Ask an African or Caribbean butcher for “assorted meat”. Cow foot and tripe are often sold cleaned and cut.', substitutes: [{ name: 'Goat meat only', note: 'Classic “goat meat pepper soup”. Simmer about 60 minutes.' }, { name: 'Chicken thighs', note: '“Chicken pepper soup”. Simmer 25 minutes in step 2.' }] }),
+    ing('yam', 'White yam, peeled and cut in chunks', 500, 'g', 'Produce', ['african-grocery'], { substitutes: [{ name: 'Potatoes or unripe plantain', note: 'Cook 10–12 minutes in step 5.' }] }),
+    ing('ps-spice', 'Pepper soup spice mix', 2, 'tbsp', 'African Ingredients', ['african-grocery', 'online'], { note: 'A blend of ehuru, uda, uziza and other seeds, sold ready-ground.', substitutes: [{ name: 'Make your own', note: '1 tsp each ground ehuru (or nutmeg), uda (or a pinch of black pepper), uziza seed and ginger.' }] }),
+    ing('scent-leaf', 'Scent leaves (efinrin/nchanwu), sliced', 8, 'leaf', 'African Ingredients', ['african-grocery'], { scale: 'whole', substitutes: [{ name: 'Fresh basil and a few mint leaves', note: 'Close in aroma.' }] }),
+    ing('lime', 'Lime or lemon (for cleaning the meat)', 1, '', 'Produce', ['mainstream'], { scale: 'whole' }),
+    crayfish(1, 'crayfish', { optional: true }), sb(2), onion(1), stockCubes(2), salt(1),
+  ],
+  steps: [
+    { id: 'ps1', phase: 'prep', title: 'Clean the assorted meat', body: 'Put the tripe and cow foot in a bowl with a handful of salt and the juice of the lime. Scrub each piece, scrape off any dark bits from the tripe with a knife, then rinse well in several changes of water. Rinse the beef or goat too.', why: 'Well-cleaned tripe and cow foot give a clear, clean-tasting broth with no strong smell.', about: '15 minutes', media: [photo('Tripe and cow foot being scrubbed with salt and lime.', 'onion')], ingredientIds: ['assorted', 'lime'], tips: [{ kind: 'mcuire', text: 'Bought pre-cleaned? A quick rinse with salt is enough.' }],
+      cues: { see: 'Pale, clean tripe with no dark patches, and clear rinsing water.' } },
+    { id: 'ps2', phase: 'cook', title: 'Season and simmer the meat', body: 'Put the cow foot and tripe in a large pot with the chopped onion, 1 crumbled stock cube, a pinch of salt and ½ cup of water. Cover and let them steam for 10 minutes. Add 6 cups of water and simmer until the cow foot is soft. Add the beef or goat for the last 45 minutes.', why: 'The toughest cuts go in first, so everything is tender at the same time.', about: 'About 75–90 minutes', timer: { minutes: 75, label: 'Simmer the assorted meat' }, media: [photo('Assorted meat simmering in a pale broth.', 'onion')], ingredientIds: ['onion', 'stock-cubes', 'salt'],
+      cues: { texture: 'A fork slides into the cow foot easily; the tripe is soft but still a little chewy.' },
+      tips: [{ kind: 'watch', text: 'Top up with hot water if it runs low. You need about 5 cups of broth left at the end.' }] },
+    { id: 'ps3', phase: 'prep', title: 'Prepare the yam', body: 'While the meat cooks, peel the yam, cut it into large chunks and keep them in a bowl of cold water so they don’t turn brown.', about: '5 minutes', media: [], ingredientIds: ['yam'] },
+    { id: 'ps4', phase: 'cook', title: 'Spice the broth', body: 'Stir the pepper soup spice, blended or finely chopped scotch bonnet, crayfish (if using) and the second stock cube into the pot. Simmer for 10 minutes so the spices bloom.', about: '10 minutes', timer: { minutes: 10, label: 'Spice the broth' }, media: [photo('Pepper soup broth with spices, steaming.', 'onion')], ingredientIds: ['ps-spice', 'sb', 'crayfish', 'stock-cubes'],
+      cues: { smell: 'Warm, peppery and a little like nutmeg and clove. Your kitchen should smell like a Nigerian party.', see: 'A clear, light brown broth flecked with spice.' },
+      tips: [{ kind: 'chef', text: 'Taste now. Pepper soup should be hot and make your nose run a little, but you can always add more pepper later.' }] },
+    { id: 'ps5', phase: 'cook', title: 'Cook the yam in the soup', body: 'Drain the yam and add it to the pot. Simmer until the yam is soft all the way through.', about: '12–15 minutes', timer: { minutes: 12, label: 'Cook the yam' }, media: [], ingredientIds: [],
+      checkpoint: { question: 'Is the yam ready?', options: [
+        { id: 'hard', label: 'Still hard in the middle', verdict: 'wait', media: photo('Yam still firm when pierced.', 'onion'), guidance: 'Simmer 3–5 minutes more and check again.' },
+        { id: 'soft', label: 'Soft, edges just starting to crumble', verdict: 'good', media: photo('Soft yam chunks in pepper soup.', 'onion'), guidance: 'Perfect. The crumbling yam slightly thickens the broth.' },
+      ] } },
+    { id: 'ps6', phase: 'finish', title: 'Add scent leaves and season', body: 'Scatter in the sliced scent leaves, taste and add salt. Simmer for 1 more minute, then turn off the heat.', about: '2 minutes', media: [], ingredientIds: ['scent-leaf', 'salt'],
+      cues: { smell: 'Fresh and minty from the scent leaf, on top of the peppery broth.' } },
+    { id: 'ps7', phase: 'finish', title: 'Serve piping hot', body: 'Ladle the broth, meat and yam into deep bowls and serve straight away, with a cold drink on the side.', about: 'Now', media: [photo('Bowl of assorted meat pepper soup with yam and scent leaf.', 'onion')], ingredientIds: [],
+      cues: { see: 'A steaming bowl of clear, peppery broth with assorted meat, soft yam and green scent leaf.' },
+      tips: [{ kind: 'mcuire', text: 'Pepper soup tastes even better the next day. Reheat gently and add a few fresh scent leaves.' }] },
+  ],
+};

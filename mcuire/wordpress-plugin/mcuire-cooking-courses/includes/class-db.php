@@ -194,6 +194,10 @@ class Mcuire_CC_DB {
 	private static function add_new_content() {
 		global $wpdb;
 		$seed = json_decode(file_get_contents(MCUIRE_CC_DIR . 'data/seed.json'), true);
+		if (!is_array(get_option('mcuire_cc_seen_recipes'))) {
+			// First run of this check: every dish already installed counts as known.
+			update_option('mcuire_cc_seen_recipes', array_values(array_map('strval', (array) $wpdb->get_col('SELECT id FROM ' . self::t('recipes')))), false);
+		}
 		foreach ($seed['recipes'] as $r) {
 			$existing = self::get_recipe($r['id']);
 			if (!$existing && !$wpdb->get_var($wpdb->prepare('SELECT 1 FROM ' . self::t('recipes') . ' WHERE slug = %s', $r['slug']))) {
@@ -208,8 +212,34 @@ class Mcuire_CC_DB {
 		foreach ($seed['courses'] as $course) {
 			if (!$wpdb->get_var($wpdb->prepare('SELECT 1 FROM ' . self::t('courses') . ' WHERE id = %s OR slug = %s', $course['id'], $course['slug']))) {
 				self::save_course($course);
+				continue;
+			}
+			// New dishes in an update also join the courses that include their
+			// category (e.g. a new soup in Soups & Swallows and the full course),
+			// so people who already bought those courses get them too.
+			$have = self::get_course($course['id']);
+			if (!$have || $course['kind'] === 'single') {
+				continue;
+			}
+			$changed = false;
+			foreach ($course['modules'] as $mod) {
+				foreach ($have['modules'] as $i => $hm) {
+					if (($hm['id'] ?? '') !== ($mod['id'] ?? '')) {
+						continue;
+					}
+					foreach ($mod['recipeIds'] as $rid) {
+						if (!in_array($rid, $hm['recipeIds'] ?? array(), true) && !self::recipe_ever_seen($rid)) {
+							$have['modules'][$i]['recipeIds'][] = $rid;
+							$changed = true;
+						}
+					}
+				}
+			}
+			if ($changed) {
+				self::save_course($have);
 			}
 		}
+		self::remember_recipes(array_map(function ($r) { return $r['id']; }, $seed['recipes']));
 		// Example live classes start as drafts: the owner sets real dates and links first.
 		// Example classes are replaced by the newer examples while they are all still
 		// untouched drafts with no bookings; once the owner publishes one, they are kept.
@@ -231,6 +261,18 @@ class Mcuire_CC_DB {
 		if ($current === null || $untouched) {
 			self::set_meta('liveClasses', array_map(function ($c) { $c['status'] = 'draft'; return $c; }, $seed['liveClasses'] ?? array()));
 		}
+	}
+
+	// Recipes that existed in an earlier version, so a dish the owner removed
+	// from a course is not put back by later updates.
+	private static function recipe_ever_seen($id) {
+		$seen = get_option('mcuire_cc_seen_recipes');
+		return is_array($seen) ? in_array($id, $seen, true) : false;
+	}
+
+	private static function remember_recipes($ids) {
+		$seen = get_option('mcuire_cc_seen_recipes');
+		update_option('mcuire_cc_seen_recipes', array_values(array_unique(array_merge(is_array($seen) ? $seen : array(), $ids))), false);
 	}
 
 	// Bring in new photos and "what it should look like" notes from an update,
