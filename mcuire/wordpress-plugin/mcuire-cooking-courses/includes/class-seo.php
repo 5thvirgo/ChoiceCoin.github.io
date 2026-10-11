@@ -149,7 +149,7 @@ class Mcuire_CC_SEO {
 			$single = self::single_course($r['id']);
 			$price = $single ? ' · $' . self::money($single['priceCents']) . ' CAD' : '';
 			$adj = array('Nigeria' => 'Nigerian', 'Ghana' => 'Ghanaian', 'Senegal' => 'Senegalese', 'Sierra Leone' => 'Sierra Leonean', 'Cameroon' => 'Cameroonian');
-			$page['title'] = 'How to Make ' . $r['title'] . ': Step-by-Step ' . ($adj[$r['region'] ?? ''] ?? 'West African') . ' Recipe & Cooking Lesson · Mcuire';
+			$page['title'] = 'How to Make ' . $r['title'] . ': Step-by-Step ' . ($adj[trim(preg_replace('/\s*\(.*$/', '', (string) ($r['region'] ?? '')))] ?? 'West African') . ' Recipe & Cooking Lesson · Mcuire';
 			$page['desc'] = self::clip(($r['subtitle'] ?? '') . ' Cook it with Mcuire African Restaurant’s step-by-step lesson, with photos, timers and tips' . $price . '.');
 			$page['image'] = Mcuire_CC_DB::media_url($r['hero']['src'] ?? '');
 			$page['url'] = $url;

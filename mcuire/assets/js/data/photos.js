@@ -418,6 +418,10 @@ for (const [key, path] of Object.entries(SITE_PHOTOS)) {
 const OWN_PHOTOS = {
   waakye: 'waakye.jpg',
   'white-rice-and-stew': 'white-rice-and-stew.jpg',
+  'party-jollof': 'party-jollof.jpg',
+  'nigerian-fried-rice': 'nigerian-fried-rice.jpg',
+  'efo-riro': 'efo-riro.jpg',
+  'meat-pie': 'meat-pie.jpg',
 };
 export const REPLACED_PHOTOS = [
   'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Waakye_with_kelewele%2C_spaghetti%2C_salad%2C_stew_and_shito.jpg/960px-Waakye_with_kelewele%2C_spaghetti%2C_salad%2C_stew_and_shito.jpg',

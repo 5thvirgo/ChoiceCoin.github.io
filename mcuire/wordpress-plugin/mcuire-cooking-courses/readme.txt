@@ -1,7 +1,7 @@
 === Mcuire Cooking Courses ===
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.0
+Stable tag: 1.9.1
 
 Mcuire African Restaurant's online West African cooking academy, at /cooking-courses/.
 
@@ -30,6 +30,9 @@ Upload the new zip (Plugins → Add New → Upload → Replace current). Your re
 Stripe settings are kept; new dishes and courses are added. Example live classes arrive as drafts.
 
 == Changelog ==
+= 1.9.1 =
+* Mcuire's own kitchen photos for Party Jollof Rice, Nigerian Fried Rice, Efo Riro and Nigerian Meat Pie (replacing the earlier stock or drawn pictures; photos you uploaded yourself are kept).
+
 = 1.9.0 =
 * Search: course pages now target "African cooking course online in Canada" style searches (titles, descriptions, a visible introduction and Questions people ask section on the courses home page).
 * Google data: the restaurant is described as both restaurant and cooking school, with address, phone, awards and Instagram; richer Course data; FAQ data that matches the page; dish photos in the sitemap.
