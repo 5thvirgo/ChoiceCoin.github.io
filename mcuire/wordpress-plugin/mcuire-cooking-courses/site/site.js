@@ -12,8 +12,8 @@
     var body = document.body;
     var main = document.querySelector('main') || body;
 
-    // First cover block on the page is the hero.
-    var hero = main.querySelector('.wp-block-cover');
+    // The first cover block near the top is the hero (on mcuire.ca it sits before <main>).
+    var hero = document.querySelector('.wp-block-cover');
     if (hero && hero.getBoundingClientRect().top < 400) hero.classList.add('mcu-hero');
 
     // ---- header: compact after scrolling, tucks away while reading down

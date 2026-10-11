@@ -19,6 +19,55 @@ class Mcuire_CC_SEO {
 		add_filter('robots_txt', function ($out, $public) {
 			return $public ? rtrim($out) . "\nSitemap: " . self::url('sitemap.xml', false) . "\n" : $out;
 		}, 10, 2);
+		// Google Search Console ownership code on every page of the site.
+		add_action('wp_head', function () {
+			echo self::verification_tag(); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in verification_tag()
+		}, 1);
+		// IndexNow (Bing, Yandex and others): a key file at /<key>.txt and a notice
+		// listing every course page after each plugin update.
+		add_action('init', function () {
+			add_rewrite_rule('^' . self::indexnow_key() . '\.txt$', 'index.php?mcuire_indexnow=1', 'top');
+		});
+		add_filter('query_vars', function ($vars) {
+			$vars[] = 'mcuire_indexnow';
+			return $vars;
+		});
+		add_action('template_redirect', function () {
+			if (get_query_var('mcuire_indexnow')) {
+				header('Content-Type: text/plain; charset=utf-8');
+				echo esc_html(self::indexnow_key());
+				exit;
+			}
+		}, 1);
+		add_action('init', function () {
+			if (get_option('mcuire_cc_indexnow_due')) {
+				delete_option('mcuire_cc_indexnow_due');
+				self::indexnow_ping();
+			}
+		}, 110);
+	}
+
+	public static function indexnow_key() {
+		$key = get_option('mcuire_cc_indexnow_key');
+		if (!$key) {
+			$key = bin2hex(random_bytes(16));
+			update_option('mcuire_cc_indexnow_key', $key);
+		}
+		return $key;
+	}
+
+	// Tell IndexNow search engines that the course pages are new or changed.
+	public static function indexnow_ping() {
+		$host = wp_parse_url(home_url('/'), PHP_URL_HOST);
+		if (!$host || preg_match('/^(localhost|127\.|10\.|192\.168\.)|\.(local|test)$/', $host) || !get_option('blog_public')) {
+			return; // test sites and sites hidden from search engines
+		}
+		$key = self::indexnow_key();
+		wp_remote_post('https://api.indexnow.org/indexnow', array(
+			'blocking' => false, 'timeout' => 5,
+			'headers' => array('Content-Type' => 'application/json; charset=utf-8'),
+			'body' => wp_json_encode(array('host' => $host, 'key' => $key, 'keyLocation' => home_url('/' . $key . '.txt'), 'urlList' => array_slice(self::all_urls(), 0, 1000))),
+		));
 	}
 
 	public static function url($path = '', $slash = true) {
@@ -26,8 +75,26 @@ class Mcuire_CC_SEO {
 		return $slash && $path !== '' ? trailingslashit($u) : $u;
 	}
 
+	// The restaurant, which is also the cooking school behind the courses.
 	private static function brand() {
-		return array('@type' => 'Restaurant', 'name' => 'Mcuire African Restaurant', 'url' => home_url('/'), 'servesCuisine' => array('Nigerian', 'Ghanaian', 'West African'), 'logo' => plugins_url('media/mcuire-logo.png', MCUIRE_CC_DIR . 'mcuire-cooking-courses.php'));
+		$phone = class_exists('Mcuire_CC_Site_Style') ? Mcuire_CC_Site_Style::phone() : '';
+		return array(
+			'@type' => array('Restaurant', 'EducationalOrganization'), '@id' => home_url('/#mcuire'),
+			'name' => 'Mcuire African Restaurant', 'alternateName' => 'Mcuire Cooking Courses',
+			'url' => home_url('/'), 'logo' => plugins_url('media/mcuire-logo.png', MCUIRE_CC_DIR . 'mcuire-cooking-courses.php'),
+			'servesCuisine' => array('Nigerian', 'Ghanaian', 'West African', 'African'),
+			'telephone' => $phone ? '+1 ' . trim(preg_replace('/[^\d]+/', ' ', $phone)) : null,
+			'address' => array('@type' => 'PostalAddress', 'streetAddress' => '3876 Main St', 'addressLocality' => 'Niagara Falls', 'addressRegion' => 'ON', 'postalCode' => 'L2G 6B6', 'addressCountry' => 'CA'),
+			'areaServed' => array('Canada', 'Worldwide (online courses)'),
+			'knowsAbout' => array('African cooking', 'Nigerian cooking', 'Ghanaian cooking', 'West African cuisine', 'Jollof rice', 'Egusi soup', 'Suya'),
+			'award' => array('CommunityVotes Niagara Region: 22 awards, 2023–2026', 'Canadian Choice Award 2023, Catering Services', 'Restaurant Guru Recommended 2022'),
+			'sameAs' => array('https://www.instagram.com/mcuire_/'),
+		);
+	}
+
+	private static function faq() {
+		$seed = json_decode((string) file_get_contents(MCUIRE_CC_DIR . 'data/seed.json'), true);
+		return (array) ($seed['faq'] ?? array());
 	}
 
 	private static function money($cents) {
@@ -56,9 +123,11 @@ class Mcuire_CC_SEO {
 	private static function course_schema($c, $url, $desc) {
 		return array(
 			'@type' => 'Course', 'name' => $c['title'], 'description' => $desc, 'url' => $url,
-			'provider' => array('@type' => 'Organization', 'name' => 'Mcuire African Restaurant', 'sameAs' => home_url('/')),
+			'provider' => array('@type' => 'Organization', '@id' => home_url('/#mcuire'), 'name' => 'Mcuire African Restaurant', 'sameAs' => home_url('/')),
+			'educationalLevel' => 'Beginner', 'teaches' => 'West African (Nigerian and Ghanaian) home cooking', 'about' => array('African cooking', 'Nigerian food', 'Ghanaian food'),
+			'isAccessibleForFree' => false, 'availableLanguage' => 'en',
 			'offers' => array('@type' => 'Offer', 'category' => 'Paid', 'price' => self::money($c['priceCents']), 'priceCurrency' => $c['currency'] ?? 'CAD', 'availability' => 'https://schema.org/InStock', 'url' => $url),
-			'hasCourseInstance' => array('@type' => 'CourseInstance', 'courseMode' => 'Online', 'courseWorkload' => 'PT2H'),
+			'hasCourseInstance' => array('@type' => 'CourseInstance', 'courseMode' => 'Online', 'courseWorkload' => 'PT2H', 'courseSchedule' => array('@type' => 'Schedule', 'repeatFrequency' => 'P1D', 'repeatCount' => 1, 'duration' => 'PT2H')),
 			'inLanguage' => 'en',
 		);
 	}
@@ -70,8 +139,8 @@ class Mcuire_CC_SEO {
 		$slug = $parts[1] ?? '';
 		$home = home_url('/');
 		$page = array(
-			'title' => 'West African Cooking Classes Online · Mcuire African Restaurant',
-			'desc' => 'Learn to cook Nigerian and Ghanaian food step by step: party jollof, egusi, suya, puff-puff and more. Lessons from $20 CAD, plus live online cooking classes with a Mcuire chef every weekend.',
+			'title' => 'Online African Cooking Course in Canada · Nigerian & Ghanaian Cooking Classes · Mcuire',
+			'desc' => 'Learn African cooking online with award-winning Mcuire African Restaurant (Niagara Falls, Canada): step-by-step Nigerian and Ghanaian lessons from $20, live video cooking classes and a certificate. Jollof, egusi, suya and 40+ dishes.',
 			'image' => '', 'url' => self::url(), 'type' => 'website', 'schema' => array(), 'body' => '',
 		);
 
@@ -79,7 +148,8 @@ class Mcuire_CC_SEO {
 			$url = self::url('recipes/' . $r['slug']);
 			$single = self::single_course($r['id']);
 			$price = $single ? ' · $' . self::money($single['priceCents']) . ' CAD' : '';
-			$page['title'] = $r['title'] . ' Recipe: Step-by-Step Cooking Lesson' . ' · Mcuire';
+			$adj = array('Nigeria' => 'Nigerian', 'Ghana' => 'Ghanaian', 'Senegal' => 'Senegalese', 'Sierra Leone' => 'Sierra Leonean', 'Cameroon' => 'Cameroonian');
+			$page['title'] = 'How to Make ' . $r['title'] . ': Step-by-Step ' . ($adj[$r['region'] ?? ''] ?? 'West African') . ' Recipe & Cooking Lesson · Mcuire';
 			$page['desc'] = self::clip(($r['subtitle'] ?? '') . ' Cook it with Mcuire African Restaurant’s step-by-step lesson, with photos, timers and tips' . $price . '.');
 			$page['image'] = Mcuire_CC_DB::media_url($r['hero']['src'] ?? '');
 			$page['url'] = $url;
@@ -109,7 +179,7 @@ class Mcuire_CC_SEO {
 				. '<h2>Cook it step by step</h2><ol><li>' . implode('</li><li>', array_map(function ($s) { return esc_html($s['title']); }, $r['steps'])) . '</li></ol>';
 		} elseif ($type === 'courses' && ($c = Mcuire_CC_DB::get_course($slug)) && $c['status'] === 'published') {
 			$url = self::url('courses/' . $c['slug']);
-			$page['title'] = $c['title'] . ' · West African Cooking Course · Mcuire';
+			$page['title'] = $c['title'] . ' · Online African Cooking Course · Mcuire';
 			$page['desc'] = self::clip(($c['blurb'] ?? $c['subtitle'] ?? '') . ' $' . self::money($c['priceCents']) . ' CAD, lifetime access.');
 			$page['url'] = $url;
 			$first = $c['modules'][0]['recipeIds'][0] ?? '';
@@ -168,9 +238,18 @@ class Mcuire_CC_SEO {
 				$page['image'] = Mcuire_CC_DB::media_url($jollof['hero']['src']);
 			}
 			$page['schema'][] = array('@type' => 'ItemList', 'name' => 'West African cooking lessons', 'itemListElement' => $items);
-			$page['body'] = '<h1>Learn to cook West African food with Mcuire</h1><p>' . esc_html($page['desc']) . '</p><h2>Cooking lessons</h2><ul>' . implode('', $links) . '</ul>';
+			$faq = self::faq();
+			if ($faq) {
+				$page['schema'][] = array('@type' => 'FAQPage', 'mainEntity' => array_map(function ($f) {
+					return array('@type' => 'Question', 'name' => $f['q'], 'acceptedAnswer' => array('@type' => 'Answer', 'text' => $f['a']));
+				}, $faq));
+			}
+			$page['body'] = '<h1>Online African cooking course from an award-winning Canadian kitchen</h1><p>' . esc_html($page['desc']) . '</p>'
+				. '<h2>Nigerian and Ghanaian cooking lessons</h2><ul>' . implode('', $links) . '</ul>'
+				. '<h2>Live online cooking classes</h2><p>Cook at home while a Mcuire chef coaches you live by video call, every Saturday and Sunday: home cooking, cooking help, group cooking and cooking for events.</p>'
+				. ($faq ? '<h2>Questions people ask</h2>' . implode('', array_map(function ($f) { return '<h3>' . esc_html($f['q']) . '</h3><p>' . esc_html($f['a']) . '</p>'; }, $faq)) : '');
 		}
-		$page['schema'][] = self::brand();
+		$page['schema'][] = array_filter(self::brand(), function ($v) { return $v !== null; });
 		return $page;
 	}
 
@@ -181,7 +260,7 @@ class Mcuire_CC_SEO {
 		$d = esc_attr($p['desc']);
 		$html = preg_replace('#<title>.*?</title>#s', '<title>' . $t . '</title>', $html, 1);
 		$html = preg_replace('#<meta name="description" content="[^"]*">#', '<meta name="description" content="' . $d . '">', $html, 1);
-		$head = '<link rel="canonical" href="' . esc_url($p['url']) . '">'
+		$head = self::verification_tag() . '<link rel="canonical" href="' . esc_url($p['url']) . '">'
 			. '<meta name="robots" content="index,follow,max-image-preview:large">'
 			. '<meta property="og:site_name" content="Mcuire African Restaurant">'
 			. '<meta property="og:locale" content="en_CA">'
@@ -200,38 +279,56 @@ class Mcuire_CC_SEO {
 		return str_replace('<div class="loading">Opening the Mcuire kitchen…</div>', $pre . '<div class="loading">Opening the Mcuire kitchen…</div>', $html);
 	}
 
-	public static function sitemap() {
-		$urls = array(self::url());
+	// address => photo (or '') for every public page.
+	public static function entries() {
+		$urls = array(self::url() => '');
 		if (class_exists('Mcuire_CC_Catering')) {
-			$urls[] = Mcuire_CC_Catering::url();
+			$urls[Mcuire_CC_Catering::url()] = '';
 		}
 		if (class_exists('Mcuire_CC_Wholesale')) {
-			$urls[] = Mcuire_CC_Wholesale::url();
+			$urls[Mcuire_CC_Wholesale::url()] = Mcuire_CC_Wholesale::photo();
 		}
 		foreach (Mcuire_CC_DB::all_courses() as $c) {
 			if ($c['status'] !== 'published') {
 				continue;
 			}
+			$r = Mcuire_CC_DB::get_recipe($c['modules'][0]['recipeIds'][0] ?? '');
+			$img = $r ? Mcuire_CC_DB::media_url($r['hero']['src'] ?? '') : '';
 			if ($c['kind'] === 'single') {
-				$r = Mcuire_CC_DB::get_recipe($c['modules'][0]['recipeIds'][0] ?? '');
 				if ($r) {
-					$urls[] = self::url('recipes/' . $r['slug']);
+					$urls[self::url('recipes/' . $r['slug'])] = $img;
 				}
 			} else {
-				$urls[] = self::url('courses/' . $c['slug']);
+				$urls[self::url('courses/' . $c['slug'])] = $img;
 			}
 		}
 		foreach (Mcuire_CC_DB::live_classes() as $cls) {
 			if ($cls['status'] === 'published' && strtotime($cls['startsAt']) > time()) {
-				$urls[] = self::url('live/' . $cls['id']);
+				$urls[self::url('live/' . $cls['id'])] = '';
 			}
 		}
+		return $urls;
+	}
+
+	public static function sitemap() {
+		$urls = self::entries();
 		header('Content-Type: application/xml; charset=utf-8');
-		echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n" . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
-		foreach (array_unique($urls) as $u) {
-			echo '<url><loc>' . esc_url($u) . '</loc></url>';
+		echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n" . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">';
+		foreach ($urls as $u => $img) {
+			echo '<url><loc>' . esc_url($u) . '</loc>' . ($img && preg_match('#^https?://#', $img) ? '<image:image><image:loc>' . esc_url($img) . '</image:loc></image:image>' : '') . '</url>';
 		}
 		echo '</urlset>';
+	}
+
+	// Every page address in the sitemap (for search-engine notices).
+	public static function all_urls() {
+		return array_keys(self::entries());
+	}
+
+	// Google Search Console ownership code (Settings), on every page.
+	public static function verification_tag() {
+		$code = trim((string) get_option('mcuire_cc_google_verify', ''));
+		return $code ? '<meta name="google-site-verification" content="' . esc_attr($code) . '">' : '';
 	}
 }
 

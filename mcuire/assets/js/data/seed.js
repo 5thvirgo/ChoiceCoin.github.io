@@ -8,6 +8,7 @@
 import { MORE_CUES } from './cues-more.js';
 import { DEFAULT_BOOKING } from '../lib/slots.js';
 import { PHOTOS, STEP_PHOTOS, INGREDIENT_PHOTOS, REPLACED_PHOTOS } from './photos.js';
+import { FAQ } from './faq.js';
 import { egusi, eba, pepperedChicken } from './recipes-soups-grills.js';
 import { dodo, puffPuff } from './recipes-street.js';
 import { suya, poundedYam, friedRice, moiMoi } from './recipes-more.js';
@@ -582,4 +583,5 @@ export const SEED = {
   liveClasses,
   liveBooking: DEFAULT_BOOKING,
   replacedPhotos: REPLACED_PHOTOS,
+  faq: FAQ,
 };

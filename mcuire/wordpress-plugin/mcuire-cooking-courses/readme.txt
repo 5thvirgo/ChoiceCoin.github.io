@@ -1,7 +1,7 @@
 === Mcuire Cooking Courses ===
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.8.1
+Stable tag: 1.9.0
 
 Mcuire African Restaurant's online West African cooking academy, at /cooking-courses/.
 
@@ -30,6 +30,13 @@ Upload the new zip (Plugins → Add New → Upload → Replace current). Your re
 Stripe settings are kept; new dishes and courses are added. Example live classes arrive as drafts.
 
 == Changelog ==
+= 1.9.0 =
+* Search: course pages now target "African cooking course online in Canada" style searches (titles, descriptions, a visible introduction and Questions people ask section on the courses home page).
+* Google data: the restaurant is described as both restaurant and cooking school, with address, phone, awards and Instagram; richer Course data; FAQ data that matches the page; dish photos in the sitemap.
+* New setting for the Google Search Console ownership code (Settings → Website look).
+* After each update the plugin tells IndexNow search engines (Bing, which also feeds ChatGPT search, Yandex and others) about all course pages.
+* Site style: the homepage top photo now slowly zooms and its text fades in (the photo is outside the main area on mcuire.ca and was missed before).
+
 = 1.8.1 =
 * Fix: the Call button on phones could pick up a wrong number from elsewhere on the page. It now always calls the restaurant phone set in Cooking Courses → Settings → Website look (default (905) 324-8091).
 
