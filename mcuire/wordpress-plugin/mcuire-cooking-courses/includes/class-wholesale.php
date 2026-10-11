@@ -32,12 +32,29 @@ class Mcuire_CC_Wholesale {
 		add_action('admin_menu', function () {
 			add_submenu_page('mcuire-cooking-courses', 'Wholesale orders', 'Wholesale orders', 'manage_options', 'mcuire-wholesale-requests', array(__CLASS__, 'admin_page'));
 		}, 21);
-		// Add "Wholesale Drinks" to the menu and put the menu in order, once.
+		// Add "Wholesale Drinks" and "Event Décor" to the menu and put it in order,
+		// once per menu version (bump MENU_VERSION when a link is added).
 		add_action('init', function () {
-			if (!get_option('mcuire_cc_menu_order_done')) {
+			if ((int) get_option('mcuire_cc_menu_version', get_option('mcuire_cc_menu_order_done') ? 1 : 0) < self::MENU_VERSION) {
 				self::menu_order();
 			}
 		}, 101);
+	}
+
+	const MENU_VERSION = 2;
+	const DECOR_URL = 'https://mcuireevents.com/';
+
+	// Links the plugin adds to the site menu: label, address, opens in a new tab.
+	private static function links() {
+		return array(
+			array('Wholesale Drinks', self::url(), false),
+			array('Event Décor', self::DECOR_URL, true), // the separate events website
+		);
+	}
+
+	private static function has_link($haystack, $url) {
+		$path = untrailingslashit(preg_replace('#^https?://#', '', $url));
+		return strpos($haystack, $path) !== false;
 	}
 
 	public static function url() {
@@ -284,6 +301,7 @@ class Mcuire_CC_Wholesale {
 			array('label' => 'weekday menu', 'url' => ''),
 			array('label' => 'weekend menu', 'url' => '/weekend-menu'),
 			array('label' => 'wholesale drinks', 'url' => '/' . self::SLUG),
+			array('label' => 'event décor', 'url' => 'mcuireevents.com'),
 		);
 	}
 
@@ -304,11 +322,11 @@ class Mcuire_CC_Wholesale {
 		return 100; // anything else (About, Contact, …) keeps its place after these
 	}
 
-	// Add "Wholesale Drinks" and order the menu: Home, Cooking Courses, Event
-	// Catering, Weekday Menu, Weekend Menu, Wholesale Drinks, then the rest.
-	// Runs once; the previous menu is kept in an option so it can be restored.
+	// Add the plugin's links and order the menu: Home, Cooking Courses, Event
+	// Catering, Weekday Menu, Weekend Menu, Wholesale Drinks, Event Décor, then
+	// the rest. Runs once per MENU_VERSION; the menu as it was before the plugin
+	// first touched it is kept in an option so it can be restored.
 	public static function menu_order() {
-		$url = self::url();
 		$done = false;
 		$backup = array();
 
@@ -319,8 +337,14 @@ class Mcuire_CC_Wholesale {
 				continue; // not the menu we added our links to
 			}
 			$backup['nav_' . $nav->ID] = $content;
-			if (strpos($content, '/' . self::SLUG) === false) {
-				$content .= "\n" . sprintf('<!-- wp:navigation-link {"label":"Wholesale Drinks","url":"%s","kind":"custom","isTopLevelLink":true} /-->', esc_url($url));
+			foreach (self::links() as $l) {
+				if (!self::has_link($content, $l[1])) {
+					$attrs = array('label' => $l[0], 'url' => esc_url_raw($l[1]), 'kind' => 'custom', 'isTopLevelLink' => true);
+					if ($l[2]) {
+						$attrs['opensInNewTab'] = true;
+					}
+					$content .= "\n" . serialize_block(array('blockName' => 'core/navigation-link', 'attrs' => $attrs, 'innerBlocks' => array(), 'innerHTML' => '', 'innerContent' => array()));
+				}
 			}
 			$blocks = array_values(array_filter(parse_blocks($content), function ($b) {
 				return !empty($b['blockName']);
@@ -342,14 +366,13 @@ class Mcuire_CC_Wholesale {
 		// Classic themes: menus assigned to a theme location.
 		foreach (array_unique(array_filter(array_values((array) get_nav_menu_locations()))) as $menu_id) {
 			$items = wp_get_nav_menu_items($menu_id) ?: array();
-			$has = false;
-			foreach ($items as $item) {
-				$has = $has || untrailingslashit($item->url) === untrailingslashit($url);
+			$urls = implode(' ', wp_list_pluck($items, 'url'));
+			foreach (self::links() as $l) {
+				if (!self::has_link($urls, $l[1])) {
+					wp_update_nav_menu_item($menu_id, 0, array('menu-item-title' => $l[0], 'menu-item-url' => $l[1], 'menu-item-status' => 'publish', 'menu-item-type' => 'custom', 'menu-item-target' => $l[2] ? '_blank' : ''));
+				}
 			}
-			if (!$has) {
-				wp_update_nav_menu_item($menu_id, 0, array('menu-item-title' => 'Wholesale Drinks', 'menu-item-url' => $url, 'menu-item-status' => 'publish', 'menu-item-type' => 'custom'));
-				$items = wp_get_nav_menu_items($menu_id) ?: array();
-			}
+			$items = wp_get_nav_menu_items($menu_id) ?: array();
 			$top = array_values(array_filter($items, function ($it) {
 				return !$it->menu_item_parent;
 			}));
@@ -374,8 +397,11 @@ class Mcuire_CC_Wholesale {
 			}
 			$done = true;
 		}
-		update_option('mcuire_cc_menu_backup', $backup, false);
+		if (!get_option('mcuire_cc_menu_backup')) {
+			update_option('mcuire_cc_menu_backup', $backup, false);
+		}
 		update_option('mcuire_cc_menu_order_done', $done ? 'yes' : 'manual');
+		update_option('mcuire_cc_menu_version', self::MENU_VERSION);
 	}
 }
 

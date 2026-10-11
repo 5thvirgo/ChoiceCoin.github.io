@@ -1,7 +1,7 @@
 === Mcuire Cooking Courses ===
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.11.2
+Stable tag: 1.12.0
 
 Mcuire African Restaurant's online West African cooking academy, at /cooking-courses/.
 
@@ -30,6 +30,9 @@ Upload the new zip (Plugins → Add New → Upload → Replace current). Your re
 Stripe settings are kept; new dishes and courses are added. Example live classes arrive as drafts.
 
 == Changelog ==
+= 1.12.0 =
+* Adds an "Event Décor" link to the site menu, after Wholesale Drinks. It opens mcuireevents.com in a new tab.
+
 = 1.11.2 =
 * Mcuire's own photos for Fufu, Semolina, Mcuire Grilled Chicken and the Party Platter (for 20).
 
