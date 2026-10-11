@@ -424,7 +424,7 @@ const OWN_PHOTOS = {
   nsala: 'nsala.jpg',
   'ofada-rice-ayamase': 'ofada-rice-ayamase.jpg',
   'sunday-dinner': 'sunday-dinner.jpg',
-  'pepper-soup': 'pepper-soup.jpg',
+  'pepper-soup': 'pepper-soup-2.jpg',
   'nigerian-fried-rice': 'nigerian-fried-rice.jpg',
   'efo-riro': 'efo-riro-2.jpg',
   'meat-pie': 'meat-pie.jpg',
@@ -438,6 +438,7 @@ const WRONG_PHOTOS = [];
 export const REPLACED_PHOTOS = [
   'media:efo-riro.jpg', // was the wrong dish
   'media:party-jollof.jpg', // earlier Mcuire jollof photo, replaced by the owner's choice
+  'media:pepper-soup.jpg', // first pepper soup photo, replaced by the owner's choice
   'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Waakye_with_kelewele%2C_spaghetti%2C_salad%2C_stew_and_shito.jpg/960px-Waakye_with_kelewele%2C_spaghetti%2C_salad%2C_stew_and_shito.jpg',
   'https://upload.wikimedia.org/wikipedia/commons/e/eb/White_rice_and_stew_with_chicken.jpg',
 ];

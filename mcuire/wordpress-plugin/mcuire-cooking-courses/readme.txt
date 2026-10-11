@@ -1,7 +1,7 @@
 === Mcuire Cooking Courses ===
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.11.0
+Stable tag: 1.11.1
 
 Mcuire African Restaurant's online West African cooking academy, at /cooking-courses/.
 
@@ -30,6 +30,9 @@ Upload the new zip (Plugins → Add New → Upload → Replace current). Your re
 Stripe settings are kept; new dishes and courses are added. Example live classes arrive as drafts.
 
 == Changelog ==
+= 1.11.1 =
+* New photo for Assorted Meat Pepper Soup.
+
 = 1.11.0 =
 * New lesson: Assorted Meat Pepper Soup (7 steps, with Mcuire's photo), $20 on its own and included in Soups & Swallows and West African Kitchen.
 * Updates now add new dishes to the courses that cover them, so people who already bought those courses get them too (dishes you removed from a course are not put back).
