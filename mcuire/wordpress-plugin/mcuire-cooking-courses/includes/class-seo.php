@@ -19,6 +19,19 @@ class Mcuire_CC_SEO {
 		add_filter('robots_txt', function ($out, $public) {
 			return $public ? rtrim($out) . "\nSitemap: " . self::url('sitemap.xml', false) . "\n" : $out;
 		}, 10, 2);
+		// Homepage: a title with the words people search for, and full restaurant
+		// details (address, phone, hours, menu, awards) for Google and Maps.
+		add_filter('pre_get_document_title', function ($title) {
+			if (is_front_page() && get_option('mcuire_cc_home_seo', '1') === '1') {
+				return 'Mcuire African Restaurant · Award-Winning Nigerian & Ghanaian Food in Niagara Falls, Ontario';
+			}
+			return $title;
+		}, 999);
+		add_action('wp_head', function () {
+			if (is_front_page() && get_option('mcuire_cc_home_seo', '1') === '1') {
+				echo '<script type="application/ld+json">' . wp_json_encode(array_merge(array('@context' => 'https://schema.org'), self::restaurant()), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
+			}
+		}, 5);
 		// Google Search Console ownership code on every page of the site.
 		add_action('wp_head', function () {
 			echo self::verification_tag(); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in verification_tag()
@@ -90,6 +103,25 @@ class Mcuire_CC_SEO {
 			'award' => array('CommunityVotes Niagara Region: 22 awards, 2023–2026', 'Canadian Choice Award 2023, Catering Services', 'Restaurant Guru Recommended 2022'),
 			'sameAs' => array('https://www.instagram.com/mcuire_/'),
 		);
+	}
+
+	// The restaurant itself, for the homepage.
+	public static function restaurant() {
+		$r = array_filter(self::brand(), function ($v) { return $v !== null; });
+		$r['@type'] = 'Restaurant';
+		$r['description'] = 'Award-winning Nigerian and Ghanaian restaurant in Niagara Falls, Ontario: party jollof, suya, egusi and more. Weekend dine-in, takeout, event catering, wholesale zobo and online African cooking classes.';
+		$r['image'] = array(plugins_url('media/party-jollof.jpg', MCUIRE_CC_DIR . 'mcuire-cooking-courses.php'), plugins_url('media/mcuire-logo.png', MCUIRE_CC_DIR . 'mcuire-cooking-courses.php'));
+		$r['priceRange'] = '$$';
+		$r['acceptsReservations'] = home_url('/reservations/');
+		$r['hasMenu'] = home_url('/weekend-menu/');
+		$r['openingHoursSpecification'] = array(array('@type' => 'OpeningHoursSpecification', 'dayOfWeek' => array('Thursday', 'Friday', 'Saturday'), 'opens' => '12:00', 'closes' => '19:00'));
+		$r['areaServed'] = array('Niagara Falls', 'Niagara Region', 'St. Catharines', 'Welland', 'Fort Erie', 'Ontario');
+		$r['makesOffer'] = array(
+			array('@type' => 'Offer', 'itemOffered' => array('@type' => 'Service', 'name' => 'Event catering', 'url' => home_url('/event-catering/'))),
+			array('@type' => 'Offer', 'itemOffered' => array('@type' => 'Service', 'name' => 'Online African cooking classes', 'url' => self::url())),
+			array('@type' => 'Offer', 'itemOffered' => array('@type' => 'Product', 'name' => 'Zobo hibiscus drink (wholesale)', 'url' => home_url('/wholesale-drinks/'))),
+		);
+		return $r;
 	}
 
 	private static function faq() {

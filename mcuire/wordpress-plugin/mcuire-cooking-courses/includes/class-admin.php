@@ -78,6 +78,7 @@ class Mcuire_CC_Admin {
 		if (preg_match('/content=["\']([^"\']+)/', $verify, $vm)) {
 			$verify = $vm[1];
 		}
+		update_option('mcuire_cc_home_seo', !empty($_POST['home_seo']) ? '1' : '0');
 		update_option('mcuire_cc_google_verify', preg_replace('/[^A-Za-z0-9_\-]/', '', $verify));
 		update_option('mcuire_cc_phone', preg_match('/\d{7,}/', preg_replace('/\D/', '', $phone)) ? $phone : '(905) 324-8091');
 		set_transient('mcuire_cc_notice', get_settings_errors('mcuire_cc') ?: 'saved', 60);
@@ -154,6 +155,7 @@ class Mcuire_CC_Admin {
 				<h2>Website look</h2>
 				<table class="form-table">
 					<tr><th>Mcuire site style</th><td><label><input type="checkbox" name="site_style" value="1" <?php checked(get_option('mcuire_cc_site_style', '1'), '1'); ?>> Use the polished header, footer and animations on the whole website</label><p class="description">Woven kente edges, a header that stays handy while scrolling, a full-screen phone menu, Call / Reserve buttons on phones, and gentle animations as visitors scroll. Untick to go back to the theme's original look. Your pages and text are not changed either way.</p></td></tr>
+					<tr><th>Homepage for Google</th><td><label><input type="checkbox" name="home_seo" value="1" <?php checked(get_option('mcuire_cc_home_seo', '1'), '1'); ?>> Use the search title “Mcuire African Restaurant · Award-Winning Nigerian &amp; Ghanaian Food in Niagara Falls, Ontario” and give Google the restaurant’s address, phone, hours, menu and awards</label></td></tr>
 					<tr><th>Google Search Console</th><td><input type="text" class="regular-text" name="google_verify" value="<?php echo esc_attr(get_option('mcuire_cc_google_verify', '')); ?>" placeholder="Paste the HTML tag or code from Google"><p class="description">In Google Search Console choose <b>URL prefix</b> → <b>HTML tag</b>, paste it here, save, then click Verify in Google.</p></td></tr>
 					<tr><th>Restaurant phone</th><td><input type="text" class="regular-text" name="phone" value="<?php echo esc_attr(get_option('mcuire_cc_phone', '(905) 324-8091')); ?>"><p class="description">Used by the Call button on phones.</p></td></tr>
 				</table>

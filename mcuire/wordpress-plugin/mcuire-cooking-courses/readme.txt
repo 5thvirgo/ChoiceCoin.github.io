@@ -1,7 +1,7 @@
 === Mcuire Cooking Courses ===
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.1
+Stable tag: 1.10.0
 
 Mcuire African Restaurant's online West African cooking academy, at /cooking-courses/.
 
@@ -30,6 +30,10 @@ Upload the new zip (Plugins → Add New → Upload → Replace current). Your re
 Stripe settings are kept; new dishes and courses are added. Example live classes arrive as drafts.
 
 == Changelog ==
+= 1.10.0 =
+* Mcuire's photos for Chin Chin, Coconut Rice, Efo Riro, Ogbono Soup and Bitterleaf Soup. The earlier Efo Riro photo and the Ofada Rice photo showed the wrong dish and are taken off (Ofada Rice has no photo until Mcuire sends one).
+* Homepage for Google (on by default, Settings → Website look): search title "Mcuire African Restaurant · Award-Winning Nigerian & Ghanaian Food in Niagara Falls, Ontario" and full restaurant details (address, phone, opening hours, menu, reservations, awards, catering, cooking classes, wholesale zobo).
+
 = 1.9.1 =
 * Mcuire's own kitchen photos for Party Jollof Rice, Nigerian Fried Rice, Efo Riro and Nigerian Meat Pie (replacing the earlier stock or drawn pictures; photos you uploaded yourself are kept).
 

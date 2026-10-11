@@ -239,16 +239,15 @@ class Mcuire_CC_DB {
 	private static function fill_gaps($have, $new, $replaced = array()) {
 		$photo = function ($old, $fresh) use ($replaced) {
 			if (empty($fresh['src'])) {
-				return $old;
+				// A default photo that showed the wrong dish is taken off.
+				return (!empty($old['src']) && in_array($old['src'], $replaced, true)) ? array_merge($old, array('src' => '', 'credit' => null)) : $old;
 			}
 			if (empty($old['src'])) {
 				return array_merge((array) $old, $fresh);
 			}
 			return (in_array($old['src'], $replaced, true) && $old['src'] !== $fresh['src']) ? array_merge($old, $fresh) : $old;
 		};
-		if (isset($new['hero'])) {
-			$have['hero'] = $photo($have['hero'] ?? array(), $new['hero']);
-		}
+		$have['hero'] = $photo($have['hero'] ?? array(), $new['hero'] ?? array());
 		$steps = array();
 		foreach ($new['steps'] as $s) {
 			$steps[$s['id']] = $s;
