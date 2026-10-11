@@ -573,7 +573,7 @@ const discounts = [
 ];
 
 export const SEED = {
-  version: 21,
+  version: 22,
   categories,
   courses,
   recipes,

@@ -432,6 +432,10 @@ const OWN_PHOTOS = {
   'coconut-rice': 'coconut-rice.jpg',
   'ogbono': 'ogbono.jpg',
   'bitterleaf-soup': 'bitterleaf-soup.jpg',
+  fufu: 'fufu.jpg',
+  semolina: 'semolina.jpg',
+  'party-platter': 'party-platter.jpg',
+  'grilled-chicken': 'grilled-chicken.jpg',
 };
 // Photos that showed the wrong dish: taken off (no photo until Mcuire sends one).
 const WRONG_PHOTOS = [];
