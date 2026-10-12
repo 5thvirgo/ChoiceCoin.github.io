@@ -126,10 +126,6 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .a2 { animation-delay: -2.6s; }
 .a3 { animation-delay: -5.2s; }
 @keyframes float { from { translate: 0 0; } to { translate: 0 -12px; } }
-.beat { position: absolute; left: 8%; right: 8%; top: 46%; height: 60px; pointer-events: none; }
-.beat path { fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 600; stroke-dashoffset: 600; }
-.ready .beat path { animation: draw 2.4s var(--ease) .8s forwards; }
-@keyframes draw { to { stroke-dashoffset: 0; } }
 
 /* entrance */
 .js .in-load { opacity: 0; }
@@ -148,9 +144,9 @@ section { scroll-margin-top: 84px; }
 .sec .intro { margin-top: 16px; color: var(--ink-2); max-width: 60ch; font-size: 1.125rem; }
 
 /* services */
-.svcs { margin-top: 48px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; }
-.svc { background: var(--card); border-radius: var(--r); padding: 28px; box-shadow: 0 1px 0 var(--line); transition: transform .4s var(--ease), box-shadow .4s var(--ease); grid-column: span 2; }
-.svc:nth-child(1), .svc:nth-child(2) { grid-column: span 3; }
+.svcs { margin-top: 48px; display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
+.svc { background: var(--card); border-radius: var(--r); padding: 28px; box-shadow: 0 1px 0 var(--line); transition: transform .4s var(--ease), box-shadow .4s var(--ease); grid-column: span 3; }
+.svc:nth-child(1), .svc:nth-child(2) { grid-column: span 6; }
 .svc:nth-child(1) { background: var(--accent); color: var(--on-accent); }
 .svc:nth-child(1) p { color: inherit; opacity: .88; }
 .svc:nth-child(1) .ic { background: rgb(255 255 255 / .16); color: inherit; }
@@ -161,7 +157,7 @@ section { scroll-margin-top: 84px; }
 .svc p { margin-top: 8px; color: var(--ink-2); }
 
 /* who we help */
-.who { background: var(--surface); }
+.tint { background: var(--surface); }
 .who .wrap { display: grid; grid-template-columns: .9fr 1.1fr; gap: 64px; align-items: start; }
 .who ul { display: grid; gap: 14px; }
 .who li { display: flex; gap: 16px; align-items: flex-start; padding: 20px 22px; background: var(--card); border-radius: var(--r); }
@@ -260,7 +256,6 @@ footer .brand { margin-bottom: 14px; }
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   .js .in-load, .js .rv, .js .arch { opacity: 1; transform: none; }
   .js .hero h1 .line > span { transform: none; }
-  .beat path { stroke-dashoffset: 0; }
   .flow::after { transform: none; }
 }
 </style>
@@ -301,7 +296,6 @@ footer .brand { margin-bottom: 14px; }
         <div class="arch a1" style="--t:.15s"><i class="ph ph-hand-heart"></i><p class="note">Help with daily life, at home.</p></div>
         <div class="arch a2" style="--t:.35s"><i class="ph ph-house-line"></i></div>
         <div class="arch a3" style="--t:.55s"><i class="ph-fill ph-heartbeat"></i></div>
-        <svg class="beat" viewBox="0 0 600 60" preserveAspectRatio="none" style="color:var(--accent-soft)"><path d="M0 30 H200 L225 8 L250 52 L275 18 L292 30 H600"/></svg>
       </div>
     </div>
   </section>
@@ -316,7 +310,7 @@ footer .brand { margin-bottom: 14px; }
     </div>
   </section>
 
-  <section class="sec who" aria-labelledby="who-title">
+  <section class="sec tint who" aria-labelledby="who-title">
     <div class="wrap">
       <div class="rv">
         <h2 id="who-title">Who we help.</h2>
@@ -342,8 +336,8 @@ footer .brand { margin-bottom: 14px; }
     </div>
   </section>
 
-  <section class="sec who" id="areas" aria-labelledby="areas-title">
-    <div class="wrap" style="display:block">
+  <section class="sec tint" id="areas" aria-labelledby="areas-title">
+    <div class="wrap">
       <h2 id="areas-title" class="rv">Areas we serve.</h2>
       <p class="intro rv" style="--t:.06s">Home care across {{AREA}}. Not sure if we cover your street? Just call.</p>
       <ul class="areas">
