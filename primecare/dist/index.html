@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prime Care Home Health | Home Care Services in [Area you serve]</title>
+<meta name="description" content="Prime Care Home Health provides personal care, companionship, nursing and respite care at home in [Area you serve]. Call [Phone number] to talk about care for your loved one.">
+<meta name="theme-color" content="#f5f8f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1a19" media="(prefers-color-scheme: dark)">
+<link rel="canonical" href="https://primecarehomehealth.ca/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Prime Care Home Health | Care that feels like home">
+<meta property="og:description" content="Home care in [Area you serve]. Call [Phone number].">
+<meta property="og:url" content="https://primecarehomehealth.ca/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "additionalType": "https://schema.org/MedicalBusiness",
+  "name": "Prime Care Home Health",
+  "url": "https://primecarehomehealth.ca/",
+  "telephone": "[Phone number]",
+  "email": "[Email]",
+  "areaServed": ["[City]", "[City]", "[City]"],
+  "makesOffer": ["Personal care", "Companionship", "Nursing care", "Respite care", "Dementia care", "After a hospital stay"],
+  "description": "Home care services: personal care, companionship, nursing and respite care at home."
+}
+</script>
+<style>
+/* Calm, trust-first palette: cool off-white, deep green-teal ink, one teal accent.
+   Cards 18px radius, buttons pill. */
+:root {
+  --bg: #f5f8f7;
+  --surface: #e8f0ee;
+  --card: #ffffff;
+  --ink: #12302d;
+  --ink-2: #4a6461;
+  --line: #d4e1de;
+  --accent: #0e6e66;
+  --accent-hover: #0a5a53;
+  --accent-soft: #cfe7e3;
+  --on-accent: #ffffff;
+  --warm: #f3d9c4;
+  --shadow: 0 20px 44px -24px rgb(18 48 45 / .35);
+  --r: 18px;
+  --ease: cubic-bezier(.16, 1, .3, 1);
+  --display: "Outfit", system-ui, sans-serif;
+  --body: "Figtree", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1a19; --surface: #152422; --card: #1a2b29; --ink: #e8f1ef; --ink-2: #a9bdb9; --line: #26403c;
+    --accent: #3fb3a7; --accent-hover: #5cc5ba; --accent-soft: #1d3a37; --on-accent: #0b1716; --warm: #3a2c22;
+    --shadow: 0 20px 44px -24px rgb(0 0 0 / .7);
+    color-scheme: dark;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 1.0625rem/1.65 var(--body); -webkit-font-smoothing: antialiased; }
+img { display: block; max-width: 100%; }
+a { color: inherit; }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; letter-spacing: -0.02em; line-height: 1.08; margin: 0; }
+p { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+.wrap { width: min(1160px, 100% - 32px); margin-inline: auto; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
+.skip { position: absolute; left: 16px; top: -60px; z-index: 50; background: var(--accent); color: var(--on-accent); padding: 10px 16px; border-radius: 999px; text-decoration: none; }
+.skip:focus { top: 12px; }
+
+/* buttons */
+.btn { --pad: 14px 24px; display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; padding: var(--pad); border-radius: 999px; border: 0; cursor: pointer; font: 600 1rem/1 var(--body); text-decoration: none; transition: transform .25s var(--ease), background-color .25s, box-shadow .25s; }
+.btn i { font-size: 1.25em; }
+.btn:active { transform: scale(.97); }
+.btn-call { background: var(--accent); color: var(--on-accent); box-shadow: 0 12px 26px -12px rgb(14 110 102 / .65); position: relative; isolation: isolate; }
+.btn-call:hover { background: var(--accent-hover); transform: translateY(-2px); }
+.btn-call::after { content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -1; animation: ring 2.8s var(--ease) infinite; }
+@keyframes ring { 0% { box-shadow: 0 0 0 0 rgb(14 110 102 / .4); } 70%, 100% { box-shadow: 0 0 0 14px rgb(14 110 102 / 0); } }
+.btn-ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--line); }
+.btn-ghost:hover { box-shadow: inset 0 0 0 1.5px var(--ink); transform: translateY(-2px); }
+
+/* header */
+.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px); border-bottom: 1px solid transparent; transition: border-color .3s; }
+.top.is-scrolled { border-bottom-color: var(--line); }
+.top .wrap { display: flex; align-items: center; gap: 28px; height: 70px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-right: auto; }
+.brand .mark { width: 38px; height: 38px; border-radius: 12px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-size: 1.3rem; }
+.brand b { display: block; font: 700 1.15rem/1 var(--display); }
+.brand small { display: block; font: 500 .8rem/1.2 var(--body); color: var(--ink-2); letter-spacing: .02em; }
+.nav { display: flex; gap: 26px; }
+.nav a { text-decoration: none; font-weight: 500; color: var(--ink-2); position: relative; }
+.nav a::after { content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 2px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .35s var(--ease); }
+.nav a:hover { color: var(--ink); }
+.nav a:hover::after { transform: scaleX(1); }
+.top .btn { --pad: 11px 18px; }
+
+/* hero */
+.hero { padding: 56px 0 80px; overflow: hidden; }
+.hero .wrap { display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; }
+.hero h1 { font-size: clamp(2.6rem, 5.2vw, 4.4rem); }
+.hero h1 .line { display: block; overflow: hidden; padding-bottom: .05em; }
+.hero h1 .line > span { display: inline-block; }
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero .lede { margin-top: 22px; font-size: 1.2rem; color: var(--ink-2); max-width: 36ch; }
+.hero .ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+.hero .ctas .btn-call { --pad: 18px 28px; font-size: 1.1rem; }
+.hero .reassure { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 10px 22px; color: var(--ink-2); font-size: .98rem; }
+.hero .reassure span { display: inline-flex; align-items: center; gap: 8px; }
+.hero .reassure i { color: var(--accent); font-size: 1.15rem; }
+
+/* Hero visual: arched "windows" of home, gently floating. No stock photos needed. */
+.arches { position: relative; height: min(540px, 66vh); }
+.arch { position: absolute; border-radius: 999px 999px var(--r) var(--r); box-shadow: var(--shadow); display: grid; place-items: center; overflow: hidden; }
+.arch i { font-size: clamp(3rem, 6vw, 5rem); }
+.a1 { left: 0; bottom: 0; width: 46%; height: 82%; background: var(--accent); color: var(--on-accent); }
+.a2 { right: 4%; top: 0; width: 40%; height: 58%; background: var(--warm); color: var(--ink); }
+.a3 { right: 0; bottom: 4%; width: 34%; height: 34%; border-radius: var(--r); background: var(--card); color: var(--accent); }
+.a1 .note { position: absolute; left: 22px; right: 22px; bottom: 26px; font: 600 1.05rem/1.35 var(--display); }
+.arch { animation: float 8s ease-in-out infinite alternate; }
+.a2 { animation-delay: -2.6s; }
+.a3 { animation-delay: -5.2s; }
+@keyframes float { from { translate: 0 0; } to { translate: 0 -12px; } }
+.beat { position: absolute; left: 8%; right: 8%; top: 46%; height: 60px; pointer-events: none; }
+.beat path { fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 600; stroke-dashoffset: 600; }
+.ready .beat path { animation: draw 2.4s var(--ease) .8s forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+
+/* entrance */
+.js .in-load { opacity: 0; }
+.js.ready .in-load { animation: rise 1s var(--ease) both; animation-delay: var(--t, 0s); }
+.js .hero h1 .line > span { transform: translateY(105%); }
+.js.ready .hero h1 .line > span { animation: up 1s var(--ease) both; animation-delay: var(--t, 0s); }
+.js .arch { opacity: 0; transform: translateY(30px) scale(.96); }
+.js.ready .arch { opacity: 1; transform: none; transition: opacity 1s var(--ease), transform 1.2s var(--ease); transition-delay: var(--t, 0s); }
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes up { from { transform: translateY(105%); } to { transform: none; } }
+
+/* sections */
+section { scroll-margin-top: 84px; }
+.sec { padding: clamp(72px, 10vw, 120px) 0; }
+.sec h2 { font-size: clamp(2rem, 4vw, 3rem); max-width: 20ch; }
+.sec .intro { margin-top: 16px; color: var(--ink-2); max-width: 60ch; font-size: 1.125rem; }
+
+/* services */
+.svcs { margin-top: 48px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; }
+.svc { background: var(--card); border-radius: var(--r); padding: 28px; box-shadow: 0 1px 0 var(--line); transition: transform .4s var(--ease), box-shadow .4s var(--ease); grid-column: span 2; }
+.svc:nth-child(1), .svc:nth-child(2) { grid-column: span 3; }
+.svc:nth-child(1) { background: var(--accent); color: var(--on-accent); }
+.svc:nth-child(1) p { color: inherit; opacity: .88; }
+.svc:nth-child(1) .ic { background: rgb(255 255 255 / .16); color: inherit; }
+.svc:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+.svc .ic { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: 1.6rem; transition: transform .5s var(--ease); }
+.svc:hover .ic { transform: rotate(-8deg) scale(1.08); }
+.svc h3 { margin-top: 18px; font-size: 1.35rem; }
+.svc p { margin-top: 8px; color: var(--ink-2); }
+
+/* who we help */
+.who { background: var(--surface); }
+.who .wrap { display: grid; grid-template-columns: .9fr 1.1fr; gap: 64px; align-items: start; }
+.who ul { display: grid; gap: 14px; }
+.who li { display: flex; gap: 16px; align-items: flex-start; padding: 20px 22px; background: var(--card); border-radius: var(--r); }
+.who li i { font-size: 1.6rem; color: var(--accent); margin-top: 2px; }
+.who li b { display: block; font-family: var(--display); font-size: 1.15rem; }
+.who li span { color: var(--ink-2); }
+
+/* how it works */
+.flow { margin-top: 56px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; position: relative; }
+.flow::before, .flow::after { content: ""; position: absolute; top: 27px; left: 28px; right: 28px; height: 2px; }
+.flow::before { background: var(--line); }
+.flow::after { background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform 1.6s var(--ease) .2s; }
+.flow.is-in::after { transform: scaleX(1); }
+.flow li { position: relative; }
+.flow .dot { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--bg); box-shadow: inset 0 0 0 2px var(--line); font-size: 1.5rem; position: relative; z-index: 1; transition: box-shadow .5s, background-color .5s, color .5s; }
+.flow.is-in .dot { box-shadow: inset 0 0 0 2px var(--accent); background: var(--accent-soft); color: var(--accent); }
+.flow h3 { margin-top: 22px; font-size: 1.4rem; }
+.flow p { margin-top: 8px; color: var(--ink-2); max-width: 32ch; }
+
+/* areas */
+.areas { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 12px; }
+.areas li { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 999px; background: var(--card); box-shadow: inset 0 0 0 1.5px var(--line); font-weight: 600; }
+.areas li i { color: var(--accent); }
+
+/* FAQ */
+.faq { margin-top: 40px; max-width: 820px; }
+.faq details { border-bottom: 1px solid var(--line); }
+.faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 22px 0; font: 600 1.2rem/1.3 var(--display); }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary i { color: var(--accent); transition: transform .4s var(--ease); flex: none; }
+.faq details[open] summary i { transform: rotate(45deg); }
+.faq details p { padding: 0 0 22px; color: var(--ink-2); max-width: 68ch; }
+.faq details[open] p { animation: rise .5s var(--ease); }
+
+/* call band */
+.callband { text-align: center; }
+.callband .box { background: var(--accent); color: var(--on-accent); border-radius: calc(var(--r) * 1.6); padding: clamp(48px, 8vw, 88px) 24px; position: relative; overflow: hidden; }
+.callband .box::before, .callband .box::after { content: ""; position: absolute; border-radius: 50%; background: rgb(255 255 255 / .07); animation: float 9s ease-in-out infinite alternate; }
+.callband .box::before { width: 320px; height: 320px; left: -80px; top: -120px; }
+.callband .box::after { width: 240px; height: 240px; right: -60px; bottom: -100px; animation-delay: -4s; }
+.callband h2 { margin-inline: auto; max-width: 18ch; position: relative; }
+.callband .num { display: inline-block; margin-top: 22px; font: 700 clamp(2.2rem, 7vw, 4.6rem)/1 var(--display); letter-spacing: -0.02em; text-decoration: none; position: relative; }
+.callband .num:hover { text-decoration: underline; text-underline-offset: 8px; text-decoration-thickness: 3px; }
+.callband p { margin-top: 18px; opacity: .9; position: relative; }
+.callband .ctas { margin-top: 28px; display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; position: relative; }
+.callband .btn-light { background: var(--on-accent); color: var(--accent); --pad: 16px 26px; }
+.callband .btn-light:hover { transform: translateY(-2px); }
+.callband .btn-outline { background: transparent; color: var(--on-accent); box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / .6); --pad: 16px 26px; }
+
+/* footer */
+footer { padding: 56px 0 120px; color: var(--ink-2); }
+footer .wrap { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 32px; }
+footer h3 { font-size: 1.05rem; color: var(--ink); margin-bottom: 10px; }
+footer a { text-decoration: none; }
+footer a:hover { color: var(--ink); text-decoration: underline; }
+footer .brand { margin-bottom: 14px; }
+
+/* floating call + phone bar */
+.fab { position: fixed; right: 24px; bottom: 24px; z-index: 30; --pad: 16px 22px; transform: translateY(140%); opacity: 0; transition: transform .5s var(--ease), opacity .3s; }
+.fab.is-on { transform: none; opacity: 1; }
+.bar { display: none; }
+
+/* scroll reveal */
+.js .rv { opacity: 0; transform: translateY(26px); transition: opacity .9s var(--ease), transform .9s var(--ease); transition-delay: var(--t, 0s); }
+.js .rv.is-in { opacity: 1; transform: none; }
+
+@media (max-width: 900px) {
+  .nav { display: none; }
+  .hero { padding: 28px 0 56px; }
+  .hero .wrap { grid-template-columns: 1fr; gap: 40px; }
+  .arches { height: 360px; }
+  .svcs { grid-template-columns: 1fr 1fr; }
+  .svc, .svc:nth-child(1), .svc:nth-child(2) { grid-column: span 1; }
+  .svc:nth-child(1) { grid-column: span 2; }
+  .who .wrap { grid-template-columns: 1fr; gap: 32px; }
+  .flow { grid-template-columns: 1fr; gap: 32px; }
+  .flow::before, .flow::after { top: 28px; bottom: 28px; left: 27px; right: auto; width: 2px; height: auto; }
+  .flow::after { transform: scaleY(0); transform-origin: top; }
+  .flow.is-in::after { transform: scaleY(1); }
+  .flow li { padding-left: 80px; }
+  .flow .dot { position: absolute; left: 0; top: 0; }
+  .flow h3 { margin-top: 12px; }
+  footer .wrap { grid-template-columns: 1fr; }
+  .fab { display: none; }
+  .bar { display: grid; grid-template-columns: 1fr auto; gap: 10px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--line); }
+  .bar .btn { justify-content: center; --pad: 16px 20px; font-size: 1.05rem; }
+}
+@media (max-width: 560px) {
+  .top .btn .num { display: none; }
+  .hero .ctas .btn { flex: 1 1 auto; justify-content: center; }
+  .svcs { grid-template-columns: 1fr; }
+  .svc:nth-child(1) { grid-column: span 1; }
+  .arches { height: 300px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .js .in-load, .js .rv, .js .arch { opacity: 1; transform: none; }
+  .js .hero h1 .line > span { transform: none; }
+  .beat path { stroke-dashoffset: 0; }
+  .flow::after { transform: none; }
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#main" aria-label="Prime Care Home Health, back to top"><span class="mark"><i class="ph-fill ph-house-line" aria-hidden="true"></i></span><span><b>Prime Care</b><small>Home Health</small></span></a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#services">Services</a>
+      <a href="#how">How it works</a>
+      <a href="#areas">Areas</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="btn btn-call" href="#call" data-call="header"><i class="ph ph-phone-call" aria-hidden="true"></i>Call<span class="num">&nbsp;[Phone number]</span></a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <div>
+        <h1 id="hero-title">
+          <span class="line"><span style="--t:.05s">Care that feels</span></span>
+          <span class="line"><span style="--t:.18s">like <em>home.</em></span></span>
+        </h1>
+        <p class="lede in-load" style="--t:.45s">Kind, reliable home care for your loved one in [Area you serve], from a few hours a week to daily support.</p>
+        <div class="ctas in-load" style="--t:.6s">
+          <a class="btn btn-call" href="#call" data-call="hero"><i class="ph ph-phone-call" aria-hidden="true"></i>Call [Phone number]</a>
+          <a class="btn btn-ghost" href="#services"><i class="ph ph-list-checks" aria-hidden="true"></i>Our services</a>
+        </div>
+        <p class="reassure in-load" style="--t:.75s"><span><i class="ph-fill ph-house-line" aria-hidden="true"></i>Care in your own home</span><span><i class="ph-fill ph-calendar-check" aria-hidden="true"></i>Plans that fit your schedule</span></p>
+      </div>
+      <div class="arches" aria-hidden="true">
+        <div class="arch a1" style="--t:.15s"><i class="ph ph-hand-heart"></i><p class="note">Help with daily life, at home.</p></div>
+        <div class="arch a2" style="--t:.35s"><i class="ph ph-house-line"></i></div>
+        <div class="arch a3" style="--t:.55s"><i class="ph-fill ph-heartbeat"></i></div>
+        <svg class="beat" viewBox="0 0 600 60" preserveAspectRatio="none" style="color:var(--accent-soft)"><path d="M0 30 H200 L225 8 L250 52 L275 18 L292 30 H600"/></svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="services" aria-labelledby="services-title">
+    <div class="wrap">
+      <h2 id="services-title" class="rv">Support for every part of the day.</h2>
+      <p class="intro rv" style="--t:.08s">Every care plan is built around the person: their routines, their health and what matters to them.</p>
+      <ul class="svcs">
+<li class="svc rv" style="--t:0.00s"><span class="ic"><i class="ph ph-hand-heart" aria-hidden="true"></i></span><h3>Personal care</h3><p>Help with bathing, dressing, grooming and getting around the home, always with dignity.</p></li>
+<li class="svc rv" style="--t:0.06s"><span class="ic"><i class="ph ph-users-three" aria-hidden="true"></i></span><h3>Companionship</h3><p>Conversation, outings, appointments and a friendly face, so no one feels alone.</p></li>
+<li class="svc rv" style="--t:0.12s"><span class="ic"><i class="ph ph-first-aid-kit" aria-hidden="true"></i></span><h3>Nursing care</h3><p>Medication support, wound care and health checks at home.</p></li>
+<li class="svc rv" style="--t:0.18s"><span class="ic"><i class="ph ph-coffee" aria-hidden="true"></i></span><h3>Respite care</h3><p>A few hours or a few days of cover, so family caregivers can rest.</p></li>
+<li class="svc rv" style="--t:0.24s"><span class="ic"><i class="ph ph-brain" aria-hidden="true"></i></span><h3>Dementia care</h3><p>Patient, familiar routines for people living with dementia or Alzheimer&#x27;s.</p></li>
+<li class="svc rv" style="--t:0.30s"><span class="ic"><i class="ph ph-bed" aria-hidden="true"></i></span><h3>After a hospital stay</h3><p>Support with recovery at home after surgery or illness.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="sec who" aria-labelledby="who-title">
+    <div class="wrap">
+      <div class="rv">
+        <h2 id="who-title">Who we help.</h2>
+        <p class="intro">Most families call us when a parent or partner needs a little more help than they can give on their own.</p>
+      </div>
+      <ul>
+        <li class="rv" style="--t:.04s"><i class="ph ph-person-simple-walk" aria-hidden="true"></i><div><b>Seniors living at home</b><span>Stay independent and safe in familiar surroundings.</span></div></li>
+        <li class="rv" style="--t:.1s"><i class="ph ph-first-aid" aria-hidden="true"></i><div><b>People recovering after hospital</b><span>Extra help during the first weeks back home.</span></div></li>
+        <li class="rv" style="--t:.16s"><i class="ph ph-wheelchair" aria-hidden="true"></i><div><b>Adults living with a disability</b><span>Practical, respectful help with everyday tasks.</span></div></li>
+        <li class="rv" style="--t:.22s"><i class="ph ph-users" aria-hidden="true"></i><div><b>Family caregivers</b><span>Time to rest, work or travel, knowing your loved one is cared for.</span></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="sec" id="how" aria-labelledby="how-title">
+    <div class="wrap">
+      <h2 id="how-title" class="rv">Getting started is simple.</h2>
+      <ol class="flow rv">
+        <li><span class="dot"><i class="ph ph-phone-call" aria-hidden="true"></i></span><h3>Call us</h3><p>Tell us about your loved one and the help they need. We answer your questions.</p></li>
+        <li><span class="dot"><i class="ph ph-clipboard-text" aria-hidden="true"></i></span><h3>Plan the care</h3><p>We agree on the services, the schedule and the right caregiver together.</p></li>
+        <li><span class="dot"><i class="ph ph-heart" aria-hidden="true"></i></span><h3>Care begins</h3><p>Your caregiver arrives, and we check in to make sure everything feels right.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="sec who" id="areas" aria-labelledby="areas-title">
+    <div class="wrap" style="display:block">
+      <h2 id="areas-title" class="rv">Areas we serve.</h2>
+      <p class="intro rv" style="--t:.06s">Home care across [Area you serve]. Not sure if we cover your street? Just call.</p>
+      <ul class="areas">
+<li class="rv" style="--t:0.00s"><i class="ph ph-map-pin" aria-hidden="true"></i>[City]</li>
+<li class="rv" style="--t:0.06s"><i class="ph ph-map-pin" aria-hidden="true"></i>[City]</li>
+<li class="rv" style="--t:0.12s"><i class="ph ph-map-pin" aria-hidden="true"></i>[City]</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="sec" id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <h2 id="faq-title" class="rv">Questions families ask.</h2>
+      <div class="faq rv" style="--t:.06s">
+        <details><summary>How much does home care cost?<i class="ph ph-plus" aria-hidden="true"></i></summary><p>It depends on the services and how many hours each week. Call us and we will explain the rates for your situation, with no obligation.</p></details>
+        <details><summary>How quickly can care start?<i class="ph ph-plus" aria-hidden="true"></i></summary><p>Call us with your needs and we will tell you the earliest date we can begin.</p></details>
+        <details><summary>Can we choose the schedule?<i class="ph ph-plus" aria-hidden="true"></i></summary><p>Yes. Care is planned around your loved one's routine, and the plan can change as their needs change.</p></details>
+        <details><summary>What if my loved one doesn't get along with the caregiver?<i class="ph ph-plus" aria-hidden="true"></i></summary><p>Tell us. A good match matters, and we will work with you to find the right person.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec callband" id="call" aria-labelledby="call-title">
+    <div class="wrap">
+      <div class="box rv">
+        <h2 id="call-title">Let's talk about the care your family needs.</h2>
+        <a class="num" href="#call" data-call="big">[Phone number]</a>
+        <p>[Hours]</p>
+        <div class="ctas">
+          <a class="btn btn-light" href="#call" data-call="band"><i class="ph ph-phone-call" aria-hidden="true"></i>Call now</a>
+          <a class="btn btn-outline" href="#call"><i class="ph ph-envelope-simple" aria-hidden="true"></i>Email us</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <a class="brand" href="#main"><span class="mark"><i class="ph-fill ph-house-line" aria-hidden="true"></i></span><span><b>Prime Care</b><small>Home Health</small></span></a>
+      <p>Home care services in [Area you serve].</p>
+    </div>
+    <div>
+      <h3>Contact</h3>
+      <p><a href="#call" data-call="footer">[Phone number]</a><br><a href="#call">[Email]</a></p>
+    </div>
+    <div>
+      <h3>Hours</h3>
+      <p>[Hours]</p>
+      <p style="margin-top:12px">© <span id="yr">2026</span> Prime Care Home Health</p>
+    </div>
+  </div>
+</footer>
+
+<a class="btn btn-call fab" href="#call" data-call="float" aria-label="Call Prime Care Home Health at [Phone number]"><i class="ph ph-phone-call" aria-hidden="true"></i>Call now</a>
+<nav class="bar" aria-label="Quick contact">
+  <a class="btn btn-call" href="#call" data-call="bar"><i class="ph ph-phone-call" aria-hidden="true"></i>Call [Phone number]</a>
+  <a class="btn btn-ghost" href="#call" aria-label="Text us"><i class="ph ph-chat-circle-text" aria-hidden="true"></i></a>
+</nav>
+
+<script>
+(function () {
+  var doc = document.documentElement;
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.getElementById('yr').textContent = new Date().getFullYear();
+  requestAnimationFrame(function () { doc.classList.add('ready'); });
+
+  var top = document.querySelector('.top'), fab = document.querySelector('.fab');
+  var heroGone = false, bandIn = false;
+  function sync() { fab.classList.toggle('is-on', heroGone && !bandIn); }
+  new IntersectionObserver(function (e) { heroGone = !e[0].isIntersecting; sync(); }).observe(document.querySelector('.hero .ctas'));
+  new IntersectionObserver(function (e) { bandIn = e[0].isIntersecting; sync(); }).observe(document.querySelector('.callband .ctas'));
+  new IntersectionObserver(function (e) { top.classList.toggle('is-scrolled', !e[0].isIntersecting); }).observe(document.querySelector('.hero h1'));
+
+  var els = document.querySelectorAll('.rv');
+  if (reduce || !('IntersectionObserver' in window)) { els.forEach(function (el) { el.classList.add('is-in'); }); }
+  else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); } });
+    }, { rootMargin: '0px 0px -10% 0px', threshold: 0.12 });
+    els.forEach(function (el) { io.observe(el); });
+    setTimeout(function () { els.forEach(function (el) { if (el.getBoundingClientRect().top < innerHeight) el.classList.add('is-in'); }); }, 2500);
+  }
+
+  // One FAQ open at a time.
+  document.querySelectorAll('.faq details').forEach(function (d) {
+    d.addEventListener('toggle', function () { if (d.open) document.querySelectorAll('.faq details[open]').forEach(function (o) { if (o !== d) o.open = false; }); });
+  });
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('[data-call]');
+    if (a && window.gtag) gtag('event', 'call_click', { placement: a.getAttribute('data-call') });
+  });
+})();
+</script>
+</body>
+</html>
