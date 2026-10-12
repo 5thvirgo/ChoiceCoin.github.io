@@ -3,17 +3,52 @@
   "name": "Prime Care Home Health",
   "short": "Prime Care",
   "domain": "primecarehomehealth.ca",
-  "phone": "TODO e.g. 905-555-0100",
-  "email": "TODO e.g. info@primecarehomehealth.ca",
-  "area": "TODO e.g. Niagara Falls and the Niagara Region",
-  "areas": ["TODO city 1", "TODO city 2", "TODO city 3"],
-  "hours": "TODO e.g. Phones answered 7 days a week, 8 am to 8 pm",
+  "phone": "289-783-3298",
+  "email": "info@primecarehomehealth.ca",
+  "area": "the Niagara Region",
+  "areas": [
+    "Niagara Falls",
+    "St. Catharines",
+    "Welland",
+    "Niagara-on-the-Lake",
+    "Thorold",
+    "Fort Erie",
+    "Port Colborne",
+    "Grimsby",
+    "Lincoln",
+    "Pelham"
+  ],
+  "hours": "Call us 7 am to 11 pm",
   "services": [
-    ["ph-hand-heart", "Personal care", "Help with bathing, dressing, grooming and getting around the home, always with dignity."],
-    ["ph-users-three", "Companionship", "Conversation, outings, appointments and a friendly face, so no one feels alone."],
-    ["ph-first-aid-kit", "Nursing care", "Medication support, wound care and health checks at home."],
-    ["ph-coffee", "Respite care", "A few hours or a few days of cover, so family caregivers can rest."],
-    ["ph-brain", "Dementia care", "Patient, familiar routines for people living with dementia or Alzheimer's."],
-    ["ph-bed", "After a hospital stay", "Support with recovery at home after surgery or illness."]
+    [
+      "ph-hand-heart",
+      "Personal care",
+      "Help with bathing, dressing, grooming and getting around the home, always with dignity."
+    ],
+    [
+      "ph-users-three",
+      "Companionship",
+      "Conversation, outings, appointments and a friendly face, so no one feels alone."
+    ],
+    [
+      "ph-first-aid-kit",
+      "Nursing care",
+      "Medication support, wound care and health checks at home."
+    ],
+    [
+      "ph-coffee",
+      "Respite care",
+      "A few hours or a few days of cover, so family caregivers can rest."
+    ],
+    [
+      "ph-brain",
+      "Dementia care",
+      "Patient, familiar routines for people living with dementia or Alzheimer's."
+    ],
+    [
+      "ph-bed",
+      "After a hospital stay",
+      "Support with recovery at home after surgery or illness."
+    ]
   ]
 }
