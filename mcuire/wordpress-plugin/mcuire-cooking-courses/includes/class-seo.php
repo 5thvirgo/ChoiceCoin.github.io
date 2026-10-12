@@ -14,6 +14,9 @@ if (!defined('ABSPATH')) {
 }
 
 class Mcuire_CC_SEO {
+	const HOME_TITLE = 'Mcuire African Restaurant · Award-Winning Nigerian & Ghanaian Food in Niagara Falls, Ontario';
+	const HOME_DESC = 'Award-winning Nigerian and Ghanaian restaurant in Niagara Falls, Ontario. Party jollof, suya, egusi, pepper soup and more: dine-in, takeout, event catering and wholesale zobo.';
+
 
 	public static function init() {
 		add_filter('robots_txt', function ($out, $public) {
@@ -23,12 +26,20 @@ class Mcuire_CC_SEO {
 		// details (address, phone, hours, menu, awards) for Google and Maps.
 		add_filter('pre_get_document_title', function ($title) {
 			if (is_front_page() && get_option('mcuire_cc_home_seo', '1') === '1') {
-				return 'Mcuire African Restaurant · Award-Winning Nigerian & Ghanaian Food in Niagara Falls, Ontario';
+				return self::HOME_TITLE;
 			}
 			return $title;
 		}, 999);
 		add_action('wp_head', function () {
 			if (is_front_page() && get_option('mcuire_cc_home_seo', '1') === '1') {
+				// Search snippet and share preview, unless an SEO plugin already writes them.
+				if (!defined('WPSEO_VERSION') && !defined('RANK_MATH_VERSION') && !defined('AIOSEO_VERSION') && !class_exists('SeoPress_Seo_Metabox')) {
+					$desc = self::HOME_DESC;
+					$img = plugins_url('media/jollof-chicken-plantain.jpg', MCUIRE_CC_DIR . 'mcuire-cooking-courses.php');
+					printf('<meta name="description" content="%s">' . "\n", esc_attr($desc));
+					printf('<meta property="og:type" content="restaurant"><meta property="og:title" content="%s"><meta property="og:description" content="%s"><meta property="og:url" content="%s"><meta property="og:image" content="%s"><meta name="twitter:card" content="summary_large_image">' . "\n",
+						esc_attr(self::HOME_TITLE), esc_attr($desc), esc_url(home_url('/')), esc_url($img));
+				}
 				echo '<script type="application/ld+json">' . wp_json_encode(array_merge(array('@context' => 'https://schema.org'), self::restaurant()), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
 			}
 		}, 5);
@@ -110,12 +121,15 @@ class Mcuire_CC_SEO {
 		$r = array_filter(self::brand(), function ($v) { return $v !== null; });
 		$r['@type'] = 'Restaurant';
 		$r['description'] = 'Award-winning Nigerian and Ghanaian restaurant in Niagara Falls, Ontario: party jollof, suya, egusi and more. Weekend dine-in, takeout, event catering, wholesale zobo and online African cooking classes.';
-		$r['image'] = array(plugins_url('media/party-jollof.jpg', MCUIRE_CC_DIR . 'mcuire-cooking-courses.php'), plugins_url('media/mcuire-logo.png', MCUIRE_CC_DIR . 'mcuire-cooking-courses.php'));
+		$r['image'] = array_map(function ($f) {
+			return plugins_url('media/' . $f, MCUIRE_CC_DIR . 'mcuire-cooking-courses.php');
+		}, array('party-jollof-2.jpg', 'jollof-chicken-plantain.jpg', 'rice-stew-protein.jpg', 'mcuire-logo.png'));
+		$r['hasMap'] = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode('Mcuire African Restaurant, 3876 Main St, Niagara Falls, ON L2G 6B6');
 		$r['priceRange'] = '$$';
 		$r['acceptsReservations'] = home_url('/reservations/');
 		$r['hasMenu'] = home_url('/weekend-menu/');
 		$r['openingHoursSpecification'] = array(array('@type' => 'OpeningHoursSpecification', 'dayOfWeek' => array('Thursday', 'Friday', 'Saturday'), 'opens' => '12:00', 'closes' => '19:00'));
-		$r['areaServed'] = array('Niagara Falls', 'Niagara Region', 'St. Catharines', 'Welland', 'Fort Erie', 'Ontario');
+		$r['areaServed'] = array('Niagara Falls', 'Niagara Region', 'St. Catharines', 'Welland', 'Fort Erie', 'Niagara-on-the-Lake', 'Thorold', 'Ontario', 'Canada');
 		$r['makesOffer'] = array(
 			array('@type' => 'Offer', 'itemOffered' => array('@type' => 'Service', 'name' => 'Event catering', 'url' => home_url('/event-catering/'))),
 			array('@type' => 'Offer', 'itemOffered' => array('@type' => 'Service', 'name' => 'Online African cooking classes', 'url' => self::url())),
@@ -197,6 +211,20 @@ class Mcuire_CC_SEO {
 				'keywords' => implode(', ', array_filter(array($r['title'], $r['region'] ?? '', 'West African recipe', 'how to cook ' . strtolower($r['title'])))),
 				'url' => $url,
 			);
+			// Google wants the method as HowToStep items; each lesson step becomes one.
+			$steps = array();
+			foreach (array_values($r['steps'] ?? array()) as $i => $s) {
+				$text = trim(wp_strip_all_tags((string) ($s['body'] ?? '')));
+				$step = array('@type' => 'HowToStep', 'name' => $s['title'] ?? ('Step ' . ($i + 1)), 'text' => self::clip($text !== '' ? $text : ($s['title'] ?? ''), 500), 'url' => $url . '#step-' . ($i + 1));
+				$photo = Mcuire_CC_DB::media_url($s['media'][0]['src'] ?? '');
+				if ($photo) {
+					$step['image'] = $photo;
+				}
+				$steps[] = $step;
+			}
+			if ($steps) {
+				$recipe['recipeInstructions'] = $steps;
+			}
 			if ($page['image']) {
 				$recipe['image'] = array($page['image']);
 			}
