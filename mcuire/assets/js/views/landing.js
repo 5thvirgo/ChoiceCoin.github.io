@@ -145,7 +145,7 @@ export default function landing() {
     <section class="section-tight">
       <div class="wrap narrow">
         <span class="eyebrow">Canada’s online African cooking school</span>
-        <h2>Learn African cooking online, from an award-winning kitchen</h2>
+        <h2>Learn African cooking online, from the kitchen voted best African restaurant in the Niagara Region</h2>
         <p class="lede">Mcuire African Restaurant in Niagara Falls, Ontario, has won more than 20 local awards for its Nigerian and Ghanaian food. Now the same kitchen teaches you online: party jollof, egusi soup, suya, puff-puff and ${store.recipes.length - 2}+ more West African dishes, one clear step at a time, from anywhere in Canada or the world.</p>
         <h3 style="margin-top:28px">Questions people ask</h3>
         <div class="faq">${FAQ.map((f) => `<details class="module"><summary><h3 style="font-size:1.1rem">${esc(f.q)}</h3>${icon('down', 18)}</summary><p class="muted" style="margin:10px 0 0">${esc(f.a)}</p></details>`).join('')}</div>

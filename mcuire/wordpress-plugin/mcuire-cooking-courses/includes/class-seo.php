@@ -14,8 +14,8 @@ if (!defined('ABSPATH')) {
 }
 
 class Mcuire_CC_SEO {
-	const HOME_TITLE = 'Mcuire African Restaurant · Award-Winning Nigerian & Ghanaian Food in Niagara Falls, Ontario';
-	const HOME_DESC = 'Award-winning Nigerian and Ghanaian restaurant in Niagara Falls, Ontario. Party jollof, suya, egusi, pepper soup and more: dine-in, takeout, event catering and wholesale zobo.';
+	const HOME_TITLE = 'Mcuire · Voted Best African Restaurant in the Niagara Region · Niagara Falls, Ontario';
+	const HOME_DESC = 'Voted best African restaurant in the Niagara Region (CommunityVotes). Nigerian and Ghanaian food in Niagara Falls, Ontario. Party jollof, suya, egusi, pepper soup and more: dine-in, takeout, event catering and wholesale zobo.';
 
 
 	public static function init() {
@@ -111,7 +111,7 @@ class Mcuire_CC_SEO {
 			'address' => array('@type' => 'PostalAddress', 'streetAddress' => '3876 Main St', 'addressLocality' => 'Niagara Falls', 'addressRegion' => 'ON', 'postalCode' => 'L2G 6B6', 'addressCountry' => 'CA'),
 			'areaServed' => array('Canada', 'Worldwide (online courses)'),
 			'knowsAbout' => array('African cooking', 'Nigerian cooking', 'Ghanaian cooking', 'West African cuisine', 'Jollof rice', 'Egusi soup', 'Suya'),
-			'award' => array('CommunityVotes Niagara Region: 22 awards, 2023–2026', 'Canadian Choice Award 2023, Catering Services', 'Restaurant Guru Recommended 2022'),
+			'award' => array('Voted Best African Restaurant, Niagara Region (CommunityVotes)', 'CommunityVotes Niagara Region: 22 awards, 2023–2026', 'Canadian Choice Award 2023, Catering Services', 'Restaurant Guru Recommended 2022'),
 			'sameAs' => array('https://www.instagram.com/mcuire_/'),
 		);
 	}
@@ -120,7 +120,7 @@ class Mcuire_CC_SEO {
 	public static function restaurant() {
 		$r = array_filter(self::brand(), function ($v) { return $v !== null; });
 		$r['@type'] = 'Restaurant';
-		$r['description'] = 'Award-winning Nigerian and Ghanaian restaurant in Niagara Falls, Ontario: party jollof, suya, egusi and more. Weekend dine-in, takeout, event catering, wholesale zobo and online African cooking classes.';
+		$r['description'] = 'Voted best African restaurant in the Niagara Region (CommunityVotes). Nigerian and Ghanaian restaurant in Niagara Falls, Ontario: party jollof, suya, egusi and more. Weekend dine-in, takeout, event catering, wholesale zobo and online African cooking classes.';
 		$r['image'] = array_map(function ($f) {
 			return plugins_url('media/' . $f, MCUIRE_CC_DIR . 'mcuire-cooking-courses.php');
 		}, array('party-jollof-2.jpg', 'jollof-chicken-plantain.jpg', 'rice-stew-protein.jpg', 'mcuire-logo.png'));
@@ -186,7 +186,7 @@ class Mcuire_CC_SEO {
 		$home = home_url('/');
 		$page = array(
 			'title' => 'Online African Cooking Course in Canada · Nigerian & Ghanaian Cooking Classes · Mcuire',
-			'desc' => 'Learn African cooking online with award-winning Mcuire African Restaurant (Niagara Falls, Canada): step-by-step Nigerian and Ghanaian lessons from $20, live video cooking classes and a certificate. Jollof, egusi, suya and 40+ dishes.',
+			'desc' => 'Learn African cooking online with Mcuire, voted best African restaurant in the Niagara Region (Niagara Falls, Canada): step-by-step Nigerian and Ghanaian lessons from $20, live video cooking classes and a certificate. Jollof, egusi, suya and 40+ dishes.',
 			'image' => '', 'url' => self::url(), 'type' => 'website', 'schema' => array(), 'body' => '',
 		);
 
@@ -306,7 +306,7 @@ class Mcuire_CC_SEO {
 					return array('@type' => 'Question', 'name' => $f['q'], 'acceptedAnswer' => array('@type' => 'Answer', 'text' => $f['a']));
 				}, $faq));
 			}
-			$page['body'] = '<h1>Online African cooking course from an award-winning Canadian kitchen</h1><p>' . esc_html($page['desc']) . '</p>'
+			$page['body'] = '<h1>Online African cooking course from the kitchen voted best African restaurant in the Niagara Region</h1><p>' . esc_html($page['desc']) . '</p>'
 				. '<h2>Nigerian and Ghanaian cooking lessons</h2><ul>' . implode('', $links) . '</ul>'
 				. '<h2><a href="' . esc_url(self::url('live')) . '">Live online African cooking classes</a></h2><p>Cook at home, anywhere in the world, while a Mcuire chef coaches you live by video call, every Saturday and Sunday: home cooking, cooking help, group cooking and cooking for events.</p>'
 				. ($faq ? '<h2>Questions people ask</h2>' . implode('', array_map(function ($f) { return '<h3>' . esc_html($f['q']) . '</h3><p>' . esc_html($f['a']) . '</p>'; }, $faq)) : '');
@@ -333,7 +333,7 @@ class Mcuire_CC_SEO {
 		$s = Mcuire_CC_DB::booking_settings();
 		$url = self::url('live');
 		$page['title'] = 'Live Online African Cooking Classes with a Chef · Nigerian & Ghanaian Food · Mcuire';
-		$page['desc'] = 'Learn to cook Nigerian and Ghanaian food live on Zoom or Teams with a chef from award-winning Mcuire African Restaurant, Niagara Falls. Join from anywhere, weekends, from $75/hour.';
+		$page['desc'] = 'Learn to cook Nigerian and Ghanaian food live on Zoom or Teams with a chef from Mcuire, voted best African restaurant in the Niagara Region. Join from anywhere, weekends, from $75/hour.';
 		$page['url'] = $url;
 		$jollof = Mcuire_CC_DB::get_recipe('party-jollof');
 		$page['image'] = Mcuire_CC_DB::media_url($jollof['hero']['src'] ?? '');
@@ -390,8 +390,9 @@ class Mcuire_CC_SEO {
 		$p = self::page($route);
 		$t = esc_html($p['title']);
 		$d = esc_attr($p['desc']);
-		$html = preg_replace('#<title>.*?</title>#s', '<title>' . $t . '</title>', $html, 1);
-		$html = preg_replace('#<meta name="description" content="[^"]*">#', '<meta name="description" content="' . $d . '">', $html, 1);
+		// Callbacks, not replacement strings: a price like "$20" would otherwise be read as a backreference and vanish.
+		$html = preg_replace_callback('#<title>.*?</title>#s', function () use ($t) { return '<title>' . $t . '</title>'; }, $html, 1);
+		$html = preg_replace_callback('#<meta name="description" content="[^"]*">#', function () use ($d) { return '<meta name="description" content="' . $d . '">'; }, $html, 1);
 		$head = self::verification_tag() . '<link rel="canonical" href="' . esc_url($p['url']) . '">'
 			. '<meta name="robots" content="index,follow,max-image-preview:large">'
 			. '<meta property="og:site_name" content="Mcuire African Restaurant">'

@@ -156,7 +156,7 @@ async function list() {
       <div class="wrap">
         <span class="eyebrow">Live with the ${esc(config.brand.short)} kitchen</span>
         <h1>Live online cooking classes</h1>
-        <p class="lede">Cook African food in your own kitchen, wherever you are in the world, while a chef from award-winning Mcuire African Restaurant coaches you live by video call (Zoom, Microsoft Teams, Google Meet or your favourite app), every Saturday and Sunday.</p>
+        <p class="lede">Cook African food in your own kitchen, wherever you are in the world, while a chef from Mcuire African Restaurant, voted best African restaurant in the Niagara Region, coaches you live by video call (Zoom, Microsoft Teams, Google Meet or your favourite app), every Saturday and Sunday.</p>
         <p class="muted" style="margin:0">Prefer your own pace? <a class="link" href="#/courses">Buy any course</a> and cook whenever you like with step-by-step lessons.</p>
       </div>
     </section>

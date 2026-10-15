@@ -1,7 +1,7 @@
 === Mcuire Cooking Courses ===
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.14.1
+Stable tag: 1.15.0
 
 Mcuire African Restaurant's online West African cooking academy, at /cooking-courses/.
 
@@ -30,6 +30,10 @@ Upload the new zip (Plugins → Add New → Upload → Replace current). Your re
 Stripe settings are kept; new dishes and courses are added. Example live classes arrive as drafts.
 
 == Changelog ==
+= 1.15.0 =
+* "Voted Best African Restaurant in the Niagara Region" (CommunityVotes) in the homepage Google title, restaurant and award data, cooking course and live class pages, and FAQ.
+* Fix: prices such as "$20" and "$75" no longer disappear from Google descriptions.
+
 = 1.14.1 =
 * Homepage: no second search description when an SEO plugin such as SiteSEO is active.
 

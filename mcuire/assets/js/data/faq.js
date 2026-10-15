@@ -4,7 +4,7 @@
 export const FAQ = [
   {
     q: 'Where can I take an African cooking course online in Canada?',
-    a: 'Right here. Mcuire African Restaurant, an award-winning Nigerian and Ghanaian restaurant in Niagara Falls, Ontario, teaches West African cooking online: step-by-step lessons for more than 40 dishes, plus live video classes with our chef every Saturday and Sunday.',
+    a: 'Right here. Mcuire African Restaurant in Niagara Falls, Ontario, voted best African restaurant in the Niagara Region, teaches West African cooking online: step-by-step lessons for more than 40 dishes, plus live video classes with our chef every Saturday and Sunday.',
   },
   {
     q: 'Can I learn from anywhere in the world?',
