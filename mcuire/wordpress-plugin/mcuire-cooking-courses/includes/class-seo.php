@@ -33,7 +33,7 @@ class Mcuire_CC_SEO {
 		add_action('wp_head', function () {
 			if (is_front_page() && get_option('mcuire_cc_home_seo', '1') === '1') {
 				// Search snippet and share preview, unless an SEO plugin already writes them.
-				if (!defined('WPSEO_VERSION') && !defined('RANK_MATH_VERSION') && !defined('AIOSEO_VERSION') && !class_exists('SeoPress_Seo_Metabox')) {
+				if (!self::seo_plugin_active()) {
 					$desc = self::HOME_DESC;
 					$img = plugins_url('media/jollof-chicken-plantain.jpg', MCUIRE_CC_DIR . 'mcuire-cooking-courses.php');
 					printf('<meta name="description" content="%s">' . "\n", esc_attr($desc));
@@ -313,6 +313,17 @@ class Mcuire_CC_SEO {
 		}
 		$page['schema'][] = array_filter(self::brand(), function ($v) { return $v !== null; });
 		return $page;
+	}
+
+	// True when an SEO plugin (SiteSEO, Yoast, Rank Math, AIOSEO, SEOPress…) is
+	// active; it writes the homepage description and share tags itself.
+	private static function seo_plugin_active() {
+		foreach ((array) get_option('active_plugins', array()) as $plugin) {
+			if (preg_match('#^(siteseo|wordpress-seo|seo-by-rank-math|all-in-one-seo-pack|wp-seopress|autodescription|slim-seo)/#', (string) $plugin)) {
+				return true;
+			}
+		}
+		return defined('WPSEO_VERSION') || defined('RANK_MATH_VERSION') || defined('AIOSEO_VERSION');
 	}
 
 	// The live online classes page (mcuire.ca/cooking-courses/live/): who it is
