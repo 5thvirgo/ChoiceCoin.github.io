@@ -7,6 +7,15 @@ import { media } from '../components.js';
 import { esc, icon, money, minutes, on, toast } from '../lib/dom.js';
 import { slotDates, slotId, slotProblem, taxOn, formatTime, formatDate, sessionType, activeTypes, hourlyRate } from '../lib/slots.js';
 
+// Who the live classes are for: shown on the page and kept in step with the
+// Google version of this page (class-seo.php, live_landing()).
+const WHO_FOR = [
+  ['Cooking for your partner or their family', 'Married to, or dating, someone Nigerian or Ghanaian? Learn the dishes they grew up with and cook them a taste of home.'],
+  ['Missing food from home', 'Living far from West Africa? Cook jollof, egusi or pepper soup the way you remember it, with a chef beside you.'],
+  ['Curious food lovers anywhere', 'Never cooked African food? Start from zero. We go step by step at your pace, in your own kitchen.'],
+  ['Groups, parties and events', 'Cook together with friends, family or your team, or get coached through a big cook for a celebration.'],
+];
+
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export function classWhen(cls, opts = {}) {
@@ -147,13 +156,15 @@ async function list() {
       <div class="wrap">
         <span class="eyebrow">Live with the ${esc(config.brand.short)} kitchen</span>
         <h1>Live online cooking classes</h1>
-        <p class="lede">Cook in your own kitchen while a Mcuire chef coaches you live by video call (Zoom, Microsoft Teams, Google Meet or your favourite app), every Saturday and Sunday. Casual home cooking, cooking for an event, cooking as a group, or simply a chef to help you as you cook.</p>
+        <p class="lede">Cook African food in your own kitchen, wherever you are in the world, while a chef from award-winning Mcuire African Restaurant coaches you live by video call (Zoom, Microsoft Teams, Google Meet or your favourite app), every Saturday and Sunday.</p>
         <p class="muted" style="margin:0">Prefer your own pace? <a class="link" href="#/courses">Buy any course</a> and cook whenever you like with step-by-step lessons.</p>
       </div>
     </section>
     <section class="section-tight" style="padding-top:0">
       <div class="wrap">
         ${s.enabled ? `<div data-weekend-host>${weekendPanel(st)}</div>` : ''}
+        <h2 style="margin-top:40px">Who our live classes are for</h2>
+        <div class="grid-2 who-for">${WHO_FOR.map(([t, d]) => `<div class="panel"><h3>${t}</h3><p class="muted" style="margin:6px 0 0">${d}</p></div>`).join('')}</div>
         ${classes.length ? `<h2 style="margin-top:40px">Special classes</h2>${classes.map(classCard).join('')}` : s.enabled ? '' : `<div class="empty"><h3>No classes scheduled right now</h3><p>New dates are announced here. In the meantime, every dish is available as a step-by-step Cook With Me lesson.</p><a class="btn btn-primary" href="#/courses">Browse lessons</a></div>`}
       </div>
     </section>`,

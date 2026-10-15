@@ -27,6 +27,14 @@ export const FAQ = [
     a: 'Choose home cooking, cooking help, group cooking or cooking for an event, then pick a Saturday or Sunday and a time. Our chef joins you on Zoom, Microsoft Teams or Google Meet and coaches you while you cook in your own kitchen.',
   },
   {
+    q: 'Can I learn to cook African food for my partner or in-laws?',
+    a: 'Yes, and many of our students do. Book a live online class, tell us the dishes your partner or their family love, and our chef coaches you through them in your own kitchen. The step-by-step lessons let you practise between classes.',
+  },
+  {
+    q: 'Can I join a live class from outside Canada?',
+    a: 'Yes. Live classes run on Zoom, Microsoft Teams, Google Meet or WhatsApp video, so you can join from any country. Times are shown in Toronto time (Eastern), and we email the ingredient list before the class.',
+  },
+  {
     q: 'Do I get a certificate?',
     a: 'Finish the West African Kitchen course and you receive a Mcuire Certificate of Completion with your name. It recognises completion of our guided programme; it is not an accredited culinary qualification.',
   },

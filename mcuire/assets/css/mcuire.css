@@ -538,6 +538,8 @@ body.has-timers .sticky-cta { bottom: calc(68px + var(--safe-bottom)); }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 16px; }
 .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 12px; }
+.who-for { gap: 0 16px; }
+.who-for .panel { margin-bottom: 16px; }
 @media (max-width: 700px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } .grid-4 { grid-template-columns: 1fr 1fr; } }
 .editor-tabs { display: flex; gap: 6px; overflow-x: auto; margin: 16px 0; border-bottom: 1px solid var(--line); }
 .editor-tabs button { border: 0; background: none; padding: 12px 14px; font-weight: 700; color: var(--muted); border-bottom: 3px solid transparent; flex: none; }

@@ -247,6 +247,8 @@ class Mcuire_CC_SEO {
 			$page['image'] = Mcuire_CC_DB::media_url($fr['hero']['src'] ?? '');
 			$page['schema'][] = self::course_schema($c, $url, $page['desc']);
 			$page['body'] = '<h1>' . esc_html($c['title']) . '</h1><p>' . esc_html($page['desc']) . '</p>';
+		} elseif ($type === 'live' && $slug === '') {
+			$page = self::live_landing($page);
 		} elseif ($type === 'live' && ($cls = Mcuire_CC_DB::live_class($slug)) && $cls['status'] === 'published') {
 			$url = self::url('live/' . $cls['id']);
 			$start = strtotime($cls['startsAt']);
@@ -306,10 +308,69 @@ class Mcuire_CC_SEO {
 			}
 			$page['body'] = '<h1>Online African cooking course from an award-winning Canadian kitchen</h1><p>' . esc_html($page['desc']) . '</p>'
 				. '<h2>Nigerian and Ghanaian cooking lessons</h2><ul>' . implode('', $links) . '</ul>'
-				. '<h2>Live online cooking classes</h2><p>Cook at home while a Mcuire chef coaches you live by video call, every Saturday and Sunday: home cooking, cooking help, group cooking and cooking for events.</p>'
+				. '<h2><a href="' . esc_url(self::url('live')) . '">Live online African cooking classes</a></h2><p>Cook at home, anywhere in the world, while a Mcuire chef coaches you live by video call, every Saturday and Sunday: home cooking, cooking help, group cooking and cooking for events.</p>'
 				. ($faq ? '<h2>Questions people ask</h2>' . implode('', array_map(function ($f) { return '<h3>' . esc_html($f['q']) . '</h3><p>' . esc_html($f['a']) . '</p>'; }, $faq)) : '');
 		}
 		$page['schema'][] = array_filter(self::brand(), function ($v) { return $v !== null; });
+		return $page;
+	}
+
+	// The live online classes page (mcuire.ca/cooking-courses/live/): who it is
+	// for, the kinds of class with prices, and its own FAQ. Kept in step with
+	// WHO_FOR in assets/js/views/live.js.
+	private static function live_landing($page) {
+		$s = Mcuire_CC_DB::booking_settings();
+		$url = self::url('live');
+		$page['title'] = 'Live Online African Cooking Classes with a Chef · Nigerian & Ghanaian Food · Mcuire';
+		$page['desc'] = 'Learn to cook Nigerian and Ghanaian food live on Zoom or Teams with a chef from award-winning Mcuire African Restaurant, Niagara Falls. Join from anywhere, weekends, from $75/hour.';
+		$page['url'] = $url;
+		$jollof = Mcuire_CC_DB::get_recipe('party-jollof');
+		$page['image'] = Mcuire_CC_DB::media_url($jollof['hero']['src'] ?? '');
+		$who = array(
+			array('Cooking for your partner or their family', 'Married to, or dating, someone Nigerian or Ghanaian? Learn the dishes they grew up with and cook them a taste of home.'),
+			array('Missing food from home', 'Living far from West Africa? Cook jollof, egusi or pepper soup the way you remember it, with a chef beside you.'),
+			array('Curious food lovers anywhere', 'Never cooked African food? Start from zero. We go step by step at your pace, in your own kitchen.'),
+			array('Groups, parties and events', 'Cook together with friends, family or your team, or get coached through a big cook for a celebration.'),
+		);
+		$offers = array();
+		$rows = '';
+		foreach ((array) ($s['types'] ?? array()) as $t) {
+			if (($t['enabled'] ?? true) === false) {
+				continue;
+			}
+			$price = self::money($t['pricePerHourCents']);
+			$offers[] = array(
+				'@type' => 'Offer', 'name' => $t['name'], 'description' => $t['blurb'] ?? '', 'url' => $url,
+				'priceSpecification' => array('@type' => 'UnitPriceSpecification', 'price' => $price, 'priceCurrency' => $s['currency'] ?? 'CAD', 'unitCode' => 'HUR', 'unitText' => 'hour', 'valueAddedTaxIncluded' => false),
+			);
+			$extra = !empty($t['extraPersonCents']) ? ' + $' . self::money($t['extraPersonCents']) . ' per extra cook' : '';
+			$rows .= '<li><strong>' . esc_html($t['name']) . '</strong>: $' . $price . ' CAD per hour' . esc_html($extra) . '. ' . esc_html($t['blurb'] ?? '') . '</li>';
+		}
+		$page['schema'][] = array_filter(array(
+			'@type' => 'Service', 'name' => 'Live online African cooking classes', 'serviceType' => 'Online cooking class',
+			'description' => $page['desc'], 'url' => $url, 'image' => $page['image'] ?: null,
+			'provider' => array('@id' => home_url('/#mcuire')), 'areaServed' => 'Worldwide',
+			'availableChannel' => array('@type' => 'ServiceChannel', 'serviceUrl' => $url, 'name' => 'Video call: Zoom, Microsoft Teams, Google Meet or WhatsApp'),
+			'audience' => array_map(function ($w) { return array('@type' => 'Audience', 'audienceType' => $w[0]); }, $who),
+			'hasOfferCatalog' => array('@type' => 'OfferCatalog', 'name' => 'Kinds of live class', 'itemListElement' => $offers),
+		));
+		$faq = array_values(array_filter(self::faq(), function ($f) {
+			return stripos($f['q'], 'live') !== false || stripos($f['q'], 'partner') !== false || stripos($f['q'], 'anywhere') !== false;
+		}));
+		if ($faq) {
+			$page['schema'][] = array('@type' => 'FAQPage', 'mainEntity' => array_map(function ($f) {
+				return array('@type' => 'Question', 'name' => $f['q'], 'acceptedAnswer' => array('@type' => 'Answer', 'text' => $f['a']));
+			}, $faq));
+		}
+		$page['schema'][] = array('@type' => 'BreadcrumbList', 'itemListElement' => array(
+			array('@type' => 'ListItem', 'position' => 1, 'name' => 'Cooking courses', 'item' => self::url()),
+			array('@type' => 'ListItem', 'position' => 2, 'name' => 'Live online classes', 'item' => $url),
+		));
+		$page['body'] = '<h1>Live online African cooking classes with a Mcuire chef</h1><p>' . esc_html($page['desc']) . '</p>'
+			. '<p>Cook in your own kitchen, anywhere in the world, while our chef coaches you live by video call every Saturday and Sunday. Tell us what you would like to cook when you book; we email the ingredient list and your call link before the class.</p>'
+			. '<h2>Who our live classes are for</h2><ul>' . implode('', array_map(function ($w) { return '<li><strong>' . esc_html($w[0]) . '</strong>: ' . esc_html($w[1]) . '</li>'; }, $who)) . '</ul>'
+			. ($rows ? '<h2>Kinds of class and prices</h2><ul>' . $rows . '</ul><p>Prices in Canadian dollars, plus HST. One class at a time, so the chef is all yours.</p>' : '')
+			. ($faq ? '<h2>Questions people ask</h2>' . implode('', array_map(function ($f) { return '<h3>' . esc_html($f['q']) . '</h3><p>' . esc_html($f['a']) . '</p>'; }, $faq)) : '');
 		return $page;
 	}
 
@@ -362,6 +423,8 @@ class Mcuire_CC_SEO {
 				$urls[self::url('courses/' . $c['slug'])] = $img;
 			}
 		}
+		$jollof = Mcuire_CC_DB::get_recipe('party-jollof');
+		$urls[self::url('live')] = $jollof ? Mcuire_CC_DB::media_url($jollof['hero']['src'] ?? '') : '';
 		foreach (Mcuire_CC_DB::live_classes() as $cls) {
 			if ($cls['status'] === 'published' && strtotime($cls['startsAt']) > time()) {
 				$urls[self::url('live/' . $cls['id'])] = '';

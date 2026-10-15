@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Mcuire Cooking Courses
  * Description:       Mcuire African Restaurant’s online West African cooking academy: Cook With Me lessons, single dishes, courses, live cooking classes, event catering and wholesale drinks pages, Stripe payments (CAD), My Kitchen and certificates, at /cooking-courses/.
- * Version:           1.13.0
+ * Version:           1.14.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Mcuire African Restaurant
@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-define('MCUIRE_CC_VERSION', '1.13.0');
+define('MCUIRE_CC_VERSION', '1.14.0');
 define('MCUIRE_CC_DIR', plugin_dir_path(__FILE__));
 define('MCUIRE_CC_SLUG', 'cooking-courses');
 
@@ -83,6 +83,7 @@ function mcuire_cc_rewrite() {
 	add_rewrite_rule('^' . MCUIRE_CC_SLUG . '/?$', 'index.php?mcuire_academy=1', 'top');
 	// Clean addresses for each dish, course and live class (for Google and sharing).
 	add_rewrite_rule('^' . MCUIRE_CC_SLUG . '/(recipes|courses|live)/([a-z0-9-]+)/?$', 'index.php?mcuire_academy=1&mcuire_path=$matches[1]/$matches[2]', 'top');
+	add_rewrite_rule('^' . MCUIRE_CC_SLUG . '/live/?$', 'index.php?mcuire_academy=1&mcuire_path=live', 'top');
 	add_rewrite_rule('^' . MCUIRE_CC_SLUG . '/sitemap\\.xml$', 'index.php?mcuire_academy=sitemap', 'top');
 }
 add_action('init', 'mcuire_cc_rewrite');

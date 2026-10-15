@@ -1,7 +1,7 @@
 === Mcuire Cooking Courses ===
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.13.0
+Stable tag: 1.14.0
 
 Mcuire African Restaurant's online West African cooking academy, at /cooking-courses/.
 
@@ -30,6 +30,11 @@ Upload the new zip (Plugins → Add New → Upload → Replace current). Your re
 Stripe settings are kept; new dishes and courses are added. Example live classes arrive as drafts.
 
 == Changelog ==
+= 1.14.0 =
+* New Google page for the live online classes: mcuire.ca/cooking-courses/live/ with its own title, description, prices, FAQ and "who it's for".
+* Live classes page in the app: "Who our live classes are for" (cooking for a partner or in-laws, missing home food, curious food lovers anywhere, groups and events).
+* Two new FAQs: cooking for your partner, and joining from outside Canada.
+
 = 1.13.0 =
 * Google recipe results: each recipe now lists its steps (recipeInstructions), fixing the Search Console notice.
 * Homepage: search description and share preview; restaurant details for Google now use current photos and a map link.

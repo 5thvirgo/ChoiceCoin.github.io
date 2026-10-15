@@ -182,7 +182,7 @@ function openCleanPath() {
   const base = config.basePath;
   if (!base || location.hash || !location.pathname.startsWith(base)) return;
   const rest = location.pathname.slice(base.length).replace(/\/$/, '');
-  if (/^(recipes|courses|live)\/[\w-]+$/.test(rest)) history.replaceState(null, '', `${base}#/${rest}`);
+  if (/^((recipes|courses|live)\/[\w-]+|live)$/.test(rest)) history.replaceState(null, '', `${base}#/${rest}`);
 }
 
 (async function boot() {
